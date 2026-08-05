@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
-
-# Base URL
 BASE_URL="http://api-base.test/api/v1"
 
-# Sanctum Personal Access Token
-TOKEN="1|HzkTJXgwBJoPdjFPL35PEN05LFkKXUajQ672LDBy1ae1f286"
+TOKEN_FILE="$(dirname "${BASH_SOURCE[0]}")/.token"
 
-# Common Headers
+if [ -f "$TOKEN_FILE" ]; then
+    TOKEN=$(cat "$TOKEN_FILE")
+else
+    TOKEN=""
+fi
+
 AUTH_HEADER="Authorization: Bearer ${TOKEN}"
+
 JSON_HEADER="Accept: application/json"
+
 CONTENT_HEADER="Content-Type: application/json"

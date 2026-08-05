@@ -39,37 +39,7 @@ fi
 echo "$TOKEN" > "${SCRIPT_DIR}/.token"
 
 echo
-echo
 echo "======================================="
 echo "Token saved successfully."
 echo "======================================="
-echo
-echo
-
-
-echo "======================================="
-echo "2. Get Authenticated User"
-echo "======================================="
-
-curl --silent \
-    --request GET \
-    --url "${BASE_URL}/auth/me" \
-    --header "${JSON_HEADER}" \
-    --header "Authorization: Bearer ${TOKEN}"
-
-echo
-echo
-
-
-echo "======================================="
-echo "3. Logout"
-echo "======================================="
-
-curl --silent \
-    --request POST \
-    --url "${BASE_URL}/auth/logout" \
-    --header "${JSON_HEADER}" \
-    --header "Authorization: Bearer ${TOKEN}"
-
-echo
 echo
