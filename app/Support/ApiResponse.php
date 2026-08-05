@@ -164,14 +164,14 @@ final class ApiResponse
     }
 
     public static function serverError(
-        string $message = '',
+       ?string $message = null,
         ?array $errors = null,
         array $meta = []
     ): JsonResponse {
         return self::respond(
             success: false,
             status: Response::HTTP_INTERNAL_SERVER_ERROR,
-            message: $message ?: __('responses.server_error'),
+            message: $message ?? __('responses.server_error'),
             data: null,
             errors: $errors,
             meta: $meta
