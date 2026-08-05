@@ -10,15 +10,18 @@ use Illuminate\Database\Eloquent\Model;
 abstract class BaseModel extends Model
 {
     use HasUuids;
-    
 
     /**
      * The primary key type.
+     *
+     * @var string
      */
     protected $keyType = 'string';
 
     /**
      * Indicates if the IDs are auto-incrementing.
+     *
+     * @var bool
      */
     public $incrementing = false;
 }
