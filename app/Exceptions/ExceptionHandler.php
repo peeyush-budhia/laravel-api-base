@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Exceptions;
 
 use App\Support\ApiResponse;
-use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
@@ -27,44 +27,36 @@ final class ExceptionHandler
 
         return match (true) {
 
-            $e instanceof ValidationException =>
-                ApiResponse::validation(
-                    errors: $e->errors()
-                ),
+            $e instanceof ValidationException => ApiResponse::validation(
+                errors: $e->errors()
+            ),
 
-            $e instanceof AuthenticationException =>
-                ApiResponse::unauthorized(),
+            $e instanceof AuthenticationException => ApiResponse::unauthorized(),
 
-            $e instanceof AuthorizationException =>
-                ApiResponse::forbidden(),
+            $e instanceof AuthorizationException => ApiResponse::forbidden(),
 
             $e instanceof ModelNotFoundException,
-            $e instanceof NotFoundHttpException =>
-                ApiResponse::notFound(),
+            $e instanceof NotFoundHttpException => ApiResponse::notFound(),
 
-            $e instanceof ThrottleRequestsException =>
-                ApiResponse::badRequest(
-                    message: 'Too many requests.'
-                ),
+            $e instanceof ThrottleRequestsException => ApiResponse::badRequest(
+                message: 'Too many requests.'
+            ),
 
-            $e instanceof QueryException =>
-                ApiResponse::serverError(
-                    message: config('app.debug')
-                        ? $e->getMessage()
-                        : null
-                ),
+            $e instanceof QueryException => ApiResponse::serverError(
+                message: config('app.debug')
+                    ? $e->getMessage()
+                    : null
+            ),
 
-            $e instanceof HttpExceptionInterface =>
-                ApiResponse::badRequest(
-                    message: $e->getMessage() ?: Response::$statusTexts[$e->getStatusCode()]
-                ),
+            $e instanceof HttpExceptionInterface => ApiResponse::badRequest(
+                message: $e->getMessage() ?: Response::$statusTexts[$e->getStatusCode()]
+            ),
 
-            default =>
-                ApiResponse::serverError(
-                    message: config('app.debug')
-                        ? $e->getMessage()
-                        : null
-                ),
+            default => ApiResponse::serverError(
+                message: config('app.debug')
+                    ? $e->getMessage()
+                    : null
+            ),
         };
     }
 }

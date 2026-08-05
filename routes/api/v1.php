@@ -10,10 +10,9 @@ declare(strict_types=1);
 | Register all V1 route modules here.
 |
 */
-require_once __DIR__ . '/v1/health.php';
-require_once __DIR__ . '/v1/auth.php';
-require_once __DIR__ . '/v1/users.php';
-
+require_once __DIR__.'/v1/health.php';
+require_once __DIR__.'/v1/auth.php';
+require_once __DIR__.'/v1/users.php';
 
 // Future modules
 // require_once __DIR__ . '/v1/roles.php';

@@ -15,8 +15,8 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        api: __DIR__ . '/../routes/api.php',
-        commands: __DIR__ . '/../routes/console.php',
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -34,7 +34,6 @@ return Application::configure(basePath: dirname(__DIR__))
             fn (Request $request): bool => $request->is('api/*'),
         );
 
-
         /*
         |--------------------------------------------------------------------------
         | Validation Error - 422
@@ -49,7 +48,6 @@ return Application::configure(basePath: dirname(__DIR__))
 
         });
 
-
         /*
         |--------------------------------------------------------------------------
         | Authentication Error - 401
@@ -61,7 +59,6 @@ return Application::configure(basePath: dirname(__DIR__))
             return ApiResponse::unauthorized();
 
         });
-
 
         /*
         |--------------------------------------------------------------------------
@@ -75,7 +72,6 @@ return Application::configure(basePath: dirname(__DIR__))
 
         });
 
-
         /*
         |--------------------------------------------------------------------------
         | Model Not Found - 404
@@ -87,7 +83,6 @@ return Application::configure(basePath: dirname(__DIR__))
             return ApiResponse::notFound();
 
         });
-
 
         /*
         |--------------------------------------------------------------------------

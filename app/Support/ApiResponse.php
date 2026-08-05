@@ -164,7 +164,7 @@ final class ApiResponse
     }
 
     public static function serverError(
-       ?string $message = null,
+        ?string $message = null,
         ?array $errors = null,
         array $meta = []
     ): JsonResponse {
