@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 abstract class BaseModel extends Model
 {
     use HasUuids;
+    
 
     /**
      * The primary key type.
