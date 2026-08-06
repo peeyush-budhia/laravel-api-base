@@ -10,20 +10,20 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('users', function (Blueprint $table): void {
             $table->uuid('id')->primary();
 
             $table->string('first_name', 100);
             $table->string('last_name', 100);
 
-            $table->string('email')->unique();
-            $table->string('phone', 20)->nullable();
+            $table->string('email', 255)->unique();
 
-            $table->text('address')->nullable();
-            $table->string('job_title', 100)->nullable();
             $table->string('avatar')->nullable();
 
+            $table->string('status', 20)->default('active');
+
             $table->timestamp('email_verified_at')->nullable();
+            $table->timestamp('last_login_at')->nullable();
 
             $table->string('password');
 
