@@ -195,4 +195,20 @@ final class ApiResponse
             'meta' => (object) $meta,
         ], $status);
     }
+
+    public static function error(
+        int $status,
+        string $message,
+        ?array $errors = null,
+        array $meta = []
+    ): JsonResponse {
+        return self::respond(
+            success: false,
+            status: $status,
+            message: $message,
+            data: null,
+            errors: $errors,
+            meta: $meta
+        );
+    }
 }
