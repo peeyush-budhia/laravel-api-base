@@ -3,34 +3,45 @@ name: Tests
 on:
   push:
     branches:
-      - develop
       - main
+      - develop
       - "feature/**"
 
   pull_request:
     branches:
-      - develop
       - main
+      - develop
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   tests:
+    name: Laravel Tests
     runs-on: ubuntu-latest
 
     services:
       mysql:
         image: mysql:8.4
+
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: laravel_api_base_test
           MYSQL_USER: laravel
           MYSQL_PASSWORD: secret
+
         ports:
           - 3306:3306
+
         options: >-
-          --health-cmd="mysqladmin ping --silent"
+          --health-cmd="mysqladmin ping -h127.0.0.1 -uroot -proot --silent"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=10
 
     steps:
       - name: Checkout Repository
@@ -41,15 +52,27 @@ jobs:
         with:
           php-version: "8.4"
           coverage: none
-          extensions: mbstring, pdo_mysql, intl, bcmath, xml, curl, zip
+          extensions: >
+            mbstring,
+            pdo_mysql,
+            intl,
+            bcmath,
+            xml,
+            curl,
+            zip
 
       - name: Validate Composer
         run: composer validate --strict
 
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: |
+          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
       - name: Cache Composer Dependencies
         uses: actions/cache@v4
         with:
-          path: vendor
+          path: ${{ steps.composer-cache.outputs.dir }}
           key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
           restore-keys: |
             composer-${{ runner.os }}-
@@ -57,33 +80,40 @@ jobs:
       - name: Install Composer Dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
-      - name: Copy Environment File
-        run: cp .env.example .env
+      - name: Prepare Environment
+        run: cp .env.ci .env
 
       - name: Generate Application Key
         run: php artisan key:generate
 
-      - name: Configure Environment
+      - name: Clear Laravel Cache
         run: |
-          php -r "file_put_contents('.env', preg_replace(
-            [
-              '/^DB_CONNECTION=.*/m',
-              '/^DB_HOST=.*/m',
-              '/^DB_PORT=.*/m',
-              '/^DB_DATABASE=.*/m',
-              '/^DB_USERNAME=.*/m',
-              '/^DB_PASSWORD=.*/m'
-            ],
-            [
-              'DB_CONNECTION=mysql',
-              'DB_HOST=127.0.0.1',
-              'DB_PORT=3306',
-              'DB_DATABASE=laravel_api_base_test',
-              'DB_USERNAME=laravel',
-              'DB_PASSWORD=secret'
-            ],
-            file_get_contents('.env')
-          ));"
+          php artisan optimize:clear
+
+      - name: Wait for MySQL
+        run: |
+          until mysqladmin ping -h127.0.0.1 -ularavel -psecret --silent; do
+            sleep 2
+          done
+
+      - name: Verify Environment
+        run: |
+          php artisan env
+
+      - name: Verify Database Configuration
+        run: |
+          php -r "
+          require 'vendor/autoload.php';
+          \$app=require 'bootstrap/app.php';
+          \$kernel=\$app->make(Illuminate\Contracts\Console\Kernel::class);
+          \$kernel->bootstrap();
+
+          echo 'DB_CONNECTION='.config('database.default').PHP_EOL;
+          echo 'DB_HOST='.config('database.connections.mysql.host').PHP_EOL;
+          echo 'DB_PORT='.config('database.connections.mysql.port').PHP_EOL;
+          echo 'DB_DATABASE='.config('database.connections.mysql.database').PHP_EOL;
+          echo 'DB_USERNAME='.config('database.connections.mysql.username').PHP_EOL;
+          "
 
       - name: Run Database Migrations
         run: php artisan migrate --force
