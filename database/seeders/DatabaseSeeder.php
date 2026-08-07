@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Enums\UserStatus;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -23,6 +24,7 @@ class DatabaseSeeder extends Seeder
                 'last_name' => 'Budhia',
 
                 'avatar' => null,
+                'status' => UserStatus::ACTIVE,
 
                 'email_verified_at' => now(),
 
