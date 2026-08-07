@@ -22,10 +22,6 @@ class DatabaseSeeder extends Seeder
                 'first_name' => 'Peeyush',
                 'last_name' => 'Budhia',
 
-                'phone' => '9876543210',
-
-                'address' => null,
-                'job_title' => 'Administrator',
                 'avatar' => null,
 
                 'email_verified_at' => now(),
