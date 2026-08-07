@@ -7,9 +7,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/variables.sh"
 
 
-echo "======================================="
-echo "1. Login"
-echo "======================================="
+echo "=======================================">&2
+echo "1. Login">&2
+echo "=======================================">&2
 
 RESPONSE=$(curl --silent \
     --request POST \
@@ -39,7 +39,7 @@ fi
 echo "$TOKEN" > "${SCRIPT_DIR}/.token"
 
 echo
-echo "======================================="
-echo "Token saved successfully."
-echo "======================================="
+echo "=======================================">&2
+echo "Token saved successfully.">&2
+echo "=======================================">&2
 echo
