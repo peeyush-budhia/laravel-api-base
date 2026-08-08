@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\User;
+namespace App\Http\Requests\Api\V1\User;
 
 use App\Enums\UserStatus;
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
@@ -43,7 +44,7 @@ class UpdateUserRequest extends FormRequest
                 'sometimes',
                 'email',
                 'max:255',
-                Rule::unique('users', 'email')
+                Rule::unique(User::class, 'email')
                     ->ignore($this->route('user')),
             ],
 

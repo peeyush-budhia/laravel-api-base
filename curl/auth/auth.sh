@@ -3,13 +3,12 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-source "${SCRIPT_DIR}/variables.sh"
+source "${ROOT_DIR}/variables.sh"
+source "${ROOT_DIR}/helpers.sh"
 
-
-echo "=======================================">&2
-echo "1. Login">&2
-echo "=======================================">&2
+print_header "1. Login"
 
 RESPONSE=$(curl --silent \
     --request POST \
@@ -19,37 +18,25 @@ RESPONSE=$(curl --silent \
     --data '{
         "login": "peeyush@example.com",
         "password": "password"
-    }'
-)
+    }')
 
-echo "$RESPONSE"
+echo "${RESPONSE}"
 
-
-TOKEN=$(echo "$RESPONSE" | php -r '
+TOKEN=$(echo "${RESPONSE}" | php -r '
 $json = json_decode(stream_get_contents(STDIN), true);
 echo $json["data"]["token"] ?? "";
 ')
 
-if [ -z "$TOKEN" ]; then
-    echo "Login failed. Token not received."
+if [[ -z "${TOKEN}" ]]; then
+    echo "Login failed. Token not received." >&2
     exit 1
 fi
 
+save_token "${TOKEN}"
 
-echo "$TOKEN" > "${SCRIPT_DIR}/.token"
+print_header "Token saved successfully."
 
-echo
-echo
-echo "=======================================">&2
-echo "Token saved successfully.">&2
-echo "=======================================">&2
-echo
-echo
-
-
-echo "=======================================">&2
-echo "2. Get Authenticated User">&2
-echo "=======================================">&2
+print_header "2. Get Authenticated User"
 
 curl --silent \
     --request GET \
@@ -58,12 +45,8 @@ curl --silent \
     --header "Authorization: Bearer ${TOKEN}"
 
 echo
-echo
 
-
-echo "=======================================">&2
-echo "3. Logout">&2
-echo "=======================================">&2
+print_header "3. Logout"
 
 curl --silent \
     --request POST \
@@ -71,5 +54,6 @@ curl --silent \
     --header "${JSON_HEADER}" \
     --header "Authorization: Bearer ${TOKEN}"
 
-echo
+delete_token
+
 echo
