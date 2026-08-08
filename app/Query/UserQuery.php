@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace App\Query;
 
 use App\Models\User;
+use App\Query\Contracts\QueryDefinition;
 use Illuminate\Database\Eloquent\Builder;
 
 final class UserQuery
 {
     private readonly GenericQueryDefinition $definition;
 
-    public function __construct(
-        private readonly QueryBuilder $queryBuilder,
-    ) {
+    public function __construct()
+    {
         $this->definition = new GenericQueryDefinition(
             searchable: [
                 'first_name',
@@ -33,12 +33,19 @@ final class UserQuery
         );
     }
 
-    public function build(QueryParameters $parameters): Builder
+    /**
+     * Get the query definition.
+     */
+    public function definition(): QueryDefinition
     {
-        return $this->queryBuilder->apply(
-            User::query(),
-            $parameters,
-            $this->definition,
-        );
+        return $this->definition;
+    }
+
+    /**
+     * Get the base user query.
+     */
+    public function query(): Builder
+    {
+        return User::query();
     }
 }

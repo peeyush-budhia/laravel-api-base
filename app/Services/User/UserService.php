@@ -26,11 +26,10 @@ class UserService
     public function index(
         QueryParameters $parameters
     ): LengthAwarePaginator {
-        $query = $this->userQuery->build($parameters);
-
         return $this->queryExecutor->paginate(
-            $query,
+            $this->userQuery->query(),
             $parameters,
+            $this->userQuery->definition(),
         );
     }
 
