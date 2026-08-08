@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Query;
 
+use App\Query\Contracts\QueryDefinition;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -11,34 +12,28 @@ final class QueryBuilder
 {
     /**
      * Apply generic query parameters to an Eloquent query.
-     *
-     * @param  array<int, string>  $searchable
-     * @param  array<int, string>  $sortable
-     * @param  array<int, string>  $filterable
      */
     public function apply(
         Builder $query,
         QueryParameters $parameters,
-        array $searchable = [],
-        array $sortable = [],
-        array $filterable = [],
+        QueryDefinition $definition,
     ): Builder {
         $this->applySearch(
             $query,
             $parameters,
-            $searchable,
+            $definition->searchable(),
         );
 
         $this->applyFilters(
             $query,
             $parameters,
-            $filterable,
+            $definition->filterable(),
         );
 
         $this->applySort(
             $query,
             $parameters,
-            $sortable,
+            $definition->sortable(),
         );
 
         return $query;

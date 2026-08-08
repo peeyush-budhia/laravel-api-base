@@ -5,46 +5,57 @@ declare(strict_types=1);
 namespace App\Query;
 
 use App\Models\User;
+use App\Query\Contracts\QueryContract;
+use App\Query\Contracts\QueryDefinition;
 use Illuminate\Database\Eloquent\Builder;
 
-final class UserQuery
+final class UserQuery implements QueryContract, QueryDefinition
 {
+    public function __construct(
+        private readonly QueryBuilder $queryBuilder,
+    ) {}
+
     /**
      * Fields available for user search.
      *
-     * @var array<int, string>
+     * @return array<int, string>
      */
-    private const SEARCHABLE = [
-        'first_name',
-        'last_name',
-        'email',
-    ];
+    public function searchable(): array
+    {
+        return [
+            'first_name',
+            'last_name',
+            'email',
+        ];
+    }
 
     /**
      * Fields available for user sorting.
      *
-     * @var array<int, string>
+     * @return array<int, string>
      */
-    private const SORTABLE = [
-        'first_name',
-        'last_name',
-        'email',
-        'created_at',
-        'updated_at',
-    ];
+    public function sortable(): array
+    {
+        return [
+            'first_name',
+            'last_name',
+            'email',
+            'created_at',
+            'updated_at',
+        ];
+    }
 
     /**
-     * Fields available for user filter.
+     * Fields available for user filtering.
      *
-     * @var array<int, string>
+     * @return array<int, string>
      */
-    private const FILTERABLE = [
-        'status',
-    ];
-
-    public function __construct(
-        private readonly QueryBuilder $queryBuilder,
-    ) {}
+    public function filterable(): array
+    {
+        return [
+            'status',
+        ];
+    }
 
     /**
      * Build the user query.
@@ -54,9 +65,8 @@ final class UserQuery
         return $this->queryBuilder->apply(
             User::query(),
             $parameters,
-            self::SEARCHABLE,
-            self::SORTABLE,
-            self::FILTERABLE,
+            $this,
         );
+
     }
 }
