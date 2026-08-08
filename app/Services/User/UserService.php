@@ -6,20 +6,30 @@ namespace App\Services\User;
 
 use App\Enums\UserStatus;
 use App\Models\User;
+use App\Query\QueryParameters;
+use App\Query\UserQuery;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 class UserService
 {
+    public function __construct(
+        private readonly UserQuery $userQuery,
+    ) {}
+
     /**
      * Get paginated users.
      */
-    public function index(int $perPage = 15): LengthAwarePaginator
-    {
-        return User::query()
-            ->latest()
-            ->paginate($perPage);
+    public function index(
+        QueryParameters $parameters
+    ): LengthAwarePaginator {
+        return $this->userQuery
+            ->build($parameters)
+            ->paginate(
+                perPage: $parameters->perPage,
+                page: $parameters->page,
+            );
     }
 
     /**

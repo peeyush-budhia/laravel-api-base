@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\User;
 
-use App\Constants\PaginationConstants;
 use App\Enums\UserStatus;
 use App\Http\Controllers\BaseApiController;
 use App\Http\Requests\Api\V1\User\ChangeUserStatusRequest;
@@ -12,6 +11,7 @@ use App\Http\Requests\Api\V1\User\StoreUserRequest;
 use App\Http\Requests\Api\V1\User\UpdateUserRequest;
 use App\Http\Resources\Api\V1\UserResource;
 use App\Models\User;
+use App\Query\QueryParameters;
 use App\Services\User\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -27,21 +27,13 @@ class UserController extends BaseApiController
      */
     public function index(Request $request): JsonResponse
     {
-        $perPage = $request->integer(
-            'per_page',
-            PaginationConstants::DEFAULT_PER_PAGE,
-        );
+        $parameters = QueryParameters::fromRequest($request);
 
-        $perPage = max(
-            PaginationConstants::MIN_PER_PAGE,
-            min($perPage, PaginationConstants::MAX_PER_PAGE),
-        );
-
-        $users = $this->userService->index($perPage);
+        $paginator = $this->userService->index($parameters);
 
         return $this->paginated(
-            UserResource::collection($users),
-            $users,
+            UserResource::collection($paginator),
+            $paginator,
             __('responses.success'),
         );
     }
