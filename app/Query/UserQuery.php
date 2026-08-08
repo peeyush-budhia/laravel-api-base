@@ -11,11 +11,12 @@ use Illuminate\Database\Eloquent\Builder;
 
 final class UserQuery implements QueryContract
 {
-    private readonly GenericQueryDefinition $definition;
-
-    public function __construct()
+    /**
+     * Get the query definition.
+     */
+    public function definition(): QueryDefinition
     {
-        $this->definition = new GenericQueryDefinition(
+        return new GenericQueryDefinition(
             searchable: [
                 'first_name',
                 'last_name',
@@ -32,14 +33,6 @@ final class UserQuery implements QueryContract
                 'status',
             ],
         );
-    }
-
-    /**
-     * Get the query definition.
-     */
-    public function definition(): QueryDefinition
-    {
-        return $this->definition;
     }
 
     /**
