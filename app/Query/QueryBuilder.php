@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Query;
 
 use App\Query\Contracts\QueryDefinition;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 
 final class QueryBuilder
@@ -126,19 +125,6 @@ final class QueryBuilder
         $query->orderBy(
             $parameters->sort,
             $parameters->direction,
-        );
-    }
-
-    /**
-     * Paginate the query.
-     */
-    public function paginate(
-        Builder $query,
-        QueryParameters $parameters,
-    ): LengthAwarePaginator {
-        return $query->paginate(
-            perPage: $parameters->perPage,
-            page: $parameters->page,
         );
     }
 }

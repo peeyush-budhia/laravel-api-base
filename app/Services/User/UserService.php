@@ -6,6 +6,7 @@ namespace App\Services\User;
 
 use App\Enums\UserStatus;
 use App\Models\User;
+use App\Query\QueryExecutor;
 use App\Query\QueryParameters;
 use App\Query\UserQuery;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -16,6 +17,7 @@ class UserService
 {
     public function __construct(
         private readonly UserQuery $userQuery,
+        private readonly QueryExecutor $queryExecutor,
     ) {}
 
     /**
@@ -24,12 +26,12 @@ class UserService
     public function index(
         QueryParameters $parameters
     ): LengthAwarePaginator {
-        return $this->userQuery
-            ->build($parameters)
-            ->paginate(
-                perPage: $parameters->perPage,
-                page: $parameters->page,
-            );
+        $query = $this->userQuery->build($parameters);
+
+        return $this->queryExecutor->paginate(
+            $query,
+            $parameters,
+        );
     }
 
     /**
