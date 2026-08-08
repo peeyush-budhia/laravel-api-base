@@ -48,6 +48,38 @@ final class QueryExecutorTest extends TestCase
         $this->assertCount(3, $result->items());
         $this->assertSame(4, $result->total());
     }
+
+    public function test_it_applies_the_query_definition(): void
+    {
+        User::factory()->create([
+            'first_name' => 'Alice',
+            'last_name' => 'Smith',
+            'email' => 'alice@example.com',
+        ]);
+
+        User::factory()->create([
+            'first_name' => 'Bob',
+            'last_name' => 'Jones',
+            'email' => 'bob@example.com',
+        ]);
+
+        $query = new TestQuery(
+            new GenericQueryDefinition(
+                searchable: ['first_name'],
+            ),
+        );
+
+        $result = app(QueryExecutor::class)->paginate(
+            $query,
+            new QueryParameters(
+                search: 'Alice',
+                perPage: 10,
+            ),
+        );
+
+        $this->assertSame(1, $result->total());
+        $this->assertSame('Alice', $result->first()->first_name);
+    }
 }
 
 /**
@@ -56,6 +88,10 @@ final class QueryExecutorTest extends TestCase
  */
 final class TestQuery implements QueryContract
 {
+    public function __construct(
+        private readonly QueryDefinition $definition = new GenericQueryDefinition,
+    ) {}
+
     public function build(): Builder
     {
         return User::query();
@@ -63,6 +99,6 @@ final class TestQuery implements QueryContract
 
     public function definition(): QueryDefinition
     {
-        return new GenericQueryDefinition;
+        return $this->definition;
     }
 }
