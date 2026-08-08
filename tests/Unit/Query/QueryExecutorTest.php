@@ -56,7 +56,7 @@ final class QueryExecutorTest extends TestCase
  */
 final class TestQuery implements QueryContract
 {
-    public function build(QueryParameters $parameters): Builder
+    public function build(): Builder
     {
         return User::query();
     }

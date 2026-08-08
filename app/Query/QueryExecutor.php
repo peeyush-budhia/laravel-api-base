@@ -20,7 +20,7 @@ final class QueryExecutor
         QueryContract $query,
         QueryParameters $parameters,
     ): LengthAwarePaginator {
-        $builder = $query->build($parameters);
+        $builder = $query->build();
 
         return $this->queryBuilder
             ->apply(

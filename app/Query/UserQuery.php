@@ -45,7 +45,7 @@ final class UserQuery implements QueryContract
     /**
      * Build user query.
      */
-    public function build(QueryParameters $parameters): Builder
+    public function build(): Builder
     {
         return User::query();
     }
