@@ -27,9 +27,8 @@ class UserService
         QueryParameters $parameters
     ): LengthAwarePaginator {
         return $this->queryExecutor->paginate(
-            $this->userQuery->query(),
+            $this->userQuery,
             $parameters,
-            $this->userQuery->definition(),
         );
     }
 

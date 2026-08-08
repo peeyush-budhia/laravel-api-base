@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Query;
 
-use App\Query\Contracts\QueryDefinition;
+use App\Query\Contracts\QueryContract;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Builder;
 
 final class QueryExecutor
 {
@@ -18,19 +17,20 @@ final class QueryExecutor
      * Build and paginate a query.
      */
     public function paginate(
-        Builder $query,
+        QueryContract $query,
         QueryParameters $parameters,
-        QueryDefinition $definition,
     ): LengthAwarePaginator {
-        $query = $this->queryBuilder->apply(
-            $query,
-            $parameters,
-            $definition,
-        );
+        $builder = $query->build($parameters);
 
-        return $query->paginate(
-            perPage: $parameters->perPage,
-            page: $parameters->page,
-        );
+        return $this->queryBuilder
+            ->apply(
+                $builder,
+                $parameters,
+                $query->definition(),
+            )
+            ->paginate(
+                perPage: $parameters->perPage,
+                page: $parameters->page,
+            );
     }
 }

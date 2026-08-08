@@ -10,7 +10,12 @@ use Illuminate\Database\Eloquent\Builder;
 interface QueryContract
 {
     /**
-     * Build the query using the supplied parameters.
+     * Build the base query.
      */
     public function build(QueryParameters $parameters): Builder;
+
+    /**
+     * Get the query definition.
+     */
+    public function definition(): QueryDefinition;
 }

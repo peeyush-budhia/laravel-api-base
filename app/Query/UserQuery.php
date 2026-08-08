@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Query;
 
 use App\Models\User;
+use App\Query\Contracts\QueryContract;
 use App\Query\Contracts\QueryDefinition;
 use Illuminate\Database\Eloquent\Builder;
 
-final class UserQuery
+final class UserQuery implements QueryContract
 {
     private readonly GenericQueryDefinition $definition;
 
@@ -42,9 +43,9 @@ final class UserQuery
     }
 
     /**
-     * Get the base user query.
+     * Build user query.
      */
-    public function query(): Builder
+    public function build(QueryParameters $parameters): Builder
     {
         return User::query();
     }
