@@ -32,6 +32,10 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        $this->call([
+            RolePermissionSeeder::class,
+        ]);
+
         // User::factory()->count(10)->create();
     }
 }

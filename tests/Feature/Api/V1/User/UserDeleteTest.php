@@ -6,9 +6,22 @@ namespace Tests\Feature\Api\V1\User;
 
 use App\Models\User;
 use Tests\Feature\Api\V1\ApiTestCase;
+use Tests\Feature\Api\V1\Concerns\InteractsWithPermissions;
 
 final class UserDeleteTest extends ApiTestCase
 {
+    use InteractsWithPermissions;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->givePermission(
+            $this->user,
+            'users.delete',
+        );
+    }
+
     public function test_user_can_be_deleted(): void
     {
         $user = User::factory()->create();

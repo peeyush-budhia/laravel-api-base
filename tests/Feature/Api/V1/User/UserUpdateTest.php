@@ -7,22 +7,36 @@ namespace Tests\Feature\Api\V1\User;
 use App\Enums\UserStatus;
 use App\Models\User;
 use Tests\Feature\Api\V1\ApiTestCase;
+use Tests\Feature\Api\V1\Concerns\InteractsWithPermissions;
 
 final class UserUpdateTest extends ApiTestCase
 {
+    use InteractsWithPermissions;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->givePermission(
+            $this->user,
+            'users.update',
+        );
+    }
+
     public function test_user_can_be_updated(): void
     {
         $user = User::factory()->create([
             'first_name' => 'John',
             'last_name' => 'Doe',
-            'email' => 'john@example.com',
             'status' => UserStatus::ACTIVE,
         ]);
+
+        $newEmail = fake()->unique()->safeEmail();
 
         $payload = [
             'first_name' => 'Jane',
             'last_name' => 'Smith',
-            'email' => 'jane@example.com',
+            'email' => $newEmail,
             'status' => UserStatus::INACTIVE->value,
         ];
 
@@ -35,14 +49,17 @@ final class UserUpdateTest extends ApiTestCase
             ->assertJsonPath('message', __('responses.updated'))
             ->assertJsonPath('data.first_name', 'Jane')
             ->assertJsonPath('data.last_name', 'Smith')
-            ->assertJsonPath('data.email', 'jane@example.com')
-            ->assertJsonPath('data.status', UserStatus::INACTIVE->value);
+            ->assertJsonPath('data.email', $newEmail)
+            ->assertJsonPath(
+                'data.status',
+                UserStatus::INACTIVE->value,
+            );
 
         $this->assertDatabaseHas('users', [
             'id' => $user->id,
             'first_name' => 'Jane',
             'last_name' => 'Smith',
-            'email' => 'jane@example.com',
+            'email' => $newEmail,
             'status' => UserStatus::INACTIVE->value,
         ]);
     }
@@ -75,13 +92,16 @@ final class UserUpdateTest extends ApiTestCase
                 'first_name' => 'John',
                 'last_name' => 'Doe',
                 'email' => 'john@example.com',
-            ]
+            ],
         );
 
         $response
             ->assertNotFound()
             ->assertJsonPath('success', false)
             ->assertJsonPath('status', 404)
-            ->assertJsonPath('message', __('responses.not_found'));
+            ->assertJsonPath(
+                'message',
+                __('responses.not_found'),
+            );
     }
 }

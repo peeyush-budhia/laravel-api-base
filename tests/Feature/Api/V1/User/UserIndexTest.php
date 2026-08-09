@@ -6,16 +6,21 @@ namespace Tests\Feature\Api\V1\User;
 
 use App\Enums\UserStatus;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Feature\Api\V1\ApiTestCase;
+use Tests\Feature\Api\V1\Concerns\InteractsWithPermissions;
 
 final class UserIndexTest extends ApiTestCase
 {
-    use RefreshDatabase;
+    use InteractsWithPermissions;
 
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->givePermission(
+            $this->user,
+            'users.view',
+        );
 
         $this->user->delete();
     }
@@ -59,8 +64,6 @@ final class UserIndexTest extends ApiTestCase
         User::factory()->count(30)->create();
 
         $response = $this->apiGet('/users');
-
-        //         dd($response->json());
 
         $response
             ->assertOk()
@@ -226,9 +229,7 @@ final class UserIndexTest extends ApiTestCase
             'email' => 'jane@example.com',
         ]);
 
-        $response = $this->apiGet(
-            '/users?unsupported=value'
-        );
+        $response = $this->apiGet('/users?unsupported=value');
 
         $response
             ->assertOk()
@@ -281,7 +282,7 @@ final class UserIndexTest extends ApiTestCase
         ]);
 
         $response = $this->apiGet(
-            '/users?sort=first_name&direction=invalid'
+            '/users?sort=first_name&direction=invalid',
         );
 
         $response
@@ -301,7 +302,7 @@ final class UserIndexTest extends ApiTestCase
         ]);
 
         $response = $this->apiGet(
-            '/users?sort=email&direction=desc'
+            '/users?sort=email&direction=desc',
         );
 
         $response
@@ -320,7 +321,7 @@ final class UserIndexTest extends ApiTestCase
         ]);
 
         $response = $this->apiGet(
-            '/users?sort=first_name&direction=asc'
+            '/users?sort=first_name&direction=asc',
         );
 
         $response

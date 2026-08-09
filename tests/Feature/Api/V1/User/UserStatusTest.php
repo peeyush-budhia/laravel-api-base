@@ -7,9 +7,22 @@ namespace Tests\Feature\Api\V1\User;
 use App\Enums\UserStatus;
 use App\Models\User;
 use Tests\Feature\Api\V1\ApiTestCase;
+use Tests\Feature\Api\V1\Concerns\InteractsWithPermissions;
 
 final class UserStatusTest extends ApiTestCase
 {
+    use InteractsWithPermissions;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->givePermission(
+            $this->user,
+            'users.change-status',
+        );
+    }
+
     public function test_active_user_can_be_marked_inactive(): void
     {
         $user = User::factory()->create([

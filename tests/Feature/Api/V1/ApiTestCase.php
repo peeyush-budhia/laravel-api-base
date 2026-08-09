@@ -27,9 +27,6 @@ abstract class ApiTestCase extends TestCase
         Sanctum::actingAs($this->user);
     }
 
-    /**
-     * Send a GET request.
-     */
     protected function apiGet(string $uri, array $headers = [])
     {
         return $this->getJson(
@@ -38,9 +35,6 @@ abstract class ApiTestCase extends TestCase
         );
     }
 
-    /**
-     * Send a POST request.
-     */
     protected function apiPost(
         string $uri,
         array $data = [],
@@ -53,9 +47,6 @@ abstract class ApiTestCase extends TestCase
         );
     }
 
-    /**
-     * Send a PUT request.
-     */
     protected function apiPut(
         string $uri,
         array $data = [],
@@ -68,9 +59,6 @@ abstract class ApiTestCase extends TestCase
         );
     }
 
-    /**
-     * Send a PATCH request.
-     */
     protected function apiPatch(
         string $uri,
         array $data = [],
@@ -83,9 +71,6 @@ abstract class ApiTestCase extends TestCase
         );
     }
 
-    /**
-     * Send a DELETE request.
-     */
     protected function apiDelete(
         string $uri,
         array $headers = [],
@@ -98,8 +83,6 @@ abstract class ApiTestCase extends TestCase
     }
 
     /**
-     * Valid user payload.
-     *
      * @return array<string, mixed>
      */
     protected function validUserData(array $overrides = []): array

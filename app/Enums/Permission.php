@@ -1,0 +1,15 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Enums;
+
+enum Permission: string
+{
+    case USERS_VIEW = 'users.view';
+    case USERS_CREATE = 'users.create';
+    case USERS_UPDATE = 'users.update';
+    case USERS_DELETE = 'users.delete';
+    case USERS_RESTORE = 'users.restore';
+    case USERS_CHANGE_STATUS = 'users.change-status';
+}

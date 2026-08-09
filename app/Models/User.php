@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 #[Fillable([
     'first_name',
@@ -30,6 +31,7 @@ class User extends Authenticatable
 {
     use HasApiTokens;
     use HasFactory;
+    use HasRoles;
     use HasUuids;
     use Notifiable;
     use SoftDeletes;
@@ -47,6 +49,14 @@ class User extends Authenticatable
      * @var bool
      */
     public $incrementing = false;
+
+    /**
+     * Default guard name
+     */
+    public function getDefaultGuardName(): string
+    {
+        return 'sanctum';
+    }
 
     /**
      * Get the attributes that should be cast.
