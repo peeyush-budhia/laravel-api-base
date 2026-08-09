@@ -328,4 +328,22 @@ final class UserIndexTest extends ApiTestCase
             ->assertJsonPath('data.0.first_name', 'Alice')
             ->assertJsonPath('data.1.first_name', 'Zack');
     }
+
+    public function test_search_returns_empty_data_when_no_users_match(): void
+    {
+        User::factory()->create([
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'email' => 'john@example.com',
+        ]);
+
+        $response = $this->apiGet('/users?search=does-not-exist');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('message', __('responses.success'))
+            ->assertJsonCount(0, 'data')
+            ->assertJsonPath('meta.total', 0);
+    }
 }
