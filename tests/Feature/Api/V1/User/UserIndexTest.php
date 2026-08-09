@@ -234,4 +234,98 @@ final class UserIndexTest extends ApiTestCase
             ->assertOk()
             ->assertJsonCount(2, 'data');
     }
+
+    public function test_page_is_normalized_to_one(): void
+    {
+        User::factory()->count(5)->create();
+
+        $response = $this->apiGet('/users?page=-5');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('meta.current_page', 1);
+    }
+
+    public function test_per_page_is_clamped_to_minimum(): void
+    {
+        User::factory()->count(5)->create();
+
+        $response = $this->apiGet('/users?per_page=-10');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('meta.per_page', 1)
+            ->assertJsonCount(1, 'data');
+    }
+
+    public function test_per_page_is_clamped_to_maximum(): void
+    {
+        User::factory()->count(105)->create();
+
+        $response = $this->apiGet('/users?per_page=1000');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('meta.per_page', 100)
+            ->assertJsonCount(100, 'data');
+    }
+
+    public function test_invalid_direction_defaults_to_ascending(): void
+    {
+        User::factory()->create([
+            'first_name' => 'Zack',
+        ]);
+
+        User::factory()->create([
+            'first_name' => 'Alice',
+        ]);
+
+        $response = $this->apiGet(
+            '/users?sort=first_name&direction=invalid'
+        );
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('data.0.first_name', 'Alice')
+            ->assertJsonPath('data.1.first_name', 'Zack');
+    }
+
+    public function test_unsupported_sort_is_ignored(): void
+    {
+        User::factory()->create([
+            'first_name' => 'Zack',
+        ]);
+
+        User::factory()->create([
+            'first_name' => 'Alice',
+        ]);
+
+        $response = $this->apiGet(
+            '/users?sort=email&direction=desc'
+        );
+
+        $response
+            ->assertOk()
+            ->assertJsonCount(2, 'data');
+    }
+
+    public function test_users_can_be_sorted_by_allowed_field(): void
+    {
+        User::factory()->create([
+            'first_name' => 'Zack',
+        ]);
+
+        User::factory()->create([
+            'first_name' => 'Alice',
+        ]);
+
+        $response = $this->apiGet(
+            '/users?sort=first_name&direction=asc'
+        );
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('data.0.first_name', 'Alice')
+            ->assertJsonPath('data.1.first_name', 'Zack');
+    }
 }
