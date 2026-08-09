@@ -16,9 +16,6 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::get('users', [UserController::class, 'index'])
         ->name('users.index');
 
-    Route::get('users/search', [UserController::class, 'search'])
-        ->name('users.search');
-
     Route::get('users/{user}', [UserController::class, 'show'])
         ->name('users.show');
 

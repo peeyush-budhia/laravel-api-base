@@ -10,7 +10,6 @@ use App\Query\QueryExecutor;
 use App\Query\QueryParameters;
 use App\Query\UserQuery;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 class UserService
@@ -111,21 +110,5 @@ class UserService
         ]);
 
         return $user->fresh();
-    }
-
-    /**
-     * Search users.
-     */
-    public function search(string $search, int $perPage = 15): LengthAwarePaginator
-    {
-        return User::query()
-            ->where(function (Builder $query) use ($search): void {
-                $query
-                    ->where('first_name', 'like', "%{$search}%")
-                    ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
-            })
-            ->latest()
-            ->paginate($perPage);
     }
 }

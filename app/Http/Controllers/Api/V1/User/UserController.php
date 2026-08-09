@@ -126,20 +126,4 @@ class UserController extends BaseApiController
             __('responses.status_changed'),
         );
     }
-
-    /**
-     * Search users.
-     */
-    public function search(Request $request): JsonResponse
-    {
-        $users = $this->userService->search(
-            (string) $request->string('search'),
-            (int) $request->integer('per_page', 15),
-        );
-
-        return $this->success(
-            UserResource::collection($users),
-            __('responses.success')
-        );
-    }
 }
