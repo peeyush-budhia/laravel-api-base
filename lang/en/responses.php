@@ -6,7 +6,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Success Responses
+    | Request Responses
     |--------------------------------------------------------------------------
     */
 
@@ -14,6 +14,10 @@ return [
     'created' => 'Resource created successfully.',
     'updated' => 'Resource updated successfully.',
     'deleted' => 'Resource deleted successfully.',
+    'restored' => 'Resource restored successfully.',
+    'status_changed' => 'Status updated successfully.',
+
+    'too_many_requests' => 'Too many requests. Please try again later.',
 
     /*
     |--------------------------------------------------------------------------

@@ -1,0 +1,114 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\User;
+
+use App\Enums\UserStatus;
+use App\Models\User;
+use App\Query\QueryExecutor;
+use App\Query\QueryParameters;
+use App\Query\UserQuery;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+
+class UserService
+{
+    public function __construct(
+        private readonly UserQuery $userQuery,
+        private readonly QueryExecutor $queryExecutor,
+    ) {}
+
+    /**
+     * Get paginated users.
+     */
+    public function index(
+        QueryParameters $parameters
+    ): LengthAwarePaginator {
+        return $this->queryExecutor->paginate(
+            $this->userQuery,
+            $parameters,
+        );
+    }
+
+    /**
+     * Get a single user.
+     */
+    public function show(User $user): User
+    {
+        return $user;
+    }
+
+    /**
+     * Create a new user.
+     */
+    public function store(array $data): User
+    {
+        return DB::transaction(function () use ($data): User {
+            $data['status'] ??= UserStatus::ACTIVE;
+
+            /** @var User $user */
+            $user = User::create($data);
+
+            return $user->fresh();
+        });
+    }
+
+    /**
+     * Update an existing user.
+     */
+    public function update(User $user, array $data): User
+    {
+        return DB::transaction(function () use ($user, $data): User {
+            if (empty($data['password'])) {
+                unset($data['password']);
+            }
+
+            $user->update($data);
+
+            return $user->fresh();
+        });
+    }
+
+    /**
+     * Soft delete a user.
+     */
+    public function destroy(User $user): bool
+    {
+        return (bool) $user->delete();
+    }
+
+    /**
+     * Restore a soft deleted user.
+     */
+    public function restore(string $id): User
+    {
+        $user = User::withTrashed()->findOrFail($id);
+
+        $user->restore();
+
+        return $user->fresh();
+    }
+
+    /**
+     * Permanently delete a user.
+     */
+    public function forceDelete(string $id): bool
+    {
+        $user = User::withTrashed()->findOrFail($id);
+
+        return (bool) $user->forceDelete();
+    }
+
+    /**
+     * Change user status.
+     */
+    public function changeStatus(User $user, UserStatus $status): User
+    {
+        $user->update([
+            'status' => $status,
+        ]);
+
+        return $user->fresh();
+    }
+}
