@@ -12,4 +12,10 @@ enum Permission: string
     case USERS_DELETE = 'users.delete';
     case USERS_RESTORE = 'users.restore';
     case USERS_CHANGE_STATUS = 'users.change-status';
+
+    case ROLES_VIEW = 'roles.view';
+    case ROLES_CREATE = 'roles.create';
+    case ROLES_UPDATE = 'roles.update';
+    case ROLES_DELETE = 'roles.delete';
+    case ROLES_MANAGE_PERMISSIONS = 'roles.manage-permissions';
 }
