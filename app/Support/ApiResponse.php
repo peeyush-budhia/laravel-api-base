@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 use Symfony\Component\HttpFoundation\Response;
 
 final class ApiResponse
@@ -14,6 +16,9 @@ final class ApiResponse
         //
     }
 
+    /**
+     * Return ok response.
+     */
     public static function ok(
         mixed $data = null,
         string $message = '',
@@ -29,6 +34,9 @@ final class ApiResponse
         );
     }
 
+    /**
+     * Return created response.
+     */
     public static function created(
         mixed $data = null,
         string $message = '',
@@ -44,6 +52,9 @@ final class ApiResponse
         );
     }
 
+    /**
+     * Return updated response.
+     */
     public static function updated(
         mixed $data = null,
         string $message = '',
@@ -59,6 +70,27 @@ final class ApiResponse
         );
     }
 
+    /**
+     * Return status changed response.
+     */
+    public static function statusChanged(
+        mixed $data = null,
+        string $message = '',
+        array $meta = []
+    ): JsonResponse {
+        return self::respond(
+            success: true,
+            status: Response::HTTP_OK,
+            message: $message ?: __('responses.status_changed'),
+            data: $data,
+            errors: null,
+            meta: $meta,
+        );
+    }
+
+    /**
+     * Return deleted response.
+     */
     public static function deleted(
         string $message = '',
         array $meta = []
@@ -73,6 +105,27 @@ final class ApiResponse
         );
     }
 
+    /**
+     * Return restored response.
+     */
+    public static function restored(
+        mixed $data = null,
+        string $message = '',
+        array $meta = []
+    ): JsonResponse {
+        return self::respond(
+            success: true,
+            status: Response::HTTP_OK,
+            message: $message ?: __('responses.restored'),
+            data: $data,
+            errors: null,
+            meta: $meta,
+        );
+    }
+
+    /**
+     * Return bad request response.
+     */
     public static function badRequest(
         string $message = '',
         ?array $errors = null,
@@ -88,6 +141,9 @@ final class ApiResponse
         );
     }
 
+    /**
+     * Return unauthorized response.
+     */
     public static function unauthorized(
         string $message = '',
         ?array $errors = null,
@@ -103,6 +159,9 @@ final class ApiResponse
         );
     }
 
+    /**
+     * Return forbidden response.
+     */
     public static function forbidden(
         string $message = '',
         ?array $errors = null,
@@ -118,6 +177,9 @@ final class ApiResponse
         );
     }
 
+    /**
+     * Return not found response.
+     */
     public static function notFound(
         string $message = '',
         ?array $errors = null,
@@ -133,6 +195,9 @@ final class ApiResponse
         );
     }
 
+    /**
+     * Return validation response.
+     */
     public static function validation(
         ?array $errors = null,
         string $message = '',
@@ -148,6 +213,9 @@ final class ApiResponse
         );
     }
 
+    /**
+     * Return conflict response.
+     */
     public static function conflict(
         string $message = '',
         ?array $errors = null,
@@ -163,6 +231,9 @@ final class ApiResponse
         );
     }
 
+    /**
+     * Return server error response.
+     */
     public static function serverError(
         ?string $message = null,
         ?array $errors = null,
@@ -196,6 +267,41 @@ final class ApiResponse
         ], $status);
     }
 
+    /**
+     * Return paginated response.
+     */
+    public static function paginated(
+        ResourceCollection $resource,
+        LengthAwarePaginator $paginator,
+        string $message = '',
+    ): JsonResponse {
+        return self::respond(
+            success: true,
+            status: Response::HTTP_OK,
+            message: $message ?: __('responses.success'),
+            data: $resource->collection,
+            errors: null,
+            meta: [
+                'current_page' => $paginator->currentPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+                'last_page' => $paginator->lastPage(),
+                'from' => $paginator->firstItem(),
+                'to' => $paginator->lastItem(),
+                'path' => $paginator->path(),
+                'links' => [
+                    'first' => $paginator->url(1),
+                    'last' => $paginator->url($paginator->lastPage()),
+                    'prev' => $paginator->previousPageUrl(),
+                    'next' => $paginator->nextPageUrl(),
+                ],
+            ],
+        );
+    }
+
+    /**
+     * Return error response.
+     */
     public static function error(
         int $status,
         string $message,

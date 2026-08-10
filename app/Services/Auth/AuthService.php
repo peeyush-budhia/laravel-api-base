@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace App\Services\Auth;
 
 use App\Models\User;
-use App\Services\BaseService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\PersonalAccessToken;
 
-class AuthService extends BaseService
+class AuthService
 {
     /**
      * Authenticate a user and generate a Sanctum token.
