@@ -19,6 +19,9 @@ return [
 
     'too_many_requests' => 'Too many requests. Please try again later.',
 
+    'login_success' => 'User logged in successfully',
+    'logout_success' => 'User logged out successfully',
+
     /*
     |--------------------------------------------------------------------------
     | Client Errors

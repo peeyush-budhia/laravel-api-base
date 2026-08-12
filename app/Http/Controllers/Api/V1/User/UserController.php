@@ -8,6 +8,8 @@ use App\Enums\UserStatus;
 use App\Http\Controllers\BaseApiController;
 use App\Http\Requests\Api\V1\User\ChangeUserStatusRequest;
 use App\Http\Requests\Api\V1\User\StoreUserRequest;
+use App\Http\Requests\Api\V1\User\UpdateAvatarRequest;
+use App\Http\Requests\Api\V1\User\UpdateProfileRequest;
 use App\Http\Requests\Api\V1\User\UpdateUserRequest;
 use App\Http\Resources\Api\V1\UserResource;
 use App\Models\User;
@@ -15,6 +17,7 @@ use App\Query\QueryParameters;
 use App\Services\User\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 
 class UserController extends BaseApiController
 {
@@ -124,6 +127,46 @@ class UserController extends BaseApiController
         return $this->statusChanged(
             new UserResource($updatedUser),
             __('responses.status_changed'),
+        );
+    }
+
+    /**
+     * Update the authenticated user's profile.
+     */
+    public function updateProfile(
+        UpdateProfileRequest $request,
+    ): JsonResponse {
+        /** @var User $user */
+        $user = $request->user();
+
+        $user = $this->userService->update(
+            $user,
+            $request->validated(),
+        );
+
+        return $this->updated(
+            new UserResource($user),
+            __('responses.updated'),
+        );
+    }
+
+    public function updateAvatar(
+        UpdateAvatarRequest $request,
+    ): JsonResponse {
+        /** @var User $user */
+        $user = $request->user();
+
+        /** @var UploadedFile $avatar */
+        $avatar = $request->file('avatar');
+
+        $updatedUser = $this->userService->updateAvatar(
+            $user,
+            $avatar,
+        );
+
+        return $this->updated(
+            new UserResource($updatedUser),
+            __('responses.updated'),
         );
     }
 }
