@@ -31,7 +31,9 @@ class UserResource extends JsonResource
 
             'email' => $this->email,
 
-            'avatar' => $this->avatar,
+            'avatar' => $this->avatar ? asset('storage/'.ltrim($this->avatar, '/')) : null,
+
+            'role' => $this->getRoleNames()->first(),
 
             'status' => $this->status?->value,
 
