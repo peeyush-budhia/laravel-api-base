@@ -120,4 +120,100 @@ class AuthenticationTest extends ApiTestCase
 
         $this->assertApiUnauthorized($response);
     }
+
+    public function test_login_accepts_remember_me_true(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'remember@example.com',
+            'password' => bcrypt('password'),
+        ]);
+
+        $response = $this->postJson(
+            '/api/v1/auth/login',
+            [
+                'login' => $user->email,
+                'password' => 'password',
+                'remember_me' => true,
+            ],
+        );
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('status', 200)
+            ->assertJsonStructure([
+                'data' => [
+                    'user',
+                    'token',
+                ],
+            ]);
+    }
+
+    public function test_login_accepts_remember_me_false(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'no-remember@example.com',
+            'password' => bcrypt('password'),
+        ]);
+
+        $response = $this->postJson(
+            '/api/v1/auth/login',
+            [
+                'login' => $user->email,
+                'password' => 'password',
+                'remember_me' => false,
+            ],
+        );
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('status', 200);
+    }
+
+    public function test_login_accepts_remember_me_as_optional(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'optional@example.com',
+            'password' => bcrypt('password'),
+        ]);
+
+        $response = $this->postJson(
+            '/api/v1/auth/login',
+            [
+                'login' => $user->email,
+                'password' => 'password',
+            ],
+        );
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('status', 200);
+    }
+
+    public function test_login_rejects_invalid_remember_me_value(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'invalid@example.com',
+            'password' => bcrypt('password'),
+        ]);
+
+        $response = $this->postJson(
+            '/api/v1/auth/login',
+            [
+                'login' => $user->email,
+                'password' => 'password',
+                'remember_me' => 'invalid',
+            ],
+        );
+
+        $response
+            ->assertUnprocessable()
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('status', 422)
+            ->assertJsonValidationErrors([
+                'remember_me',
+            ]);
+    }
 }
