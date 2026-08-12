@@ -10,7 +10,9 @@ use App\Query\QueryExecutor;
 use App\Query\QueryParameters;
 use App\Query\UserQuery;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class UserService
 {
@@ -110,5 +112,29 @@ class UserService
         ]);
 
         return $user->fresh();
+    }
+
+    /**
+     * Update the authenticated user's avatar.
+     */
+    public function updateAvatar(
+        User $user,
+        UploadedFile $avatar,
+    ): User {
+        return DB::transaction(function () use ($user, $avatar): User {
+            $oldAvatar = $user->avatar;
+
+            $path = $avatar->store('avatars', 'public');
+
+            $user->update([
+                'avatar' => $path,
+            ]);
+
+            if ($oldAvatar) {
+                Storage::disk('public')->delete($oldAvatar);
+            }
+
+            return $user->fresh();
+        });
     }
 }

@@ -29,9 +29,6 @@ class AuthService
             ]);
         }
 
-        // Single active session
-        $user->tokens()->delete();
-
         return [
             'user' => $user,
             'token' => $this->createToken($user),
@@ -63,22 +60,19 @@ class AuthService
     private function findUser(string $login): ?User
     {
         return User::query()
-            ->where(
-                $this->getLoginField($login),
-                $login
-            )
+            ->where('email', $login)
             ->first();
     }
 
     /**
      * Determine whether login is email or phone.
      */
-    private function getLoginField(string $login): string
-    {
-        return filter_var($login, FILTER_VALIDATE_EMAIL)
-            ? 'email'
-            : 'phone';
-    }
+    // private function getLoginField(string $login): string
+    // {
+    //     return filter_var($login, FILTER_VALIDATE_EMAIL)
+    //         ? 'email'
+    //         : 'phone';
+    // }
 
     /**
      * Create a Sanctum access token.
