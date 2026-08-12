@@ -9,6 +9,18 @@ Route::middleware('auth:sanctum')->group(function (): void {
 
     /*
     |--------------------------------------------------------------------------
+    | Authenticated User Profile
+    |--------------------------------------------------------------------------
+    */
+
+    Route::put('profile', [UserController::class, 'updateProfile'])
+        ->name('profile.update');
+
+    Route::post('profile/avatar', [UserController::class, 'updateAvatar'])
+        ->name('profile.avatar.update');
+
+    /*
+    |--------------------------------------------------------------------------
     | User Management
     |--------------------------------------------------------------------------
     */
