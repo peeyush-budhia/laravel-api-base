@@ -43,4 +43,13 @@ return [
 
     'server_error' => 'An unexpected error occurred. Please try again later.',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Password Reset
+    |--------------------------------------------------------------------------
+    */
+    'password_reset_link_sent' => 'If an account exists for that email address, a password reset link has been sent.',
+
+    'password_reset_success' => 'Your password has been reset successfully.',
+
 ];

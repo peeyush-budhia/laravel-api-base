@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\UserStatus;
+use App\Notifications\Auth\ResetPasswordNotification;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -71,5 +72,15 @@ class User extends Authenticatable
             'last_login_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Send the password reset notification.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(
+            new ResetPasswordNotification($token),
+        );
     }
 }
