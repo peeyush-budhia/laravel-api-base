@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1\Auth;
 
 use App\Http\Controllers\BaseApiController;
+use App\Http\Requests\Api\V1\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Api\V1\Auth\LoginRequest;
+use App\Http\Requests\Api\V1\Auth\ResetPasswordRequest;
 use App\Http\Resources\Api\V1\UserResource;
 use App\Models\User;
 use App\Services\Auth\AuthService;
@@ -61,6 +63,38 @@ class AuthController extends BaseApiController
             data: new UserResource(
                 $this->authService->me($user)
             ),
+        );
+    }
+
+    /**
+     * Send a password reset link.
+     */
+    public function forgotPassword(
+        ForgotPasswordRequest $request,
+    ): JsonResponse {
+        $this->authService->forgotPassword(
+            $request->validated('email'),
+        );
+
+        return $this->success(
+            null,
+            __('responses.password_reset_link_sent'),
+        );
+    }
+
+    /**
+     * Reset the user's password.
+     */
+    public function resetPassword(
+        ResetPasswordRequest $request,
+    ): JsonResponse {
+        $this->authService->resetPassword(
+            $request->validated(),
+        );
+
+        return $this->success(
+            null,
+            __('responses.password_reset_success'),
         );
     }
 }
