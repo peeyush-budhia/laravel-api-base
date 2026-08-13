@@ -6,6 +6,8 @@ namespace App\Services\Auth;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\PersonalAccessToken;
 
@@ -82,5 +84,46 @@ class AuthService
         return $user
             ->createToken(config('app.name'))
             ->plainTextToken;
+    }
+
+    /**
+     * Send a password reset link.
+     */
+    public function forgotPassword(string $email): void
+    {
+        Password::sendResetLink([
+            'email' => $email,
+        ]);
+    }
+
+    /**
+     * Reset the user's password.
+     *
+     * @throws ValidationException
+     */
+    public function resetPassword(
+        array $credentials,
+    ): void {
+        $status = Password::reset(
+            $credentials,
+            function (User $user, string $password): void {
+                $user->forceFill([
+                    'password' => $password,
+                    'remember_token' => Str::random(60),
+                ])->save();
+
+                // Invalidate all existing Sanctum sessions after a
+                // successful password reset.
+                $user->tokens()->delete();
+            },
+        );
+
+        if ($status !== Password::PASSWORD_RESET) {
+            throw ValidationException::withMessages([
+                'email' => [
+                    __($status),
+                ],
+            ]);
+        }
     }
 }
