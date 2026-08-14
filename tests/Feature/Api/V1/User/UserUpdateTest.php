@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api\V1\User;
 
+use App\Enums\Role as EnumsRole;
 use App\Enums\UserStatus;
 use App\Models\User;
+use Spatie\Permission\Models\Role;
 use Tests\Feature\Api\V1\ApiTestCase;
 use Tests\Feature\Api\V1\Concerns\InteractsWithPermissions;
 
@@ -16,6 +18,16 @@ final class UserUpdateTest extends ApiTestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        Role::create([
+            'name' => EnumsRole::ADMIN->value,
+            'guard_name' => 'sanctum',
+        ]);
+
+        Role::create([
+            'name' => EnumsRole::USER->value,
+            'guard_name' => 'sanctum',
+        ]);
 
         $this->givePermission(
             $this->user,
@@ -31,6 +43,8 @@ final class UserUpdateTest extends ApiTestCase
             'status' => UserStatus::ACTIVE,
         ]);
 
+        $user->assignRole(EnumsRole::USER->value);
+
         $newEmail = fake()->unique()->safeEmail();
 
         $payload = [
@@ -38,6 +52,7 @@ final class UserUpdateTest extends ApiTestCase
             'last_name' => 'Smith',
             'email' => $newEmail,
             'status' => UserStatus::INACTIVE->value,
+            'role' => EnumsRole::ADMIN->value,
         ];
 
         $response = $this->apiPut("/users/{$user->id}", $payload);
@@ -53,7 +68,8 @@ final class UserUpdateTest extends ApiTestCase
             ->assertJsonPath(
                 'data.status',
                 UserStatus::INACTIVE->value,
-            );
+            )
+            ->assertJsonPath('data.role', EnumsRole::ADMIN->value);
 
         $this->assertDatabaseHas('users', [
             'id' => $user->id,
@@ -62,6 +78,16 @@ final class UserUpdateTest extends ApiTestCase
             'email' => $newEmail,
             'status' => UserStatus::INACTIVE->value,
         ]);
+
+        $updatedUser = $user->fresh();
+
+        $this->assertTrue(
+            $updatedUser->hasRole(EnumsRole::ADMIN->value),
+        );
+
+        $this->assertFalse(
+            $updatedUser->hasRole(EnumsRole::USER->value),
+        );
     }
 
     public function test_password_is_not_updated_when_password_is_not_provided(): void
@@ -74,6 +100,8 @@ final class UserUpdateTest extends ApiTestCase
             'first_name' => $user->first_name,
             'last_name' => $user->last_name,
             'email' => $user->email,
+            'role' => EnumsRole::USER->value,
+
         ]);
 
         $response->assertOk();
@@ -82,6 +110,24 @@ final class UserUpdateTest extends ApiTestCase
             $oldPassword,
             $user->fresh()->password,
         );
+    }
+
+    public function test_user_role_must_exist_when_updating(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->apiPut("/users/{$user->id}", [
+            'first_name' => 'Jane',
+            'last_name' => 'Smith',
+            'email' => $user->email,
+            'role' => 'non-existent-role',
+        ]);
+
+        $response
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'role',
+            ]);
     }
 
     public function test_non_existing_user_cannot_be_updated(): void

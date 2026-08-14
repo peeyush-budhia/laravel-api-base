@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api\V1\User;
 
+use App\Enums\Role as RoleEnum;
+use App\Enums\UserStatus as UserStatusEnum;
 use App\Models\User;
+use Spatie\Permission\Models\Role;
 use Tests\Feature\Api\V1\ApiTestCase;
 use Tests\Feature\Api\V1\Concerns\InteractsWithPermissions;
 
@@ -16,6 +19,11 @@ final class UserStoreTest extends ApiTestCase
     {
         parent::setUp();
 
+        Role::create([
+            'name' => RoleEnum::ADMIN,
+            'guard_name' => 'sanctum',
+        ]);
+
         $this->givePermission(
             $this->user,
             'users.create',
@@ -25,8 +33,10 @@ final class UserStoreTest extends ApiTestCase
     public function test_user_can_be_created(): void
     {
         $newEmail = fake()->unique()->safeEmail();
+
         $payload = $this->validUserData([
             'email' => $newEmail,
+            'role' => RoleEnum::ADMIN,
         ]);
 
         $response = $this->apiPost('/users', $payload);
@@ -38,11 +48,31 @@ final class UserStoreTest extends ApiTestCase
             ->assertJsonPath('data.first_name', 'John')
             ->assertJsonPath('data.last_name', 'Doe')
             ->assertJsonPath('data.email', $newEmail)
-            ->assertJsonPath('data.status', 'active');
+            ->assertJsonPath('data.status', UserStatusEnum::ACTIVE)
+            ->assertJsonPath('data.role', RoleEnum::ADMIN);
 
         $this->assertDatabaseHas('users', [
             'email' => $newEmail,
         ]);
+
+        $user = User::where('email', $newEmail)->firstOrFail();
+
+        $this->assertTrue(
+            $user->hasRole(RoleEnum::ADMIN),
+        );
+    }
+
+    public function test_user_role_must_exist(): void
+    {
+        $response = $this->apiPost('/users', $this->validUserData([
+            'role' => 'non-existent-role',
+        ]));
+
+        $response
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'role',
+            ]);
     }
 
     public function test_user_email_must_be_unique(): void
