@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Enums\Role;
 use App\Enums\UserStatus;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -15,7 +16,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::query()->updateOrCreate(
+        $user = User::query()->updateOrCreate(
             [
                 'email' => 'peeyush@example.com',
             ],
@@ -36,6 +37,8 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
         ]);
 
-        // User::factory()->count(10)->create();
+        $user->assignRole(Role::SUPER_ADMIN->value);
+
+        User::factory()->count(25)->create();
     }
 }
