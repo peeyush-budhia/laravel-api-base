@@ -49,8 +49,13 @@ class UserService
         return DB::transaction(function () use ($data): User {
             $data['status'] ??= UserStatus::ACTIVE;
 
+            $role = $data['role'];
+            unset($data['role']);
+
             /** @var User $user */
             $user = User::create($data);
+
+            $user->assignRole($role);
 
             return $user->fresh();
         });
@@ -66,7 +71,14 @@ class UserService
                 unset($data['password']);
             }
 
+            $role = $data['role'] ?? null;
+            unset($data['role']);
+
             $user->update($data);
+
+            if ($role !== null) {
+                $user->syncRoles($role);
+            }
 
             return $user->fresh();
         });
