@@ -20,7 +20,8 @@ curl --silent \
         "first_name": "John",
         "last_name": "Doe",
         "email": "john.doe@example.com",
-        "phone": "9876543210",
+        "status": "active",
+        "role": "admin",
         "password": "password",
         "password_confirmation": "password"
     }'

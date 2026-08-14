@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
+use Spatie\Permission\Models\Role as SpatieRole;
 
 class UpdateUserRequest extends FormRequest
 {
@@ -57,6 +58,12 @@ class UpdateUserRequest extends FormRequest
             'status' => [
                 'sometimes',
                 Rule::enum(UserStatus::class),
+            ],
+
+            'role' => [
+                'required',
+                Rule::exists(SpatieRole::class, 'name')
+                    ->where('guard_name', 'sanctum'),
             ],
 
             'password' => [

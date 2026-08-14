@@ -26,7 +26,7 @@ curl --silent \
     --data '{
         "first_name": "John Updated",
         "last_name": "Doe Updated",
-        "phone": "9876543211"
+        "role": "user"
     }'
 
 echo
