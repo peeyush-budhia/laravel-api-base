@@ -16,7 +16,7 @@ RESPONSE=$(curl --silent \
     --header "${JSON_HEADER}" \
     --header "${CONTENT_HEADER}" \
     --data '{
-        "login": "peeyush@example.com",
+        "login": "admin@example.com",
         "password": "password"
     }')
 

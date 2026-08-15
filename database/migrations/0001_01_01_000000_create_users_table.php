@@ -27,6 +27,8 @@ return new class extends Migration
 
             $table->string('password');
 
+            $table->boolean('must_change_password')->default(false);
+
             $table->rememberToken();
 
             $table->timestamps();

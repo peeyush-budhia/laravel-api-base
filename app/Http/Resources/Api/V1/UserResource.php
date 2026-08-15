@@ -35,6 +35,13 @@ class UserResource extends JsonResource
 
             'role' => $this->getRoleNames()->first(),
 
+            'permissions' => $this->getAllPermissions()
+                ->pluck('name')
+                ->values()
+                ->all(),
+
+            'must_change_password' => $this->must_change_password,
+
             'status' => $this->status?->value,
 
             'email_verified_at' => $this->email_verified_at?->toIso8601String(),

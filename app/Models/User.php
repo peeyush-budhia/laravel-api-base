@@ -23,6 +23,7 @@ use Spatie\Permission\Traits\HasRoles;
     'avatar',
     'status',
     'password',
+    'must_change_password',
 ])]
 #[Hidden([
     'password',
@@ -71,6 +72,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
             'password' => 'hashed',
+            'must_change_password' => 'boolean',
+
         ];
     }
 
