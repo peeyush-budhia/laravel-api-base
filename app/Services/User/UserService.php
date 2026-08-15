@@ -6,13 +6,16 @@ namespace App\Services\User;
 
 use App\Enums\UserStatus;
 use App\Models\User;
+use App\Notifications\User\UserCreatedNotification;
 use App\Query\QueryExecutor;
 use App\Query\QueryParameters;
 use App\Query\UserQuery;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class UserService
 {
@@ -44,6 +47,9 @@ class UserService
     /**
      * Create a new user.
      */
+    /**
+     * Create a new user.
+     */
     public function store(array $data): User
     {
         return DB::transaction(function () use ($data): User {
@@ -52,10 +58,21 @@ class UserService
             $role = $data['role'];
             unset($data['role']);
 
-            /** @var User $user */
-            $user = User::create($data);
+            $temporaryPassword = Str::password(12);
+
+            $data['must_change_password'] = true;
+
+            $user = User::create([
+                ...$data,
+                'password' => Hash::make($temporaryPassword),
+            ]);
 
             $user->assignRole($role);
+
+            // Send temporary credentials after successful creation.
+            $user->notify(
+                new UserCreatedNotification($temporaryPassword),
+            );
 
             return $user->fresh();
         });

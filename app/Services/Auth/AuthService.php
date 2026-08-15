@@ -110,6 +110,7 @@ class AuthService
                 $user->forceFill([
                     'password' => $password,
                     'remember_token' => Str::random(60),
+                    'must_change_password' => false,
                 ])->save();
 
                 // Invalidate all existing Sanctum sessions after a
@@ -125,5 +126,33 @@ class AuthService
                 ],
             ]);
         }
+    }
+
+    /**
+     * Change the authenticated user's password.
+     *
+     * @throws ValidationException
+     */
+    public function changePassword(
+        User $user,
+        array $credentials,
+    ): void {
+        if (! Hash::check(
+            $credentials['current_password'],
+            $user->password,
+        )) {
+            throw ValidationException::withMessages([
+                'current_password' => [
+                    __('auth.current_password'),
+                ],
+            ]);
+        }
+
+        $user->forceFill([
+            'password' => $credentials['password'],
+            'must_change_password' => false,
+            'email_verified_at' => now(),
+            'remember_token' => Str::random(60),
+        ])->save();
     }
 }

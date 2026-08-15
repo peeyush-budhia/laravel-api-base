@@ -7,7 +7,6 @@ namespace App\Http\Requests\Api\V1\User;
 use App\Enums\UserStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Password;
 use Spatie\Permission\Models\Role;
 
 class StoreUserRequest extends FormRequest
@@ -17,7 +16,7 @@ class StoreUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->can('users.create') ?? false;
     }
 
     /**
@@ -62,12 +61,6 @@ class StoreUserRequest extends FormRequest
                 'required',
                 Rule::exists(Role::class, 'name')
                     ->where('guard_name', 'sanctum'),
-            ],
-
-            'password' => [
-                'required',
-                'confirmed',
-                Password::defaults(),
             ],
         ];
     }
