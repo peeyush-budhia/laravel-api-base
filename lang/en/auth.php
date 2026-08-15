@@ -23,4 +23,5 @@ return [
 
     'reset_password_ignore' => 'If you did not request a password reset, no further action is required.',
 
+    'current_password' => 'The current password is incorrect.',
 ];

@@ -21,7 +21,8 @@ curl --silent \
         "last_name": "Doe",
         "email": "john.doe@example.com",
         "status": "active",
-        "role": "admin",
+        "role": "user",
+        "must_change_password": true
         "password": "password",
         "password_confirmation": "password"
     }'

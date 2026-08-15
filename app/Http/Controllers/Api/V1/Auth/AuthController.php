@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1\Auth;
 
 use App\Http\Controllers\BaseApiController;
+use App\Http\Requests\Api\V1\Auth\ChangePasswordRequest;
 use App\Http\Requests\Api\V1\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Api\V1\Auth\LoginRequest;
 use App\Http\Requests\Api\V1\Auth\ResetPasswordRequest;
@@ -95,6 +96,25 @@ class AuthController extends BaseApiController
         return $this->success(
             null,
             __('responses.password_reset_success'),
+        );
+    }
+
+    /**
+     * Change the authenticated user's password.
+     */
+    public function changePassword(
+        ChangePasswordRequest $request,
+    ): JsonResponse {
+        /** @var User $user */
+        $user = $request->user();
+
+        $this->authService->changePassword(
+            $user,
+            $request->validated(),
+        );
+
+        return $this->success(
+            message: __('responses.password_changed'),
         );
     }
 }

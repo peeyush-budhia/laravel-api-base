@@ -7,6 +7,9 @@ namespace Tests\Feature\Api\V1\User;
 use App\Enums\Role as RoleEnum;
 use App\Enums\UserStatus as UserStatusEnum;
 use App\Models\User;
+use App\Notifications\User\UserCreatedNotification;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Role;
 use Tests\Feature\Api\V1\ApiTestCase;
 use Tests\Feature\Api\V1\Concerns\InteractsWithPermissions;
@@ -60,6 +63,38 @@ final class UserStoreTest extends ApiTestCase
         $this->assertTrue(
             $user->hasRole(RoleEnum::ADMIN),
         );
+
+        $this->assertTrue(
+            $user->must_change_password,
+        );
+
+        $this->assertNull(
+            $user->email_verified_at,
+        );
+    }
+
+    public function test_new_user_is_not_email_verified(): void
+    {
+        $newEmail = fake()->unique()->safeEmail();
+
+        $payload = $this->validUserData([
+            'email' => $newEmail,
+            'role' => RoleEnum::ADMIN,
+        ]);
+
+        $response = $this->apiPost('/users', $payload);
+
+        $response->assertCreated();
+
+        $user = User::where('email', $newEmail)->firstOrFail();
+
+        $this->assertNull(
+            $user->email_verified_at,
+        );
+
+        $this->assertTrue(
+            $user->must_change_password,
+        );
     }
 
     public function test_user_role_must_exist(): void
@@ -103,7 +138,64 @@ final class UserStoreTest extends ApiTestCase
                 'first_name',
                 'last_name',
                 'email',
-                'password',
+                'role',
             ]);
+    }
+
+    public function test_user_created_notification_is_sent(): void
+    {
+        Notification::fake();
+
+        $newEmail = fake()->unique()->safeEmail();
+
+        $response = $this->apiPost('/users', $this->validUserData([
+            'email' => $newEmail,
+            'role' => RoleEnum::ADMIN,
+        ]));
+
+        $response->assertCreated();
+
+        $user = User::where('email', $newEmail)->firstOrFail();
+
+        Notification::assertSentTo(
+            $user,
+            UserCreatedNotification::class,
+        );
+    }
+
+    public function test_password_is_generated_for_new_user(): void
+    {
+        Notification::fake();
+
+        $newEmail = fake()->unique()->safeEmail();
+
+        $response = $this->apiPost('/users', $this->validUserData([
+            'email' => $newEmail,
+            'role' => RoleEnum::ADMIN,
+        ]));
+
+        $response->assertCreated();
+
+        $user = User::where('email', $newEmail)->firstOrFail();
+
+        $this->assertNotEmpty($user->password);
+
+        $this->assertTrue(
+            Hash::needsRehash($user->password) === false,
+        );
+    }
+
+    public function test_generated_password_is_not_exposed_in_response(): void
+    {
+        Notification::fake();
+
+        $response = $this->apiPost('/users', $this->validUserData([
+            'role' => RoleEnum::ADMIN,
+        ]));
+
+        $response
+            ->assertCreated()
+            ->assertJsonMissingPath('data.password')
+            ->assertJsonMissingPath('data.password_confirmation');
     }
 }

@@ -52,4 +52,6 @@ return [
 
     'password_reset_success' => 'Your password has been reset successfully.',
 
+    'password_changed' => 'Password changed successfully.',
+
 ];

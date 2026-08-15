@@ -34,6 +34,11 @@ Route::prefix('auth')->group(function () {
             'me',
         ]);
 
+        Route::post('/change-password', [
+            AuthController::class,
+            'changePassword',
+        ]);
+
     });
 
 });
