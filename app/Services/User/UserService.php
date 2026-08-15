@@ -47,9 +47,6 @@ class UserService
     /**
      * Create a new user.
      */
-    /**
-     * Create a new user.
-     */
     public function store(array $data): User
     {
         return DB::transaction(function () use ($data): User {

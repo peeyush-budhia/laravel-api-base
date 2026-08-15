@@ -22,7 +22,7 @@ curl --silent \
         "email": "john.doe@example.com",
         "status": "active",
         "role": "user",
-        "must_change_password": true
+        "must_change_password": true,
         "password": "password",
         "password_confirmation": "password"
     }'
