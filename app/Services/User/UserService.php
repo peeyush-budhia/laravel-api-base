@@ -119,11 +119,15 @@ class UserService
     }
 
     /**
-     * Permanently delete a user.
+     * Permanently delete a soft deleted user.
      */
     public function forceDelete(string $id): bool
     {
         $user = User::withTrashed()->findOrFail($id);
+
+        if ($user->deleted_at === null) {
+            abort(404);
+        }
 
         return (bool) $user->forceDelete();
     }

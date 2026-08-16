@@ -52,6 +52,10 @@ Route::middleware('auth:sanctum')->group(function (): void {
         ->middleware('permission:users.restore')
         ->name('users.restore');
 
+    Route::delete('/users/{user}/force', [UserController::class, 'forceDelete'])
+        ->middleware('permission:users.delete')
+        ->name('users.force-delete');
+
     Route::patch('users/{user}/status', [UserController::class, 'changeStatus'])
         ->middleware('permission:users.change-status')
         ->name('users.change-status');

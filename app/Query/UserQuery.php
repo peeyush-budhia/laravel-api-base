@@ -38,8 +38,15 @@ final class UserQuery implements QueryContract
     /**
      * Build user query.
      */
-    public function build(): Builder
-    {
-        return User::query();
+    public function build(
+        QueryParameters $parameters,
+    ): Builder {
+        $query = User::query();
+
+        return match ($parameters->trashed) {
+            'only' => $query->onlyTrashed(),
+            'with' => $query->withTrashed(),
+            default => $query->withoutTrashed(),
+        };
     }
 }

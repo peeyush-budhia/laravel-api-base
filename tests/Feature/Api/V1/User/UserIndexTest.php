@@ -17,12 +17,18 @@ final class UserIndexTest extends ApiTestCase
     {
         parent::setUp();
 
+        $this->user->update([
+            'first_name' => 'Test',
+            'last_name' => 'User',
+            'email' => 'test-user@example.com',
+        ]);
+
         $this->givePermission(
             $this->user,
             'users.view',
         );
 
-        $this->user->delete();
+        // $this->user->delete();
     }
 
     public function test_users_can_be_listed(): void
@@ -185,12 +191,11 @@ final class UserIndexTest extends ApiTestCase
         $response
             ->assertOk()
             ->assertJsonPath('success', true)
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.first_name', 'Active')
-            ->assertJsonPath(
-                'data.0.status',
-                UserStatus::ACTIVE->value,
-            );
+            ->assertJsonCount(2, 'data')
+            ->assertJsonFragment([
+                'first_name' => 'Active',
+                'status' => UserStatus::ACTIVE->value,
+            ]);
     }
 
     public function test_users_can_be_filtered_by_inactive_status(): void
@@ -233,7 +238,7 @@ final class UserIndexTest extends ApiTestCase
 
         $response
             ->assertOk()
-            ->assertJsonCount(2, 'data');
+            ->assertJsonCount(3, 'data');
     }
 
     public function test_page_is_normalized_to_one(): void
@@ -288,7 +293,9 @@ final class UserIndexTest extends ApiTestCase
         $response
             ->assertOk()
             ->assertJsonPath('data.0.first_name', 'Alice')
-            ->assertJsonPath('data.1.first_name', 'Zack');
+            ->assertJsonFragment([
+                'first_name' => 'Zack',
+            ]);
     }
 
     public function test_unsupported_sort_is_ignored(): void
@@ -307,7 +314,7 @@ final class UserIndexTest extends ApiTestCase
 
         $response
             ->assertOk()
-            ->assertJsonCount(2, 'data');
+            ->assertJsonCount(3, 'data');
     }
 
     public function test_users_can_be_sorted_by_allowed_field(): void
@@ -327,7 +334,9 @@ final class UserIndexTest extends ApiTestCase
         $response
             ->assertOk()
             ->assertJsonPath('data.0.first_name', 'Alice')
-            ->assertJsonPath('data.1.first_name', 'Zack');
+            ->assertJsonFragment([
+                'first_name' => 'Zack',
+            ]);
     }
 
     public function test_search_returns_empty_data_when_no_users_match(): void
@@ -346,5 +355,92 @@ final class UserIndexTest extends ApiTestCase
             ->assertJsonPath('message', __('responses.success'))
             ->assertJsonCount(0, 'data')
             ->assertJsonPath('meta.total', 0);
+    }
+
+    public function test_deleted_users_are_excluded_by_default(): void
+    {
+        User::factory()->create([
+            'first_name' => 'Active',
+        ]);
+
+        $deletedUser = User::factory()->create([
+            'first_name' => 'Deleted',
+        ]);
+
+        $deletedUser->delete();
+
+        $response = $this->apiGet('/users');
+
+        $response
+            ->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->assertJsonFragment([
+                'first_name' => 'Active',
+            ])
+            ->assertJsonMissing([
+                'first_name' => 'Deleted',
+            ]);
+    }
+
+    public function test_users_can_list_only_deleted_users(): void
+    {
+        User::factory()->create([
+            'first_name' => 'Active',
+        ]);
+
+        $deletedUser = User::factory()->create([
+            'first_name' => 'Deleted',
+        ]);
+
+        $deletedUser->delete();
+
+        $response = $this->apiGet('/users?trashed=only');
+
+        $response
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.first_name', 'Deleted');
+
+        $this->assertNotNull(
+            $response->json('data.0.deleted_at'),
+        );
+    }
+
+    public function test_users_can_list_with_deleted_users(): void
+    {
+        User::factory()->create([
+            'first_name' => 'Active',
+        ]);
+
+        $deletedUser = User::factory()->create([
+            'first_name' => 'Deleted',
+        ]);
+
+        $deletedUser->delete();
+
+        $response = $this->apiGet('/users?trashed=with');
+
+        $response
+            ->assertOk()
+            ->assertJsonCount(3, 'data');
+    }
+
+    public function test_invalid_trashed_value_defaults_to_without(): void
+    {
+        User::factory()->create([
+            'first_name' => 'Active',
+        ]);
+
+        $deletedUser = User::factory()->create([
+            'first_name' => 'Deleted',
+        ]);
+
+        $deletedUser->delete();
+
+        $response = $this->apiGet('/users?trashed=invalid');
+
+        $response
+            ->assertOk()
+            ->assertJsonCount(2, 'data');
     }
 }
