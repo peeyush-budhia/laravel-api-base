@@ -113,6 +113,18 @@ class UserController extends BaseApiController
     }
 
     /**
+     * Permanently delete a soft deleted user.
+     */
+    public function forceDelete(string $user): JsonResponse
+    {
+        $this->userService->forceDelete($user);
+
+        return $this->deleted(
+            __('responses.deleted'),
+        );
+    }
+
+    /**
      * Change user status.
      */
     public function changeStatus(
