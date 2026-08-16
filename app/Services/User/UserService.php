@@ -47,9 +47,6 @@ class UserService
     /**
      * Create a new user.
      */
-    /**
-     * Create a new user.
-     */
     public function store(array $data): User
     {
         return DB::transaction(function () use ($data): User {
@@ -122,11 +119,15 @@ class UserService
     }
 
     /**
-     * Permanently delete a user.
+     * Permanently delete a soft deleted user.
      */
     public function forceDelete(string $id): bool
     {
         $user = User::withTrashed()->findOrFail($id);
+
+        if ($user->deleted_at === null) {
+            abort(404);
+        }
 
         return (bool) $user->forceDelete();
     }

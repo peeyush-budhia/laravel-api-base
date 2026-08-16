@@ -18,6 +18,7 @@ final readonly class QueryParameters
         public ?string $search = null,
         public ?string $sort = null,
         public string $direction = 'asc',
+        public ?string $trashed = 'without',
         public array $filters = [],
     ) {}
 
@@ -55,12 +56,21 @@ final readonly class QueryParameters
             $direction = 'asc';
         }
 
+        $trashed = strtolower(
+            trim((string) $request->input('trashed', 'without')),
+        );
+
+        if (! in_array($trashed, ['without', 'only', 'with'], true)) {
+            $trashed = 'without';
+        }
+
         $filters = $request->except([
             'page',
             'per_page',
             'search',
             'sort',
             'direction',
+            'trashed',
         ]);
 
         return new self(
@@ -69,6 +79,7 @@ final readonly class QueryParameters
             search: $search !== '' ? $search : null,
             sort: $sort !== '' ? $sort : null,
             direction: $direction,
+            trashed: $trashed,
             filters: $filters,
         );
     }

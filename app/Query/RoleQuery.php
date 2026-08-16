@@ -34,8 +34,9 @@ final class RoleQuery implements QueryContract
     /**
      * Build role query.
      */
-    public function build(): Builder
-    {
+    public function build(
+        QueryParameters $parameters,
+    ): Builder {
         return Role::query();
     }
 }

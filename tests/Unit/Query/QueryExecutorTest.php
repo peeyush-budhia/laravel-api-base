@@ -92,7 +92,7 @@ final class TestQuery implements QueryContract
         private readonly QueryDefinition $definition = new GenericQueryDefinition,
     ) {}
 
-    public function build(): Builder
+    public function build(QueryParameters $parameters): Builder
     {
         return User::query();
     }
