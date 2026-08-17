@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api\V1\User;
 
+use App\Enums\Role as RoleEnum;
 use App\Models\User;
+use Spatie\Permission\Models\Role;
 use Tests\Feature\Api\V1\ApiTestCase;
 use Tests\Feature\Api\V1\Concerns\InteractsWithPermissions;
 
@@ -15,6 +17,11 @@ final class UserForceDeleteTest extends ApiTestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        Role::findOrCreate(
+            RoleEnum::SUPER_ADMIN->value,
+            'sanctum',
+        );
 
         $this->givePermission(
             $this->user,
@@ -70,5 +77,85 @@ final class UserForceDeleteTest extends ApiTestCase
         );
 
         $response->assertNotFound();
+    }
+
+    public function test_normal_user_cannot_permanently_delete_super_admin(): void
+    {
+        $superAdmin = User::factory()->create([
+            'first_name' => 'Super',
+            'last_name' => 'Admin',
+        ]);
+
+        $superAdmin->assignRole(
+            RoleEnum::SUPER_ADMIN->value,
+        );
+
+        $superAdmin->delete();
+
+        $response = $this->apiDelete(
+            "/users/{$superAdmin->id}/force",
+        );
+
+        $response->assertForbidden();
+
+        $this->assertSoftDeleted('users', [
+            'id' => $superAdmin->id,
+        ]);
+    }
+
+    public function test_super_admin_cannot_permanently_delete_another_super_admin(): void
+    {
+        $this->user->assignRole(
+            RoleEnum::SUPER_ADMIN->value,
+        );
+
+        $superAdmin = User::factory()->create();
+
+        $superAdmin->assignRole(
+            RoleEnum::SUPER_ADMIN->value,
+        );
+
+        $superAdmin->delete();
+
+        $response = $this->apiDelete(
+            "/users/{$superAdmin->id}/force",
+        );
+
+        $response
+            ->assertForbidden()
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('status', 403)
+            ->assertJsonPath(
+                'message',
+                __('responses.super_admin_manage_forbidden'),
+            );
+
+        $this->assertSoftDeleted('users', [
+            'id' => $superAdmin->id,
+        ]);
+    }
+
+    public function test_super_admin_cannot_permanently_delete_themselves(): void
+    {
+        $this->user->assignRole(
+            RoleEnum::SUPER_ADMIN->value,
+        );
+
+        /*
+         * Force delete only operates on soft-deleted users.
+         * Soft-delete the authenticated user directly so that we
+         * can exercise the self-delete protection.
+         */
+        $this->user->delete();
+
+        $response = $this->apiDelete(
+            "/users/{$this->user->id}/force",
+        );
+
+        $response->assertForbidden();
+
+        $this->assertSoftDeleted('users', [
+            'id' => $this->user->id,
+        ]);
     }
 }

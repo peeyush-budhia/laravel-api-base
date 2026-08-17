@@ -34,7 +34,7 @@ class UserFactory extends Factory
             'avatar' => null,
             'status' => UserStatus::ACTIVE,
 
-            'email_verified_at' => now(),
+            'email_verified_at' => null,
             'last_login_at' => null,
 
             'password' => static::$password ??= Hash::make('password'),

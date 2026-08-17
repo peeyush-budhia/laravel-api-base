@@ -20,6 +20,11 @@ final class UserUpdateTest extends ApiTestCase
         parent::setUp();
 
         Role::create([
+            'name' => EnumsRole::SUPER_ADMIN->value,
+            'guard_name' => 'sanctum',
+        ]);
+
+        Role::create([
             'name' => EnumsRole::ADMIN->value,
             'guard_name' => 'sanctum',
         ]);
@@ -55,13 +60,19 @@ final class UserUpdateTest extends ApiTestCase
             'role' => EnumsRole::ADMIN->value,
         ];
 
-        $response = $this->apiPut("/users/{$user->id}", $payload);
+        $response = $this->apiPut(
+            "/users/{$user->id}",
+            $payload,
+        );
 
         $response
             ->assertOk()
             ->assertJsonPath('success', true)
             ->assertJsonPath('status', 200)
-            ->assertJsonPath('message', __('responses.updated'))
+            ->assertJsonPath(
+                'message',
+                __('responses.updated'),
+            )
             ->assertJsonPath('data.first_name', 'Jane')
             ->assertJsonPath('data.last_name', 'Smith')
             ->assertJsonPath('data.email', $newEmail)
@@ -69,7 +80,10 @@ final class UserUpdateTest extends ApiTestCase
                 'data.status',
                 UserStatus::INACTIVE->value,
             )
-            ->assertJsonPath('data.role', EnumsRole::ADMIN->value);
+            ->assertJsonPath(
+                'data.role',
+                EnumsRole::ADMIN->value,
+            );
 
         $this->assertDatabaseHas('users', [
             'id' => $user->id,
@@ -82,11 +96,15 @@ final class UserUpdateTest extends ApiTestCase
         $updatedUser = $user->fresh();
 
         $this->assertTrue(
-            $updatedUser->hasRole(EnumsRole::ADMIN->value),
+            $updatedUser->hasRole(
+                EnumsRole::ADMIN->value,
+            ),
         );
 
         $this->assertFalse(
-            $updatedUser->hasRole(EnumsRole::USER->value),
+            $updatedUser->hasRole(
+                EnumsRole::USER->value,
+            ),
         );
     }
 
@@ -96,13 +114,15 @@ final class UserUpdateTest extends ApiTestCase
 
         $oldPassword = $user->password;
 
-        $response = $this->apiPut("/users/{$user->id}", [
-            'first_name' => $user->first_name,
-            'last_name' => $user->last_name,
-            'email' => $user->email,
-            'role' => EnumsRole::USER->value,
-
-        ]);
+        $response = $this->apiPut(
+            "/users/{$user->id}",
+            [
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'email' => $user->email,
+                'role' => EnumsRole::USER->value,
+            ],
+        );
 
         $response->assertOk();
 
@@ -116,18 +136,201 @@ final class UserUpdateTest extends ApiTestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->apiPut("/users/{$user->id}", [
-            'first_name' => 'Jane',
-            'last_name' => 'Smith',
-            'email' => $user->email,
-            'role' => 'non-existent-role',
-        ]);
+        $response = $this->apiPut(
+            "/users/{$user->id}",
+            [
+                'first_name' => 'Jane',
+                'last_name' => 'Smith',
+                'email' => $user->email,
+                'role' => 'non-existent-role',
+            ],
+        );
 
         $response
             ->assertUnprocessable()
             ->assertJsonValidationErrors([
                 'role',
             ]);
+    }
+
+    public function test_user_cannot_modify_their_own_account_through_user_management(): void
+    {
+        $this->user->assignRole(
+            EnumsRole::USER->value,
+        );
+
+        $response = $this->apiPut(
+            "/users/{$this->user->id}",
+            [
+                'first_name' => 'Changed',
+                'last_name' => $this->user->last_name,
+                'email' => $this->user->email,
+                'role' => EnumsRole::ADMIN->value,
+            ],
+        );
+
+        $response
+            ->assertForbidden()
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('status', 403)
+            ->assertJsonPath(
+                'message',
+                __('responses.user_cannot_manage_self'),
+            );
+
+        $updatedUser = $this->user->fresh();
+
+        $this->assertNotSame(
+            'Changed',
+            $updatedUser->first_name,
+        );
+
+        $this->assertTrue(
+            $updatedUser->hasRole(
+                EnumsRole::USER->value,
+            ),
+        );
+    }
+
+    public function test_non_super_admin_cannot_modify_super_admin(): void
+    {
+        $superAdmin = User::factory()->create();
+
+        $superAdmin->assignRole(
+            EnumsRole::SUPER_ADMIN->value,
+        );
+
+        $response = $this->apiPut(
+            "/users/{$superAdmin->id}",
+            [
+                'first_name' => $superAdmin->first_name,
+                'last_name' => $superAdmin->last_name,
+                'email' => $superAdmin->email,
+                'role' => EnumsRole::ADMIN->value,
+            ],
+        );
+
+        $response
+            ->assertForbidden()
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('status', 403)
+            ->assertJsonPath(
+                'message',
+                __('responses.super_admin_manage_forbidden'),
+            );
+
+        $this->assertTrue(
+            $superAdmin->fresh()->hasRole(
+                EnumsRole::SUPER_ADMIN->value,
+            ),
+        );
+
+        $this->assertFalse(
+            $superAdmin->fresh()->hasRole(
+                EnumsRole::ADMIN->value,
+            ),
+        );
+    }
+
+    public function test_super_admin_cannot_modify_another_super_admin(): void
+    {
+        $this->user->assignRole(
+            EnumsRole::SUPER_ADMIN->value,
+        );
+
+        $target = User::factory()->create();
+
+        $target->assignRole(
+            EnumsRole::SUPER_ADMIN->value,
+        );
+
+        $response = $this->apiPut(
+            "/users/{$target->id}",
+            [
+                'first_name' => 'Changed',
+                'last_name' => $target->last_name,
+                'email' => $target->email,
+                'role' => EnumsRole::ADMIN->value,
+            ],
+        );
+
+        $response
+            ->assertForbidden()
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('status', 403)
+            ->assertJsonPath(
+                'message',
+                __('responses.super_admin_manage_forbidden'),
+            );
+
+        $updatedTarget = $target->fresh();
+
+        $this->assertSame(
+            $target->first_name,
+            $updatedTarget->first_name,
+        );
+
+        $this->assertTrue(
+            $updatedTarget->hasRole(
+                EnumsRole::SUPER_ADMIN->value,
+            ),
+        );
+
+        $this->assertFalse(
+            $updatedTarget->hasRole(
+                EnumsRole::ADMIN->value,
+            ),
+        );
+    }
+
+    public function test_super_admin_can_change_normal_user_role(): void
+    {
+        $this->user->assignRole(
+            EnumsRole::SUPER_ADMIN->value,
+        );
+
+        $target = User::factory()->create();
+
+        $target->assignRole(
+            EnumsRole::USER->value,
+        );
+
+        $response = $this->apiPut(
+            "/users/{$target->id}",
+            [
+                'first_name' => $target->first_name,
+                'last_name' => $target->last_name,
+                'email' => $target->email,
+                'role' => EnumsRole::ADMIN->value,
+            ],
+        );
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('status', 200)
+            ->assertJsonPath(
+                'message',
+                __('responses.updated'),
+            )
+            ->assertJsonPath(
+                'data.role',
+                EnumsRole::ADMIN->value,
+            );
+
+        $updatedTarget = $target->fresh();
+
+        $this->assertTrue(
+            $updatedTarget->hasRole(
+                EnumsRole::ADMIN->value,
+            ),
+        );
+
+        $this->assertFalse(
+            $updatedTarget->hasRole(
+                EnumsRole::USER->value,
+            ),
+        );
     }
 
     public function test_non_existing_user_cannot_be_updated(): void

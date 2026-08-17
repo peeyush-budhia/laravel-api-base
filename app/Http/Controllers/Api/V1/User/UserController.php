@@ -76,7 +76,11 @@ class UserController extends BaseApiController
         UpdateUserRequest $request,
         User $user,
     ): JsonResponse {
+        /** @var User $actor */
+        $actor = $request->user();
+
         $user = $this->userService->update(
+            $actor,
             $user,
             $request->validated(),
         );
@@ -90,9 +94,17 @@ class UserController extends BaseApiController
     /**
      * Remove the specified user.
      */
-    public function destroy(User $user): JsonResponse
-    {
-        $this->userService->destroy($user);
+    public function destroy(
+        Request $request,
+        string $id,
+    ): JsonResponse {
+        /** @var User $actor */
+        $actor = $request->user();
+
+        $this->userService->delete(
+            $actor,
+            $id,
+        );
 
         return $this->deleted(
             __('responses.deleted'),
@@ -115,9 +127,17 @@ class UserController extends BaseApiController
     /**
      * Permanently delete a soft deleted user.
      */
-    public function forceDelete(string $user): JsonResponse
-    {
-        $this->userService->forceDelete($user);
+    public function forceDelete(
+        Request $request,
+        string $id,
+    ): JsonResponse {
+        /** @var User $actor */
+        $actor = $request->user();
+
+        $this->userService->forceDelete(
+            $actor,
+            $id,
+        );
 
         return $this->deleted(
             __('responses.deleted'),
@@ -151,7 +171,7 @@ class UserController extends BaseApiController
         /** @var User $user */
         $user = $request->user();
 
-        $user = $this->userService->update(
+        $user = $this->userService->updateProfile(
             $user,
             $request->validated(),
         );
