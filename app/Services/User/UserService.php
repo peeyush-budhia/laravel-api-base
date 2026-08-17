@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\User;
 
+use App\Enums\Role as RoleEnums;
 use App\Enums\UserStatus;
 use App\Models\User;
 use App\Notifications\User\UserCreatedNotification;
@@ -78,9 +79,21 @@ class UserService
     /**
      * Update an existing user.
      */
-    public function update(User $user, array $data): User
-    {
-        return DB::transaction(function () use ($user, $data): User {
+    public function update(
+        User $actor,
+        User $user,
+        array $data,
+    ): User {
+        return DB::transaction(function () use (
+            $actor,
+            $user,
+            $data,
+        ): User {
+            $this->ensureCanManageUser(
+                $actor,
+                $user,
+            );
+
             if (empty($data['password'])) {
                 unset($data['password']);
             }
@@ -99,10 +112,42 @@ class UserService
     }
 
     /**
+     * Update user profile.
+     */
+    public function updateProfile(
+        User $user,
+        array $data,
+    ): User {
+        return DB::transaction(function () use (
+            $user,
+            $data,
+        ): User {
+            if (empty($data['password'])) {
+                unset($data['password']);
+            }
+
+            unset($data['role']);
+
+            $user->update($data);
+
+            return $user->fresh();
+        });
+    }
+
+    /**
      * Soft delete a user.
      */
-    public function destroy(User $user): bool
-    {
+    public function delete(
+        User $actor,
+        string $id,
+    ): bool {
+        $user = User::findOrFail($id);
+
+        $this->ensureCanManageUser(
+            $actor,
+            $user,
+        );
+
         return (bool) $user->delete();
     }
 
@@ -121,13 +166,20 @@ class UserService
     /**
      * Permanently delete a soft deleted user.
      */
-    public function forceDelete(string $id): bool
-    {
+    public function forceDelete(
+        User $actor,
+        string $id,
+    ): bool {
         $user = User::withTrashed()->findOrFail($id);
 
         if ($user->deleted_at === null) {
             abort(404);
         }
+
+        $this->ensureCanManageUser(
+            $actor,
+            $user,
+        );
 
         return (bool) $user->forceDelete();
     }
@@ -166,5 +218,49 @@ class UserService
 
             return $user->fresh();
         });
+    }
+
+    /**
+     * Determine whether an actor can delete the target user.
+     */
+    private function ensureCanDeleteUser(
+        User $actor,
+        User $target,
+    ): void {
+        if ($actor->is($target)) {
+            abort(403, __('responses.user_cannot_delete_self'));
+        }
+
+        if (
+            $target->hasRole(RoleEnums::SUPER_ADMIN->value)
+            && ! $actor->hasRole(RoleEnums::SUPER_ADMIN->value)
+        ) {
+            abort(403, __('responses.super_admin_delete_forbidden'));
+        }
+    }
+
+    /**
+     * Determine whether an actor can change the target user's role.
+     */
+    /**
+     * Determine whether an actor can manage the target user.
+     */
+    private function ensureCanManageUser(
+        User $actor,
+        User $target,
+    ): void {
+        if ($actor->is($target)) {
+            abort(
+                403,
+                __('responses.user_cannot_manage_self'),
+            );
+        }
+
+        if ($target->hasRole(RoleEnums::SUPER_ADMIN->value)) {
+            abort(
+                403,
+                __('responses.super_admin_manage_forbidden'),
+            );
+        }
     }
 }

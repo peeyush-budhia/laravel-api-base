@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
     {
         $superAdminUser = User::query()->updateOrCreate(
             [
-                'email' => 'admin@example.com',
+                'email' => 'super-admin@example.com',
             ],
             [
                 'first_name' => 'Super',
@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
 
                 'avatar' => null,
                 'status' => UserStatus::ACTIVE,
+                'must_change_password' => false,
 
                 'email_verified_at' => now(),
 
@@ -35,7 +36,7 @@ class DatabaseSeeder extends Seeder
 
         $adminUser = User::query()->updateOrCreate(
             [
-                'email' => 'user@example.com',
+                'email' => 'admin@example.com',
             ],
             [
                 'first_name' => 'Admin',

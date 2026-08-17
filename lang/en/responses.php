@@ -54,4 +54,18 @@ return [
 
     'password_changed' => 'Password changed successfully.',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Manage super-admin and self account
+    |--------------------------------------------------------------------------
+    */
+    'user_cannot_delete_self' => 'You cannot delete your own account.',
+    'super_admin_delete_forbidden' => 'You cannot delete a Super Admin account.',
+
+    'user_cannot_change_own_role' => 'You cannot change your own role.',
+    'super_admin_role_change_forbidden' => 'Only a Super Admin can change the role of a Super Admin.',
+
+    'user_cannot_manage_self' => 'You cannot manage your own account.',
+    'super_admin_manage_forbidden' => 'Super Admin accounts cannot be modified.',
+
 ];
