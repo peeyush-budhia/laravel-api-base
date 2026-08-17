@@ -31,6 +31,10 @@ class AuthService
             ]);
         }
 
+        $user->forceFill([
+            'last_login_at' => now(),
+        ])->save();
+
         return [
             'user' => $user,
             'token' => $this->createToken($user),
@@ -151,8 +155,8 @@ class AuthService
         $user->forceFill([
             'password' => $credentials['password'],
             'must_change_password' => false,
-            'email_verified_at' => now(),
             'remember_token' => Str::random(60),
+            'email_verified_at' => $user->email_verified_at ?? now(),
         ])->save();
     }
 }
