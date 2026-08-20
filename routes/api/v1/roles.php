@@ -17,6 +17,31 @@ Route::middleware('auth:sanctum')->group(function (): void {
         ->middleware('permission:roles.view')
         ->name('roles.index');
 
+    /*
+    |--------------------------------------------------------------------------
+    | Role Permissions
+    |--------------------------------------------------------------------------
+    */
+
+    // IMPORTANT: Must be before roles/{role}
+    Route::get('roles/permissions', [RoleController::class, 'allPermissions'])
+        ->middleware('permission:roles.view')
+        ->name('roles.permissions.all');
+
+    Route::get('roles/{role}/permissions', [RoleController::class, 'permissions'])
+        ->middleware('permission:roles.view')
+        ->name('roles.permissions');
+
+    Route::put('roles/{role}/permissions', [RoleController::class, 'syncPermissions'])
+        ->middleware('permission:roles.manage-permissions')
+        ->name('roles.permissions.sync');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Individual Role
+    |--------------------------------------------------------------------------
+    */
+
     Route::get('roles/{role}', [RoleController::class, 'show'])
         ->middleware('permission:roles.view')
         ->name('roles.show');
@@ -35,12 +60,4 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::delete('roles/{role}', [RoleController::class, 'destroy'])
         ->middleware('permission:roles.delete')
         ->name('roles.destroy');
-
-    Route::get('roles/{role}/permissions', [RoleController::class, 'permissions'])
-        ->middleware('permission:roles.view')
-        ->name('roles.permissions');
-
-    Route::put('roles/{role}/permissions', [RoleController::class, 'syncPermissions'])
-        ->middleware('permission:roles.manage-permissions')
-        ->name('roles.permissions.sync');
 });

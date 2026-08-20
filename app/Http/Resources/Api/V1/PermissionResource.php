@@ -21,6 +21,7 @@ final class PermissionResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'description' => __("permissions.{$this->name}"),
             'guard_name' => $this->guard_name,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

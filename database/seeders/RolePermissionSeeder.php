@@ -4,52 +4,88 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Enums\Permission;
-use App\Enums\Role;
+use App\Enums\Permission as PermissionEnum;
+use App\Enums\Role as RoleEnum;
+use App\Models\Permission;
+use App\Models\Role;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Permission as SpatiePermission;
-use Spatie\Permission\Models\Role as SpatieRole;
 use Spatie\Permission\PermissionRegistrar;
 
 final class RolePermissionSeeder extends Seeder
 {
     public function run(): void
     {
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        app(PermissionRegistrar::class)
+            ->forgetCachedPermissions();
 
-        $permissions = collect(Permission::cases())
+        /*
+         * --------------------------------------------------------------------------
+         * Permissions
+         * --------------------------------------------------------------------------
+         */
+
+        $permissions = collect(PermissionEnum::cases())
             ->mapWithKeys(
-                fn (Permission $permission): array => [
-                    $permission->value => SpatiePermission::findOrCreate(
+                fn (PermissionEnum $permission): array => [
+                    $permission->value => Permission::findOrCreate(
                         $permission->value,
                         'sanctum',
                     ),
-                ]
+                ],
             );
 
-        $superAdmin = SpatieRole::findOrCreate(
-            Role::SUPER_ADMIN->value,
+        /*
+         * --------------------------------------------------------------------------
+         * Roles
+         * --------------------------------------------------------------------------
+         */
+
+        $superAdmin = Role::findOrCreate(
+            RoleEnum::SUPER_ADMIN->value,
             'sanctum',
         );
 
-        $admin = SpatieRole::findOrCreate(
-            Role::ADMIN->value,
+        $admin = Role::findOrCreate(
+            RoleEnum::ADMIN->value,
             'sanctum',
         );
 
-        $user = SpatieRole::findOrCreate(
-            Role::USER->value,
+        $user = Role::findOrCreate(
+            RoleEnum::USER->value,
             'sanctum',
         );
 
-        $superAdmin->syncPermissions($permissions->values());
+        /*
+         * --------------------------------------------------------------------------
+         * Super Admin
+         * --------------------------------------------------------------------------
+         */
 
-        $admin->syncPermissions($permissions->values());
+        $superAdmin->syncPermissions(
+            $permissions->values(),
+        );
+
+        /*
+         * --------------------------------------------------------------------------
+         * Admin
+         * --------------------------------------------------------------------------
+         */
+
+        $admin->syncPermissions(
+            $permissions->values(),
+        );
+
+        /*
+         * --------------------------------------------------------------------------
+         * User
+         * --------------------------------------------------------------------------
+         */
 
         $user->syncPermissions([
-            $permissions[Permission::USERS_VIEW->value],
+            $permissions[PermissionEnum::USERS_VIEW->value],
         ]);
 
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        app(PermissionRegistrar::class)
+            ->forgetCachedPermissions();
     }
 }

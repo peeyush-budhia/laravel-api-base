@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Requests\Api\V1\User;
 
 use App\Enums\UserStatus;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
-use Spatie\Permission\Models\Role as SpatieRole;
 
 class UpdateUserRequest extends FormRequest
 {
@@ -18,7 +18,8 @@ class UpdateUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->can('users.update') ?? false;
+
     }
 
     /**
@@ -62,7 +63,7 @@ class UpdateUserRequest extends FormRequest
 
             'role' => [
                 'required',
-                Rule::exists(SpatieRole::class, 'name')
+                Rule::exists(Role::class, 'name')
                     ->where('guard_name', 'sanctum'),
             ],
 

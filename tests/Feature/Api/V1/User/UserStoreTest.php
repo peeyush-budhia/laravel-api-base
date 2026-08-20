@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api\V1\User;
 
-use App\Enums\Role as RoleEnum;
-use App\Enums\UserStatus as UserStatusEnum;
+use App\Enums\Role as EnumsRole;
+use App\Enums\UserStatus as EnumsUserStatus;
+use App\Models\Role;
 use App\Models\User;
 use App\Notifications\User\UserCreatedNotification;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
-use Spatie\Permission\Models\Role;
 use Tests\Feature\Api\V1\ApiTestCase;
 use Tests\Feature\Api\V1\Concerns\InteractsWithPermissions;
 
@@ -23,7 +23,7 @@ final class UserStoreTest extends ApiTestCase
         parent::setUp();
 
         Role::create([
-            'name' => RoleEnum::ADMIN,
+            'name' => EnumsRole::ADMIN,
             'guard_name' => 'sanctum',
         ]);
 
@@ -39,7 +39,7 @@ final class UserStoreTest extends ApiTestCase
 
         $payload = $this->validUserData([
             'email' => $newEmail,
-            'role' => RoleEnum::ADMIN,
+            'role' => EnumsRole::ADMIN,
         ]);
 
         $response = $this->apiPost('/users', $payload);
@@ -51,8 +51,8 @@ final class UserStoreTest extends ApiTestCase
             ->assertJsonPath('data.first_name', 'John')
             ->assertJsonPath('data.last_name', 'Doe')
             ->assertJsonPath('data.email', $newEmail)
-            ->assertJsonPath('data.status', UserStatusEnum::ACTIVE)
-            ->assertJsonPath('data.role', RoleEnum::ADMIN);
+            ->assertJsonPath('data.status', EnumsUserStatus::ACTIVE)
+            ->assertJsonPath('data.role', EnumsRole::ADMIN);
 
         $this->assertDatabaseHas('users', [
             'email' => $newEmail,
@@ -61,7 +61,7 @@ final class UserStoreTest extends ApiTestCase
         $user = User::where('email', $newEmail)->firstOrFail();
 
         $this->assertTrue(
-            $user->hasRole(RoleEnum::ADMIN),
+            $user->hasRole(EnumsRole::ADMIN),
         );
 
         $this->assertTrue(
@@ -79,7 +79,7 @@ final class UserStoreTest extends ApiTestCase
 
         $payload = $this->validUserData([
             'email' => $newEmail,
-            'role' => RoleEnum::ADMIN,
+            'role' => EnumsRole::ADMIN,
         ]);
 
         $response = $this->apiPost('/users', $payload);
@@ -150,7 +150,7 @@ final class UserStoreTest extends ApiTestCase
 
         $response = $this->apiPost('/users', $this->validUserData([
             'email' => $newEmail,
-            'role' => RoleEnum::ADMIN,
+            'role' => EnumsRole::ADMIN,
         ]));
 
         $response->assertCreated();
@@ -171,7 +171,7 @@ final class UserStoreTest extends ApiTestCase
 
         $response = $this->apiPost('/users', $this->validUserData([
             'email' => $newEmail,
-            'role' => RoleEnum::ADMIN,
+            'role' => EnumsRole::ADMIN,
         ]));
 
         $response->assertCreated();
@@ -190,12 +190,75 @@ final class UserStoreTest extends ApiTestCase
         Notification::fake();
 
         $response = $this->apiPost('/users', $this->validUserData([
-            'role' => RoleEnum::ADMIN,
+            'role' => EnumsRole::ADMIN,
         ]));
 
         $response
             ->assertCreated()
             ->assertJsonMissingPath('data.password')
             ->assertJsonMissingPath('data.password_confirmation');
+    }
+
+    public function test_first_super_admin_can_be_created(): void
+    {
+        Role::create([
+            'name' => EnumsRole::SUPER_ADMIN->value,
+            'guard_name' => 'sanctum',
+        ]);
+
+        $newEmail = fake()->unique()->safeEmail();
+
+        $response = $this->apiPost('/users', $this->validUserData([
+            'email' => $newEmail,
+            'role' => EnumsRole::SUPER_ADMIN->value,
+        ]));
+
+        $response
+            ->assertCreated()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('status', 201)
+            ->assertJsonPath(
+                'data.role',
+                EnumsRole::SUPER_ADMIN->value,
+            );
+
+        $user = User::where('email', $newEmail)->firstOrFail();
+
+        $this->assertTrue(
+            $user->hasRole(EnumsRole::SUPER_ADMIN->value),
+        );
+    }
+
+    public function test_second_super_admin_cannot_be_created(): void
+    {
+        $role = Role::create([
+            'name' => EnumsRole::SUPER_ADMIN->value,
+            'guard_name' => 'sanctum',
+        ]);
+
+        $existingSuperAdmin = User::factory()->create();
+
+        $existingSuperAdmin->assignRole($role);
+
+        $response = $this->apiPost('/users', $this->validUserData([
+            'email' => fake()->unique()->safeEmail(),
+            'role' => EnumsRole::SUPER_ADMIN->value,
+        ]));
+
+        $response
+            ->assertStatus(409)
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('status', 409)
+            ->assertJsonPath(
+                'message',
+                __('users.super_admin_already_assigned'),
+            );
+
+        $this->assertDatabaseCount('users', 2);
+
+        $this->assertSame(
+            1,
+            User::role(EnumsRole::SUPER_ADMIN->value, 'sanctum')->count(),
+        );
     }
 }

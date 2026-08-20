@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services\User;
 
-use App\Enums\Role as RoleEnums;
+use App\Enums\Role as EnumsRole;
 use App\Enums\UserStatus;
+use App\Exceptions\RoleProtectionException;
+use App\Exceptions\UserRoleException;
 use App\Models\User;
 use App\Notifications\User\UserCreatedNotification;
 use App\Query\QueryExecutor;
@@ -56,10 +58,14 @@ class UserService
             $role = $data['role'];
             unset($data['role']);
 
+            // Only one user can have the super-admin role.
+            $this->ensureSuperAdminIsAvailable($role);
+
             $temporaryPassword = Str::password(12);
 
             $data['must_change_password'] = true;
 
+            /** @var User $user */
             $user = User::create([
                 ...$data,
                 'password' => Hash::make($temporaryPassword),
@@ -100,6 +106,24 @@ class UserService
 
             $role = $data['role'] ?? null;
             unset($data['role']);
+
+            if ($role !== null) {
+                // Only one user can have the super-admin role.
+                $this->ensureSuperAdminIsAvailable(
+                    $role,
+                    $user,
+                );
+
+                // An existing super-admin cannot be demoted.
+                if (
+                    $user->hasRole(EnumsRole::SUPER_ADMIN->value) &&
+                    $role !== EnumsRole::SUPER_ADMIN->value
+                ) {
+                    throw new UserRoleException(
+                        __('users.cannot_remove_super_admin_role'),
+                    );
+                }
+            }
 
             $user->update($data);
 
@@ -185,18 +209,6 @@ class UserService
     }
 
     /**
-     * Change user status.
-     */
-    public function changeStatus(User $user, UserStatus $status): User
-    {
-        $user->update([
-            'status' => $status,
-        ]);
-
-        return $user->fresh();
-    }
-
-    /**
      * Update the authenticated user's avatar.
      */
     public function updateAvatar(
@@ -232,8 +244,8 @@ class UserService
         }
 
         if (
-            $target->hasRole(RoleEnums::SUPER_ADMIN->value)
-            && ! $actor->hasRole(RoleEnums::SUPER_ADMIN->value)
+            $target->hasRole(EnumsRole::SUPER_ADMIN->value)
+            && ! $actor->hasRole(EnumsRole::SUPER_ADMIN->value)
         ) {
             abort(403, __('responses.super_admin_delete_forbidden'));
         }
@@ -256,10 +268,34 @@ class UserService
             );
         }
 
-        if ($target->hasRole(RoleEnums::SUPER_ADMIN->value)) {
+        if ($target->hasRole(EnumsRole::SUPER_ADMIN->value)) {
             abort(
                 403,
                 __('responses.super_admin_manage_forbidden'),
+            );
+        }
+    }
+
+    private function ensureSuperAdminIsAvailable(
+        string $role,
+        ?User $currentUser = null,
+    ): void {
+        if ($role !== EnumsRole::SUPER_ADMIN->value) {
+            return;
+        }
+
+        $query = User::role(
+            EnumsRole::SUPER_ADMIN->value,
+            'sanctum',
+        );
+
+        if ($currentUser) {
+            $query->whereKeyNot($currentUser->getKey());
+        }
+
+        if ($query->exists()) {
+            throw new RoleProtectionException(
+                __('users.super_admin_already_assigned'),
             );
         }
     }

@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\User;
 
-use App\Enums\UserStatus;
 use App\Http\Controllers\BaseApiController;
-use App\Http\Requests\Api\V1\User\ChangeUserStatusRequest;
 use App\Http\Requests\Api\V1\User\StoreUserRequest;
 use App\Http\Requests\Api\V1\User\UpdateAvatarRequest;
 use App\Http\Requests\Api\V1\User\UpdateProfileRequest;
@@ -141,24 +139,6 @@ class UserController extends BaseApiController
 
         return $this->deleted(
             __('responses.deleted'),
-        );
-    }
-
-    /**
-     * Change user status.
-     */
-    public function changeStatus(
-        User $user,
-        ChangeUserStatusRequest $request
-    ): JsonResponse {
-        $updatedUser = $this->userService->changeStatus(
-            $user,
-            UserStatus::from($request->string('status')->value())
-        );
-
-        return $this->statusChanged(
-            new UserResource($updatedUser),
-            __('responses.status_changed'),
         );
     }
 

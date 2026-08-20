@@ -74,20 +74,6 @@ final class UserGuestTest extends TestCase
         $response->assertUnauthorized();
     }
 
-    public function test_guest_cannot_change_user_status(): void
-    {
-        $user = User::factory()->create();
-
-        $response = $this->patchJson(
-            "/api/v1/users/{$user->id}/status",
-            [
-                'status' => 'inactive',
-            ],
-        );
-
-        $response->assertUnauthorized();
-    }
-
     public function test_guest_cannot_patch_user(): void
     {
         $user = User::factory()->create();

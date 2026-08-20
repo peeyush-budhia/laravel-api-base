@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api\V1\Role;
 
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
+use App\Enums\Role as EnumsRole;
+use App\Models\Permission;
+use App\Models\Role;
 use Tests\Feature\Api\V1\ApiTestCase;
 
 final class RoleStoreTest extends ApiTestCase
@@ -66,6 +67,19 @@ final class RoleStoreTest extends ApiTestCase
     public function test_role_requires_name(): void
     {
         $response = $this->apiPost('/roles', []);
+
+        $response
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'name',
+            ]);
+    }
+
+    public function test_super_admin_role_cannot_be_created_through_api(): void
+    {
+        $response = $this->apiPost('/roles', [
+            'name' => EnumsRole::SUPER_ADMIN->value,
+        ]);
 
         $response
             ->assertUnprocessable()

@@ -52,6 +52,16 @@ return [
 
     'expiration' => null,
 
+    'access_token_expiration' => (int) env(
+        'SANCTUM_ACCESS_TOKEN_EXPIRATION',
+        120,
+    ),
+
+    'remember_me_expiration' => (int) env(
+        'SANCTUM_REMEMBER_ME_EXPIRATION',
+        43200,
+    ),
+
     /*
     |--------------------------------------------------------------------------
     | Token Prefix
