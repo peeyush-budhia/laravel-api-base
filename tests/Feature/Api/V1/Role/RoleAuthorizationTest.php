@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api\V1\Role;
 
+use App\Models\Permission;
+use App\Models\Role;
 use Illuminate\Support\Facades\Auth;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\Feature\Api\V1\ApiTestCase;
 
 final class RoleAuthorizationTest extends ApiTestCase

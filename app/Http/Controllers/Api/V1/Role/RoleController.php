@@ -10,11 +10,11 @@ use App\Http\Requests\Api\V1\Role\SyncRolePermissionsRequest;
 use App\Http\Requests\Api\V1\Role\UpdateRoleRequest;
 use App\Http\Resources\Api\V1\PermissionResource;
 use App\Http\Resources\Api\V1\RoleResource;
+use App\Models\Role;
 use App\Query\QueryParameters;
 use App\Services\Role\RoleService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Spatie\Permission\Models\Role;
 
 class RoleController extends BaseApiController
 {
@@ -115,6 +115,19 @@ class RoleController extends BaseApiController
         return $this->updated(
             new RoleResource($role),
             __('responses.updated'),
+        );
+    }
+
+    /**
+     * Get all available permissions.
+     */
+    public function allPermissions(): JsonResponse
+    {
+        return $this->success(
+            PermissionResource::collection(
+                $this->roleService->allPermissions(),
+            ),
+            __('responses.success'),
         );
     }
 }

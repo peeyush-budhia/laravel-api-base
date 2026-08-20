@@ -3,6 +3,10 @@
 declare(strict_types=1);
 
 return [
+    'super_admin_already_assigned' => 'The super-admin role is already assigned to another user.',
+    'cannot_remove_super_admin_role' => 'The super-admin role cannot be removed from the super-admin user.',
+
+    /** Notification email for new account */
     'account_created_subject' => 'Your account has been created',
 
     'account_created_greeting' => 'Hello :name,',

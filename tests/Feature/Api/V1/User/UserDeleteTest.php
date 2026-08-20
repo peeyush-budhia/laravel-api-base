@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature\Api\V1\User;
 
 use App\Enums\Role as RoleEnum;
+use App\Models\Role;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
 use Tests\Feature\Api\V1\ApiTestCase;
 use Tests\Feature\Api\V1\Concerns\InteractsWithPermissions;
 

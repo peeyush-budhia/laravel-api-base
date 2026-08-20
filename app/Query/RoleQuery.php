@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Query;
 
+use App\Models\Role;
 use App\Query\Contracts\QueryContract;
 use App\Query\Contracts\QueryDefinition;
 use Illuminate\Database\Eloquent\Builder;
-use Spatie\Permission\Models\Role;
 
 final class RoleQuery implements QueryContract
 {

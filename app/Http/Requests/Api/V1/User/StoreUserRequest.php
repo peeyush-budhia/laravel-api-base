@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Requests\Api\V1\User;
 
 use App\Enums\UserStatus;
+use App\Models\Role;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Spatie\Permission\Models\Role;
 
 class StoreUserRequest extends FormRequest
 {

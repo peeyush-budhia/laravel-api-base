@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api\V1\Concerns;
 
+use App\Models\Permission;
 use App\Models\User;
-use Spatie\Permission\Models\Permission;
 
 trait InteractsWithPermissions
 {

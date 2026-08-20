@@ -6,8 +6,8 @@ namespace Tests\Feature\Api\V1\User;
 
 use App\Enums\Role as EnumsRole;
 use App\Enums\UserStatus;
+use App\Models\Role;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
 use Tests\Feature\Api\V1\ApiTestCase;
 use Tests\Feature\Api\V1\Concerns\InteractsWithPermissions;
 
@@ -352,5 +352,185 @@ final class UserUpdateTest extends ApiTestCase
                 'message',
                 __('responses.not_found'),
             );
+    }
+
+    public function test_user_can_be_promoted_to_super_admin_when_none_exists(): void
+    {
+        $user = User::factory()->create([
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+        ]);
+
+        $user->assignRole(EnumsRole::USER->value);
+
+        $response = $this->apiPut("/users/{$user->id}", [
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'email' => $user->email,
+            'role' => EnumsRole::SUPER_ADMIN->value,
+        ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('status', 200)
+            ->assertJsonPath(
+                'data.role',
+                EnumsRole::SUPER_ADMIN->value,
+            );
+
+        $this->assertTrue(
+            $user->fresh()->hasRole(EnumsRole::SUPER_ADMIN->value),
+        );
+    }
+
+    public function test_second_user_cannot_be_promoted_to_super_admin(): void
+    {
+        $existingSuperAdmin = User::factory()->create();
+
+        $existingSuperAdmin->assignRole(
+            EnumsRole::SUPER_ADMIN->value,
+        );
+
+        $user = User::factory()->create();
+
+        $user->assignRole(
+            EnumsRole::USER->value,
+        );
+
+        $response = $this->apiPut("/users/{$user->id}", [
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'email' => $user->email,
+            'role' => EnumsRole::SUPER_ADMIN->value,
+        ]);
+
+        $response
+            ->assertStatus(409)
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('status', 409)
+            ->assertJsonPath(
+                'message',
+                __('users.super_admin_already_assigned'),
+            );
+
+        $this->assertTrue(
+            $existingSuperAdmin->fresh()->hasRole(
+                EnumsRole::SUPER_ADMIN->value,
+            ),
+        );
+
+        $this->assertFalse(
+            $user->fresh()->hasRole(
+                EnumsRole::SUPER_ADMIN->value,
+            ),
+        );
+
+        $this->assertSame(
+            1,
+            User::role(EnumsRole::SUPER_ADMIN->value, 'sanctum')->count(),
+        );
+    }
+
+    public function test_super_admin_cannot_be_modified_even_when_retaining_role(): void
+    {
+        $user = User::factory()->create([
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+        ]);
+
+        $user->assignRole(
+            EnumsRole::SUPER_ADMIN->value,
+        );
+
+        $response = $this->apiPut("/users/{$user->id}", [
+            'first_name' => 'Jane',
+            'last_name' => 'Smith',
+            'email' => $user->email,
+            'role' => EnumsRole::SUPER_ADMIN->value,
+        ]);
+
+        $response
+            ->assertForbidden()
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('status', 403);
+
+        $this->assertTrue(
+            $user->fresh()->hasRole(
+                EnumsRole::SUPER_ADMIN->value,
+            ),
+        );
+    }
+
+    public function test_super_admin_cannot_be_demoted_through_user_management(): void
+    {
+        $user = User::factory()->create([
+            'first_name' => 'Super',
+            'last_name' => 'Admin',
+        ]);
+
+        $user->assignRole(
+            EnumsRole::SUPER_ADMIN->value,
+        );
+
+        $response = $this->apiPut("/users/{$user->id}", [
+            'first_name' => 'Super',
+            'last_name' => 'Admin',
+            'email' => $user->email,
+            'role' => EnumsRole::ADMIN->value,
+        ]);
+
+        $response
+            ->assertForbidden()
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('status', 403);
+
+        $this->assertTrue(
+            $user->fresh()->hasRole(
+                EnumsRole::SUPER_ADMIN->value,
+            ),
+        );
+
+        $this->assertFalse(
+            $user->fresh()->hasRole(
+                EnumsRole::ADMIN->value,
+            ),
+        );
+    }
+
+    public function test_only_one_super_admin_exists_after_role_assignment(): void
+    {
+        $firstUser = User::factory()->create();
+
+        $firstUser->assignRole(
+            EnumsRole::SUPER_ADMIN->value,
+        );
+
+        $secondUser = User::factory()->create();
+
+        $secondUser->assignRole(
+            EnumsRole::USER->value,
+        );
+
+        $response = $this->apiPut("/users/{$secondUser->id}", [
+            'first_name' => $secondUser->first_name,
+            'last_name' => $secondUser->last_name,
+            'email' => $secondUser->email,
+            'role' => EnumsRole::SUPER_ADMIN->value,
+        ]);
+
+        $response
+            ->assertStatus(409)
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('status', 409)
+            ->assertJsonPath(
+                'message',
+                __('users.super_admin_already_assigned'),
+            );
+
+        $this->assertSame(
+            1,
+            User::role(EnumsRole::SUPER_ADMIN->value, 'sanctum')->count(),
+        );
     }
 }

@@ -16,7 +16,6 @@ require __DIR__.'/v1/users.php';
 require __DIR__.'/v1/roles.php';
 
 // Future modules
-// require __DIR__ . '/v1/permissions.php';
 // require __DIR__ . '/v1/companies.php';
 // require __DIR__ . '/v1/suppliers.php';
 // require __DIR__ . '/v1/purchasers.php';

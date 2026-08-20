@@ -18,6 +18,11 @@ class AuthService
      *
      * @throws ValidationException
      */
+    /**
+     * Authenticate a user and generate a Sanctum token.
+     *
+     * @throws ValidationException
+     */
     public function login(array $credentials): array
     {
         $login = $credentials['login'];
@@ -35,9 +40,14 @@ class AuthService
             'last_login_at' => now(),
         ])->save();
 
+        $rememberMe = (bool) ($credentials['remember_me'] ?? false);
+
         return [
             'user' => $user,
-            'token' => $this->createToken($user),
+            'token' => $this->createToken(
+                $user,
+                $rememberMe,
+            ),
         ];
     }
 
@@ -83,10 +93,23 @@ class AuthService
     /**
      * Create a Sanctum access token.
      */
-    private function createToken(User $user): string
-    {
+    /**
+     * Create a Sanctum access token.
+     */
+    private function createToken(
+        User $user,
+        bool $rememberMe,
+    ): string {
+        $expiration = $rememberMe
+            ? config('sanctum.remember_me_expiration')
+            : config('sanctum.access_token_expiration');
+
         return $user
-            ->createToken(config('app.name'))
+            ->createToken(
+                config('app.name'),
+                ['*'],
+                now()->addMinutes($expiration),
+            )
             ->plainTextToken;
     }
 
