@@ -6,14 +6,15 @@ namespace App\Services\Role;
 
 use App\Enums\Role as RoleEnum;
 use App\Exceptions\RoleDeletionException;
+use App\Exceptions\RoleProtectionException;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Query\QueryExecutor;
 use App\Query\QueryParameters;
 use App\Query\RoleQuery;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 
 class RoleService
 {
@@ -59,6 +60,11 @@ class RoleService
         Role $role,
         array $data,
     ): Role {
+        $this->ensureNotSuperAdmin(
+            $role,
+            __('roles.cannot_modify_super_admin'),
+        );
+
         return DB::transaction(function () use (
             $role,
             $data,
@@ -117,8 +123,47 @@ class RoleService
         Role $role,
         array $permissions,
     ): Role {
+        $this->ensureNotSuperAdmin(
+            $role,
+            __('roles.cannot_modify_super_admin_permissions'),
+        );
+
         $role->syncPermissions($permissions);
 
         return $role->fresh('permissions');
+    }
+
+    /**
+     * Determine whether the role is the protected super-admin role.
+     */
+    private function isSuperAdmin(Role $role): bool
+    {
+        return $role->name === RoleEnum::SUPER_ADMIN->value;
+    }
+
+    /**
+     * Prevent modification of the protected super-admin role.
+     */
+    private function ensureNotSuperAdmin(
+        Role $role,
+        string $message,
+    ): void {
+        if ($this->isSuperAdmin($role)) {
+            throw new RoleProtectionException($message);
+        }
+    }
+
+    /**
+     * Get all available permissions.
+     *
+     * @return Collection<int, Permission>
+     */
+    public function allPermissions(): Collection
+    {
+        return Permission::query()
+            ->where('guard_name', 'sanctum')
+            ->orderBy('guard_name')
+            ->orderBy('name')
+            ->get();
     }
 }

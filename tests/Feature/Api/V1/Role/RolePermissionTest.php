@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api\V1\Role;
 
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
+use App\Enums\Permission as EnumsPermission;
+use App\Enums\Role as EnumsRole;
+use App\Models\Permission;
+use App\Models\Role;
 use Tests\Feature\Api\V1\ApiTestCase;
 
 final class RolePermissionTest extends ApiTestCase
@@ -288,5 +290,72 @@ final class RolePermissionTest extends ApiTestCase
             ->assertNotFound()
             ->assertJsonPath('success', false)
             ->assertJsonPath('status', 404);
+    }
+
+    public function test_super_admin_permissions_cannot_be_modified(): void
+    {
+        $role = Role::create([
+            'name' => EnumsRole::SUPER_ADMIN->value,
+            'guard_name' => 'sanctum',
+        ]);
+
+        $permission = Permission::findOrCreate(
+            EnumsPermission::USERS_VIEW->value,
+            'sanctum',
+        );
+
+        $role->givePermissionTo($permission);
+
+        $response = $this->apiPut(
+            "/roles/{$role->id}/permissions",
+            [
+                'permissions' => [],
+            ],
+        );
+
+        $response
+            ->assertStatus(409)
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('status', 409)
+            ->assertJsonPath(
+                'message',
+                __('roles.cannot_modify_super_admin_permissions'),
+            );
+
+        $this->assertTrue(
+            $role->fresh()->hasPermissionTo($permission),
+        );
+    }
+
+    public function test_user_without_manage_permissions_cannot_synchronize_role_permissions(): void
+    {
+        $this->user->revokePermissionTo(
+            'roles.manage-permissions',
+        );
+
+        $role = Role::create([
+            'name' => 'manager',
+            'guard_name' => 'sanctum',
+        ]);
+
+        $permission = Permission::findOrCreate(
+            'users.view',
+            'sanctum',
+        );
+
+        $response = $this->apiPut(
+            "/roles/{$role->id}/permissions",
+            [
+                'permissions' => [
+                    $permission->name,
+                ],
+            ],
+        );
+
+        $response->assertForbidden();
+
+        $this->assertFalse(
+            $role->fresh()->hasPermissionTo('users.view'),
+        );
     }
 }

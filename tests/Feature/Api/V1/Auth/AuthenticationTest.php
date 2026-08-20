@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Laravel\Sanctum\PersonalAccessToken;
 use Tests\Feature\ApiTestCase;
 
 class AuthenticationTest extends ApiTestCase
@@ -584,5 +585,135 @@ class AuthenticationTest extends ApiTestCase
         );
 
         $this->assertApiUnauthorized($response);
+    }
+
+    public function test_login_without_remember_me_creates_short_lived_token(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('password'),
+        ]);
+
+        $before = now();
+
+        $response = $this->postJson(
+            '/api/v1/auth/login',
+            [
+                'login' => $user->email,
+                'password' => 'password',
+                'remember_me' => false,
+            ],
+        );
+
+        $response->assertOk();
+
+        $token = PersonalAccessToken::query()
+            ->where('tokenable_id', $user->id)
+            ->latest('id')
+            ->firstOrFail();
+
+        $this->assertNotNull($token->expires_at);
+
+        $this->assertTrue(
+            $token->expires_at->between(
+                $before->copy()->addMinutes(
+                    config('sanctum.access_token_expiration') - 1,
+                ),
+                now()->addMinutes(
+                    config('sanctum.access_token_expiration') + 1,
+                ),
+            ),
+        );
+    }
+
+    public function test_login_with_remember_me_creates_long_lived_token(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('password'),
+        ]);
+
+        $before = now();
+
+        $response = $this->postJson(
+            '/api/v1/auth/login',
+            [
+                'login' => $user->email,
+                'password' => 'password',
+                'remember_me' => true,
+            ],
+        );
+
+        $response->assertOk();
+
+        $token = PersonalAccessToken::query()
+            ->where('tokenable_id', $user->id)
+            ->latest('id')
+            ->firstOrFail();
+
+        $this->assertNotNull($token->expires_at);
+
+        $this->assertTrue(
+            $token->expires_at->between(
+                $before->copy()->addMinutes(
+                    config('sanctum.remember_me_expiration') - 1,
+                ),
+                now()->addMinutes(
+                    config('sanctum.remember_me_expiration') + 1,
+                ),
+            ),
+        );
+    }
+
+    public function test_login_with_remember_me_uses_long_lived_token(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('password'),
+        ]);
+
+        $this->postJson('/api/v1/auth/login', [
+            'login' => $user->email,
+            'password' => 'password',
+            'remember_me' => true,
+        ])->assertOk();
+
+        $token = PersonalAccessToken::query()
+            ->where('tokenable_id', $user->id)
+            ->latest('id')
+            ->firstOrFail();
+
+        $this->assertNotNull($token->expires_at);
+
+        $expectedMinutes = (int) config(
+            'sanctum.remember_me_expiration',
+        );
+
+        $actualMinutes = now()->diffInMinutes(
+            $token->expires_at,
+        );
+
+        $this->assertEqualsWithDelta(
+            $expectedMinutes,
+            $actualMinutes,
+            1,
+        );
+    }
+
+    public function test_expired_token_is_rejected(): void
+    {
+        $user = User::factory()->create();
+
+        $token = $user->createToken(
+            config('app.name'),
+            ['*'],
+            now()->subMinute(),
+        );
+
+        $response = $this
+            ->withToken($token->plainTextToken)
+            ->getJson('/api/v1/auth/me');
+
+        $response
+            ->assertUnauthorized()
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('status', 401);
     }
 }
