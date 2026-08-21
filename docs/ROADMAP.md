@@ -2,7 +2,7 @@
 
 ## Vision
 
-Laravel API Base is intended to be a production-ready API starter template that can serve as the foundation for future Laravel projects.
+Laravel API Base is intended to be a production-ready Laravel API starter template that can serve as the foundation for future Laravel projects. This template provides the technical foundation while keeping business-domain decisions in the projects that consume it.
 
 The objectives are:
 
@@ -14,6 +14,7 @@ The objectives are:
 - Consistent API Responses
 - High Test Coverage
 - Easy Scalability
+- Developer-Friendly Workflow
 
 This roadmap outlines the planned evolution of the project.
 
@@ -22,12 +23,8 @@ This roadmap outlines the planned evolution of the project.
 # Current Version
 
 ```
-v0.1.0
+v0.6.0
 ```
-
-Status:
-
-> Initial Foundation
 
 ---
 
@@ -35,10 +32,10 @@ Status:
 
 **Status:** ✅ Completed
 
-### Completed
+## Completed
 
 - Laravel 13 API-only setup
-- API Versioning (`/api/v1`)
+- API Versioning (/api/v1)
 - Standard API Response helper
 - Centralized Exception Handling
 - Laravel Sanctum Authentication
@@ -48,19 +45,23 @@ Status:
 - Repository Documentation
 - Git Branching Strategy
 - GitHub Template Preparation
+- UUID Support
+- Base Model
+- Service Layer Architecture
 
-Deliverables
+## Deliverables
 
 - Authentication module
 - Passing Feature Tests
 - Clean project structure
 - Enterprise coding standards
+- Reusable application foundation
 
 ---
 
 # Phase 1 — User Management
 
-**Status:** 🚧 In Progress
+**Status:** ✅ Completed
 
 ## Features
 
@@ -74,212 +75,142 @@ Deliverables
 - Pagination
 - API Resources
 - Form Requests
+- Service Layer
 - Feature Tests
-- Authorization Policies
-
-Endpoints
-
-```
-GET     /users
-
-GET     /users/{uuid}
-
-POST    /users
-
-PUT     /users/{uuid}
-
-DELETE  /users/{uuid}
-```
+- Authorization
+- User Profile Management
+- Avatar Management
+- User Restore
+- User Force Delete
+- Password Management
 
 ---
 
 # Phase 2 — Roles & Permissions
 
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 
-Features
+## Features
 
+- UUID support
 - Role Management
 - Permission Management
 - Assign Roles
 - Assign Permissions
 - Role Middleware
 - Permission Middleware
+- Role Authorization
+- Permission Authorization
+- Role Search
+- Role Sorting
+- Role Pagination
+- Role Protection
+- Super Admin Protection
+- Permission Synchronization
+- Feature Tests
 
-Suggested Package
+## Package
 
 - spatie/laravel-permission
 
 ---
 
-# Phase 3 — Company Management
+# Phase 3 — Notifications
 
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 
-Features
-
-- Company CRUD
-- Company Settings
-- Company Logo
-- Company Address
-- Company Contacts
-- Active/Inactive Status
-
----
-
-# Phase 4 — Customer Management
-
-**Status:** 📋 Planned
-
-Features
-
-- Customer CRUD
-- Search
-- Pagination
-- Contact Information
-- Company Association
-- Soft Deletes
-
----
-
-# Phase 5 — Supplier Management
-
-**Status:** 📋 Planned
-
-Features
-
-- Supplier CRUD
-- Company Association
-- Contact Details
-- Status Management
-- Search
-- Filtering
-
----
-
-# Phase 6 — File Upload Module
-
-**Status:** 📋 Planned
-
-Features
-
-- Image Upload
-- Document Upload
-- Avatar Upload
-- File Validation
-- Storage Abstraction
-- Public URLs
-
-Supported Drivers
-
-- Local
-- S3 Compatible Storage
-
----
-
-# Phase 7 — Notifications
-
-**Status:** 📋 Planned
-
-Features
+## Features
 
 - Email Notifications
-- Database Notifications
-- Queue Support
-- Password Reset
+- Password Reset Notifications
 - Welcome Emails
+- Frontend URL Integration
+- Notification Testing
 
 ---
 
-# Phase 8 — Audit Logs
+# Phase 4 — Audit Logs
 
 **Status:** 📋 Planned
 
-Features
+## Features
 
 - Created By
 - Updated By
 - Deleted By
-- Login History
 - Activity Logs
-- Change Tracking
 
 ---
 
-# Phase 9 — Settings Module
+# Phase 5 — Dashboard API
 
 **Status:** 📋 Planned
 
-Features
+## Features
 
-- Application Settings
-- Company Settings
-- Email Settings
-- Localization
-- Timezone
-- Currency
-- Theme Preferences
-
----
-
-# Phase 10 — Dashboard
-
-**Status:** 📋 Planned
-
-Features
-
-- Statistics
-- User Counts
-- Charts
+- Dashboard Statistics
+- User Statistics
+- System Statistics
 - Recent Activity
-- Quick Actions
+- Quick Action Metadata
+- Aggregated API Endpoints
 
 ---
 
-# Phase 11 — Background Jobs
+# Phase 6 — Developer Experience & API Documentation
 
-**Status:** 📋 Planned
+**Status:** 🚧 Next
 
-Features
-
-- Queued Emails
-- Report Generation
-- File Processing
-- Scheduled Tasks
-
----
-
-# Phase 12 — API Documentation
-
-**Status:** 📋 Planned
-
-Features
+## API Documentation
 
 - OpenAPI Specification
+- Automatic API Documentation
 - Swagger UI
-- API Examples
-- Authentication Guide
+- Authentication Documentation
+- Request Examples
+- Response Examples
+- Validation Documentation
+- Error Response Documentation
+- API Version Documentation
 
-Potential Tools
+## API Testing
 
-- Scribe
-- Swagger/OpenAPI
+- Postman Collection
+- Postman Environment
+- Authentication Workflow
+- Environment Variables
+- Example Requests
+- Example Responses
+
+### Developer Experience
+
+- Development Setup Guide
+- Testing Guide
+- API Usage Guide
+- Contribution Guide
+- Branching Guide
+- Release Guide
+- Changelog Standards
 
 ---
 
-# Phase 13 — Docker Support
+# Phase 7 — Docker Support
 
 **Status:** 📋 Planned
 
-Features
+## Features
 
 - PHP
 - Nginx
-- MySQL/MariaDB
+- MySQL / MariaDB
 - Redis
 - Mailpit
+- Development Environment
+- Production Environment
+- Environment Configuration
+- Persistent Storage
 
-Deliverables
+### Deliverables
 
 ```
 docker-compose.yml
@@ -289,13 +220,13 @@ Dockerfile
 
 ---
 
-# Phase 14 — CI/CD
+# Phase 8 — CI/CD
 
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 
-GitHub Actions
+## GitHub Actions
 
-Pipeline
+### Pipeline
 
 ```
 Install Dependencies
@@ -323,60 +254,60 @@ Deploy
 
 ---
 
-# Phase 15 — Monitoring
+# Phase 9 — Performance
 
 **Status:** 📋 Planned
 
-Potential Integrations
-
-- Laravel Pulse
-- Telescope
-- Sentry
-- Bugsnag
-
----
-
-# Phase 16 — Performance
-
-**Status:** 📋 Planned
-
-Features
+## Features
 
 - Redis Cache
 - Query Optimization
 - Eager Loading
 - Response Caching
 - Queue Optimization
+- Database Index Optimization
+- API Performance Monitoring
+- Pagination Optimization
 
 ---
 
-# Phase 17 — Multi-Tenancy (Optional)
+# Phase 10 — Multi-Tenancy (Optional)
 
 **Status:** 📋 Future Consideration
 
-Possible Features
+## Possible Features
 
 - Tenant Isolation
 - Company-Based Data
 - Shared Database
 - Separate Databases
+- Tenant Identification
+- Tenant-Aware Authentication
+- Tenant-Aware Authorization
+
+Multi-tenancy should only be introduced if it can be implemented without coupling the API Base to a specific business domain.
 
 ---
 
 # Testing Goals
 
-Maintain
+Maintain:
 
 - 100% Feature Test coverage for API endpoints
 - High Service Layer test coverage
+- High Query Layer test coverage
 - Regression test suite
+- Authorization test coverage
+- Validation test coverage
 - Automated CI execution
+
+Every new API endpoint should include appropriate feature tests.
 
 ---
 
 # Coding Standards
 
-Continue following
+Continue following:
 
 - PSR-12
 - SOLID Principles
@@ -387,21 +318,52 @@ Continue following
 - Form Requests
 - API Resources
 - Service Layer Pattern
+- UUID-based Identifiers
+- Strict Typing
+- Consistent Exception Handling
+- Consistent API Responses
+
+---
+
+# Architectural Principles
+
+Laravel API Base should remain:
+
+- Domain Agnostic
+- API First
+- Backend Only
+- Modular
+- Testable
+- Extensible
+- Production Oriented
+
+Business-specific modules should not be included in the base template.
+
+Examples of functionality that should remain outside the core API Base:
+
+- Company Management
+- Customer Management
+- Supplier Management
+- Industry-specific workflows
+
+These can be implemented in projects that use Laravel API Base as their foundation.
 
 ---
 
 # Version Roadmap
 
-| Version | Status         | Focus                           |
-| ------- | -------------- | ------------------------------- |
-| v0.1.0  | ✅ Complete    | API Foundation & Authentication |
-| v0.2.0  | 🚧 In Progress | User Management                 |
-| v0.3.0  | 📋 Planned     | Roles & Permissions             |
-| v0.4.0  | 📋 Planned     | Files & Notifications           |
-| v0.5.0  | 📋 Planned     | Audit Logs & Settings           |
-| v0.6.0  | 📋 Planned     | Dashboard                       |
-| v0.7.0  | 📋 Planned     | Docker & CI/CD                  |
-| v1.0.0  | 🎯 Target      | Production Ready Template       |
+| Version | Status      | Focus                                             |
+| ------- | ----------- | ------------------------------------------------- |
+| v0.1.0  | ✅ Complete | API Foundation & Authentication                   |
+| v0.2.0  | ✅ Complete | User Management                                   |
+| v0.3.0  | ✅ Complete | Roles & Permissions                               |
+| v0.4.0  | ✅ Complete | User Lifecycle, Authorization & Notifications     |
+| v0.5.0  | ✅ Complete | Query Infrastructure & API Improvements           |
+| v0.6.0  | ✅ Released | Backend Cleanup & Foundation Stabilization        |
+| v0.7.0  | 🚧 Next     | Postman, API Documentation & Developer Experience |
+| v0.8.0  | 📋 Planned  | Audit Logs & Dashboard APIs                       |
+| v0.9.0  | 📋 Planned  | Docker, Performance & Infrastructure              |
+| v1.0.0  | 🎯 Target   | Production Ready API Template                     |
 
 ---
 
@@ -415,5 +377,8 @@ Laravel API Base aims to become a reusable foundation for enterprise Laravel API
 - Modular design
 - Scalable project structure
 - Consistent development workflow
+- Automated quality checks
+- API documentation
+- Developer-friendly tooling
 
 Every future project created from this template should require minimal setup and allow developers to focus on implementing business requirements rather than rebuilding common infrastructure.
