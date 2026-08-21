@@ -1,22 +1,33 @@
-# Changelog
-
-All notable changes to this project will be documented in this file.
-
-The format is based on Keep a Changelog.
-
----
-
-## [1.0.0] - 2026-08-06
+## [0.6.0] - 2026-08-21
 
 ### Added
 
-- Laravel 13 API Starter
-- API Versioning
-- Sanctum Authentication
-- UUID Support
-- Service Layer
-- Global Exception Handler
-- Standard API Response
-- Health Endpoint
-- Authentication Tests
-- Laravel Pint Integration
+- Role and permission management
+- User management
+- User profile and avatar management
+- User soft delete, restore, and permanent delete
+- Role permission synchronization
+- Password change and password reset flows
+- Remember-me authentication support
+- Super Admin protection
+- API authorization and permission tests
+- Query search, filtering, sorting, and pagination support
+
+### Changed
+
+- Refactored role and permission handling
+- Improved user management authorization
+- Standardized API query handling
+
+### Removed
+
+- Unused Laravel frontend/Vite assets from the API-only backend
+- Unused API curl testing scripts
+- Unused `ChangeUserStatusRequest`
+- Laravel example test
+- Unused favicon and frontend configuration
+
+### Testing
+
+- 176 tests passing
+- 868 assertions passing
