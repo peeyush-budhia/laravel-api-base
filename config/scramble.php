@@ -2,6 +2,7 @@
 
 use Dedoc\Scramble\Http\Middleware\RestrictedDocsAccess;
 use Dedoc\Scramble\SecurityDocumentation\MiddlewareAuthSecurityStrategy;
+use Dedoc\Scramble\Support\Generator\SecurityScheme;
 
 return [
     /*
@@ -150,8 +151,11 @@ return [
     'flatten_deep_query_parameters' => true,
 
     'middleware' => [
-        'web',
-        RestrictedDocsAccess::class,
+        ...(
+            env('APP_ENV') === 'testing'
+                ? []
+                : [RestrictedDocsAccess::class]
+        ),
     ],
 
     'extensions' => [],
@@ -179,5 +183,11 @@ return [
      * ],
      */
     // 'security_strategy' => \Dedoc\Scramble\SecurityDocumentation\MiddlewareAuthSecurityStrategy::class,
-    'security_strategy' => MiddlewareAuthSecurityStrategy::class,
+    'security_strategy' => [
+        MiddlewareAuthSecurityStrategy::class,
+        [
+            'middleware' => ['auth', 'auth:*'],
+            'scheme' => SecurityScheme::http('bearer'),
+        ],
+    ],
 ];
