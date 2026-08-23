@@ -3,7 +3,10 @@
     "name": "laravel/laravel",
     "type": "project",
     "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "keywords": [
+        "laravel",
+        "framework"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.3",
@@ -13,6 +16,7 @@
         "spatie/laravel-permission": "^8.3"
     },
     "require-dev": {
+        "dedoc/scramble": "^0.13.42",
         "fakerphp/faker": "^1.23",
         "larastan/larastan": "^3.10",
         "laravel/pail": "^1.2.5",
@@ -66,6 +70,18 @@
         ],
         "pre-package-uninstall": [
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
+        ],
+        "lint": [
+            "@php vendor/bin/pint --test"
+        ],
+        "analyse": [
+            "@php vendor/bin/phpstan analyse"
+        ],
+        "docs:check": [
+            "@php artisan scramble:analyze"
+        ],
+        "docs:export": [
+            "@php artisan scramble:export"
         ]
     },
     "extra": {

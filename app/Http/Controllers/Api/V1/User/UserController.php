@@ -24,7 +24,10 @@ class UserController extends BaseApiController
     ) {}
 
     /**
-     * Display a listing of users.
+     * List users.
+     *
+     * Returns a paginated collection of users.
+     * Supports searching, filtering, and sorting.
      */
     public function index(Request $request): JsonResponse
     {
@@ -40,7 +43,7 @@ class UserController extends BaseApiController
     }
 
     /**
-     * Store a newly created user.
+     * Create new user.
      */
     public function store(StoreUserRequest $request): JsonResponse
     {
@@ -55,7 +58,7 @@ class UserController extends BaseApiController
     }
 
     /**
-     * Display the specified user.
+     * Get a user.
      */
     public function show(User $user): JsonResponse
     {
@@ -68,7 +71,7 @@ class UserController extends BaseApiController
     }
 
     /**
-     * Update the specified user.
+     * Update a user.
      */
     public function update(
         UpdateUserRequest $request,
@@ -90,7 +93,7 @@ class UserController extends BaseApiController
     }
 
     /**
-     * Remove the specified user.
+     * Soft delete a user.
      */
     public function destroy(
         Request $request,
@@ -110,7 +113,7 @@ class UserController extends BaseApiController
     }
 
     /**
-     * Restore a soft deleted user.
+     * Restore a deleted user.
      */
     public function restore(string $user): JsonResponse
     {
@@ -123,7 +126,7 @@ class UserController extends BaseApiController
     }
 
     /**
-     * Permanently delete a soft deleted user.
+     * Permanently delete a user.
      */
     public function forceDelete(
         Request $request,
@@ -162,6 +165,9 @@ class UserController extends BaseApiController
         );
     }
 
+    /**
+     * Update the authenticated user's avatar.
+     */
     public function updateAvatar(
         UpdateAvatarRequest $request,
     ): JsonResponse {

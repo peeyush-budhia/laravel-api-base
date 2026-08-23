@@ -23,6 +23,9 @@ class AuthController extends BaseApiController
 
     /**
      * Authenticate a user.
+     *
+     * Returns a personal access token that can be used
+     * to authenticate subsequent API requests.
      */
     public function login(LoginRequest $request): JsonResponse
     {
@@ -39,6 +42,8 @@ class AuthController extends BaseApiController
 
     /**
      * Logout the authenticated user.
+     *
+     * Revokes the current personal access token.
      */
     public function logout(Request $request): JsonResponse
     {
@@ -53,7 +58,7 @@ class AuthController extends BaseApiController
     }
 
     /**
-     * Return the authenticated user.
+     * Get the authenticated user's profile.
      */
     public function me(Request $request): JsonResponse
     {
@@ -84,7 +89,7 @@ class AuthController extends BaseApiController
     }
 
     /**
-     * Reset the user's password.
+     * Reset a user's password using a valid reset token.
      */
     public function resetPassword(
         ResetPasswordRequest $request,

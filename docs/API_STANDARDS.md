@@ -54,6 +54,16 @@ Never expose endpoints without versioning.
 
 ---
 
+Future versions should be introduced under:
+
+```
+/api/v2
+```
+
+without breaking the existing /api/v1 contract.
+
+---
+
 # REST API Conventions
 
 Use RESTful naming conventions.
@@ -542,7 +552,6 @@ Every new API endpoint must include:
 - API Resource
 - Service method
 - Route definition
-- cURL example
 - README update (if applicable)
 
 ---
