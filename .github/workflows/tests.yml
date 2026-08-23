@@ -120,3 +120,6 @@ jobs:
 
       - name: Run Tests
         run: php artisan test
+
+      - name: OpenAPI Validation
+        run: php artisan scramble:analyze

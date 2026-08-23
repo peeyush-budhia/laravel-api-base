@@ -43,7 +43,7 @@
 ## Quick Start
 
 ```bash
-git clone git@github.com:YOUR_USERNAME/laravel-api-base.git
+git clone git@github.com:peeyush-budhia/laravel-api-base.git
 
 cd laravel-api-base
 

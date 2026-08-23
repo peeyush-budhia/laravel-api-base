@@ -23,7 +23,10 @@ class RoleController extends BaseApiController
     ) {}
 
     /**
-     * Display a listing of roles.
+     * List roles.
+     *
+     * Returns a paginated collection of roles.
+     * Supports searching, filtering, and sorting.
      */
     public function index(Request $request): JsonResponse
     {
@@ -39,7 +42,7 @@ class RoleController extends BaseApiController
     }
 
     /**
-     * Display the specified role.
+     * Get a role.
      */
     public function show(Role $role): JsonResponse
     {
@@ -52,7 +55,7 @@ class RoleController extends BaseApiController
     }
 
     /**
-     * Store a newly created role.
+     * Create new role.
      */
     public function store(StoreRoleRequest $request): JsonResponse
     {
@@ -67,7 +70,7 @@ class RoleController extends BaseApiController
     }
 
     /**
-     * Update the specified role.
+     * Update a role.
      */
     public function update(
         UpdateRoleRequest $request,
@@ -84,6 +87,9 @@ class RoleController extends BaseApiController
         );
     }
 
+    /**
+     * Delete a role.
+     */
     public function destroy(Role $role): JsonResponse
     {
         $this->roleService->destroy($role);
@@ -93,6 +99,9 @@ class RoleController extends BaseApiController
         );
     }
 
+    /**
+     * Get permissions assigned to a role.
+     */
     public function permissions(Role $role): JsonResponse
     {
         return $this->success(
@@ -103,6 +112,9 @@ class RoleController extends BaseApiController
         );
     }
 
+    /**
+     * Synchronize permissions assigned to a role.
+     */
     public function syncPermissions(
         SyncRolePermissionsRequest $request,
         Role $role,
@@ -119,7 +131,7 @@ class RoleController extends BaseApiController
     }
 
     /**
-     * Get all available permissions.
+     * List all available permissions.
      */
     public function allPermissions(): JsonResponse
     {
