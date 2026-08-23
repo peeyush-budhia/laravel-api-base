@@ -159,11 +159,11 @@ The OpenAPI document is available at:
 For the local environment:
 
 ```text
-http://api-base.test/docs/api
+http://example.test/docs/api
 ```
 
 ```text
-http://api-base.test/docs/api.json
+http://example.test/docs/api.json
 ```
 
 ## OpenAPI Generation
