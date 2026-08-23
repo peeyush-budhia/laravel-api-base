@@ -1,6 +1,6 @@
 # Laravel API Base
 
-> A production-ready Laravel 13 REST API Starter Kit with Authentication, API Versioning, Service Layer Architecture, UUID Support, Standardized API Responses, and Comprehensive Testing.
+> A production-ready Laravel 13 REST API Starter Kit with Authentication, API Versioning, Service Layer Architecture, UUID Support, Standardized API Responses, API Documentation, and Comprehensive Testing.
 
 ![Laravel](https://img.shields.io/badge/Laravel-13.x-red)
 ![PHP](https://img.shields.io/badge/PHP-8.4-blue)
@@ -23,6 +23,13 @@
 - Standard API Responses
 - Global Exception Handling
 - Health Check Endpoint
+- User Management
+- Roles & Permissions
+- User Profile Management
+- Avatar Management
+- Password Management
+- Notifications
+- Swagger/OpenAPI API Documentation
 - Feature Testing
 - Laravel Pint
 - GitHub Actions Ready
@@ -62,7 +69,7 @@ php artisan serve
 
 ## Project Structure
 
-```
+```text
 app/
 bootstrap/
 config/
@@ -77,19 +84,58 @@ scripts/
 
 ## API Versioning
 
-```
+```text
 /api/v1/*
 ```
 
-Example
+Examples:
 
-```
+```text
 POST /api/v1/auth/login
-
-GET /api/v1/auth/me
-
+GET  /api/v1/auth/me
 POST /api/v1/auth/logout
+GET  /api/v1/users
+GET  /api/v1/roles
 ```
+
+---
+
+## API Documentation
+
+The project provides API documentation through Swagger/OpenAPI.
+
+### Swagger UI
+
+When running the application locally:
+
+```text
+http://example.test/docs/api
+```
+
+The Swagger UI provides interactive documentation for the available API endpoints, request parameters, authentication, responses, and schemas.
+
+### Documentation Files
+
+Project documentation is available in the `docs/` directory.
+
+Important documentation includes:
+
+- `docs/API.md` — API usage and endpoint documentation
+- `docs/ROADMAP.md` — Project roadmap and planned evolution
+
+---
+
+## Frontend
+
+The Laravel API Base backend is designed to work with a separate frontend application.
+
+### Laravel API Base UI
+
+Frontend repository:
+
+https://github.com/peeyush-budhia/laravel-api-base-ui
+
+The frontend is built as a separate application and consumes this Laravel API through the versioned `/api/v1` endpoints.
 
 ---
 
@@ -97,7 +143,7 @@ POST /api/v1/auth/logout
 
 Authentication is powered by Laravel Sanctum.
 
-```
+```text
 Authorization: Bearer <token>
 ```
 
@@ -105,7 +151,7 @@ Authorization: Bearer <token>
 
 ## Standard API Response
 
-Success
+### Success
 
 ```json
 {
@@ -118,7 +164,7 @@ Success
 }
 ```
 
-Error
+### Error
 
 ```json
 {
@@ -151,11 +197,11 @@ vendor/bin/pint
 
 ## Git Workflow
 
-```
+```text
 main
-    │
+ │
 develop
-    │
+ │
 feature/*
 ```
 
@@ -163,20 +209,27 @@ feature/*
 
 ## Roadmap
 
+The project roadmap includes:
+
 - API Foundation
 - User Management
 - Roles & Permissions
-- File Upload
-- Search / Filter / Sort
 - Notifications
-- Swagger/OpenAPI
-- GitHub Actions
+- Audit Logs
+- Dashboard API
+- API Documentation & Developer Experience
+- Docker Support
+- CI/CD
+- Performance Improvements
+- Optional Multi-Tenancy
+
+See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the complete roadmap.
 
 ---
 
 ## Contributing
 
-Please read CONTRIBUTING.md before submitting pull requests.
+Please read `CONTRIBUTING.md` before submitting pull requests.
 
 ---
 

@@ -23,7 +23,7 @@ This roadmap outlines the planned evolution of the project.
 # Current Version
 
 ```
-v0.6.0
+v0.7.0
 ```
 
 ---
@@ -131,7 +131,7 @@ v0.6.0
 
 # Phase 4 — Audit Logs
 
-**Status:** 📋 Planned
+**Status:** 🚧 Next
 
 ## Features
 
@@ -159,7 +159,7 @@ v0.6.0
 
 # Phase 6 — Developer Experience & API Documentation
 
-**Status:** 🚧 Next
+**Status:** ✅ Completed
 
 ## API Documentation
 
