@@ -22,8 +22,8 @@ This roadmap outlines the planned evolution of the project.
 
 # Current Version
 
-```
-v0.7.0
+```text
+v0.8.0
 ```
 
 ---
@@ -131,29 +131,80 @@ v0.7.0
 
 # Phase 4 — Audit Logs
 
-**Status:** 🚧 Next
+**Status:** ✅ Completed
 
 ## Features
 
-- Created By
-- Updated By
-- Deleted By
-- Activity Logs
+- Audit Log Model
+- Audit Log Migration
+- Auditable Model Contract
+- Reusable `Auditable` Trait
+- Created Event Auditing
+- Updated Event Auditing
+- Deleted Event Auditing
+- Restored Event Auditing
+- Force Deleted Event Auditing
+- Authenticated Actor Tracking
+- Auditable Model Tracking
+- Old Value Tracking
+- New Value Tracking
+- Request URL Tracking
+- IP Address Tracking
+- User Agent Tracking
+- Audit Log Pagination
+- Audit Log Search
+- Audit Log Filtering
+- Event Filtering
+- User Filtering
+- Audit Log Sorting
+- Audit Log API Resource
+- `audit-logs.view` Permission
+- Audit Log Feature Tests
+- Role Audit Logging
+- Permission Audit Logging
+- User Audit Logging
+
+## Auditable Models
+
+```text
+User
+Role
+Permission
+```
 
 ---
 
 # Phase 5 — Dashboard API
 
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 
 ## Features
 
-- Dashboard Statistics
+- `dashboard.view` Permission
+- Protected Dashboard Route
+- Dashboard Service
+- Dashboard API Resource
+- Dashboard Controller
+- Dashboard Summary Statistics
 - User Statistics
-- System Statistics
-- Recent Activity
-- Quick Action Metadata
-- Aggregated API Endpoints
+- User Status Grouping
+- Recent Users
+- Recently Active Users
+- Role Count
+- Permission Count
+- Audit Log Count
+- Audit Events Grouping
+- Recent Audit Logs
+- Dashboard Feature Tests
+- Empty Audit Log Handling
+
+## Dashboard Sections
+
+```text
+summary
+users
+audit
+```
 
 ---
 
@@ -212,7 +263,7 @@ v0.7.0
 
 ### Deliverables
 
-```
+```text
 docker-compose.yml
 
 Dockerfile
@@ -228,7 +279,7 @@ Dockerfile
 
 ### Pipeline
 
-```
+```text
 Install Dependencies
 
 ↓
@@ -303,6 +354,8 @@ Maintain:
 
 Every new API endpoint should include appropriate feature tests.
 
+The Audit Logs and Dashboard modules have dedicated feature-test coverage for authentication, authorization, response structure, filtering, sorting, pagination, aggregation, and relevant edge cases.
+
 ---
 
 # Coding Standards
@@ -361,7 +414,7 @@ These can be implemented in projects that use Laravel API Base as their foundati
 | v0.5.0  | ✅ Complete | Query Infrastructure & API Improvements           |
 | v0.6.0  | ✅ Released | Backend Cleanup & Foundation Stabilization        |
 | v0.7.0  | ✅ Released | Postman, API Documentation & Developer Experience |
-| v0.8.0  | 🚧 Next     | Audit Logs & Dashboard APIs                       |
+| v0.8.0  | ✅ Released | Audit Logs & Dashboard APIs                       |
 | v0.9.0  | 📋 Planned  | Docker, Performance & Infrastructure              |
 | v1.0.0  | 🎯 Target   | Production Ready API Template                     |
 

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Contracts\Auditable as AuditableContract;
 use App\Enums\UserStatus;
 use App\Notifications\Auth\ResetPasswordNotification;
+use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -29,8 +31,9 @@ use Spatie\Permission\Traits\HasRoles;
     'password',
     'remember_token',
 ])]
-class User extends Authenticatable
+class User extends Authenticatable implements AuditableContract
 {
+    use Auditable;
     use HasApiTokens;
     use HasFactory;
     use HasRoles;
