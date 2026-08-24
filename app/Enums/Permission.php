@@ -17,4 +17,8 @@ enum Permission: string
     case ROLES_UPDATE = 'roles.update';
     case ROLES_DELETE = 'roles.delete';
     case ROLES_MANAGE_PERMISSIONS = 'roles.manage-permissions';
+
+    case AUDIT_LOGS_VIEW = 'audit-logs.view';
+
+    case DASHBOARD_VIEW = 'dashboard.view';
 }

@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Role;
 
-use App\Enums\Role as RoleEnum;
+use App\Enums\AuditEvent as EnumsAuditEvent;
+use App\Enums\Role as EnumsRole;
 use App\Exceptions\RoleDeletionException;
 use App\Exceptions\RoleProtectionException;
 use App\Models\Permission;
@@ -79,7 +80,7 @@ class RoleService
 
     public function destroy(Role $role): void
     {
-        if ($role->name === RoleEnum::SUPER_ADMIN->value) {
+        if ($role->name === EnumsRole::SUPER_ADMIN->value) {
             throw new RoleDeletionException(
                 __('roles.cannot_delete_super_admin'),
             );
@@ -119,6 +120,11 @@ class RoleService
     /**
      * Synchronize permissions assigned to a role.
      */
+    /**
+     * Synchronize permissions assigned to a role.
+     *
+     * Records the permission relationship change in the audit log.
+     */
     public function syncPermissions(
         Role $role,
         array $permissions,
@@ -128,9 +134,46 @@ class RoleService
             __('roles.cannot_modify_super_admin_permissions'),
         );
 
-        $role->syncPermissions($permissions);
+        return DB::transaction(function () use (
+            $role,
+            $permissions,
+        ): Role {
+            $oldPermissions = $role->permissions()
+                ->orderBy('name')
+                ->pluck('name')
+                ->values()
+                ->all();
 
-        return $role->fresh('permissions');
+            $role->syncPermissions($permissions);
+
+            $role->load('permissions');
+
+            $newPermissions = $role->permissions
+                ->sortBy('name')
+                ->pluck('name')
+                ->values()
+                ->all();
+
+            if ($oldPermissions !== $newPermissions) {
+                $role->auditLogs()->create([
+                    'user_id' => auth()->id(),
+                    'event' => EnumsAuditEvent::PermissionsSynced->value,
+                    'auditable_type' => $role->getMorphClass(),
+                    'auditable_id' => (string) $role->getKey(),
+                    'old_values' => [
+                        'permissions' => $oldPermissions,
+                    ],
+                    'new_values' => [
+                        'permissions' => $newPermissions,
+                    ],
+                    'url' => request()->fullUrl(),
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
+                ]);
+            }
+
+            return $role->fresh('permissions');
+        });
     }
 
     /**
@@ -138,7 +181,7 @@ class RoleService
      */
     private function isSuperAdmin(Role $role): bool
     {
-        return $role->name === RoleEnum::SUPER_ADMIN->value;
+        return $role->name === EnumsRole::SUPER_ADMIN->value;
     }
 
     /**
