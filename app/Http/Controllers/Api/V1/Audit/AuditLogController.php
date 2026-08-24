@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Api\V1\Audit;
 
 use App\Http\Controllers\BaseApiController;
 use App\Http\Requests\Api\V1\Audit\AuditLogIndexRequest;
-use App\Http\Resources\AuditLogResource;
+use App\Http\Resources\Api\V1\AuditLogResource;
 use App\Services\Audit\AuditLogService;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
