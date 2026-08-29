@@ -21,8 +21,12 @@ class DashboardResource extends JsonResource
 
             'users' => [
                 'by_status' => $this->resource['users']['by_status'],
-                'recent' => $this->resource['users']['recent'],
-                'recently_active' => $this->resource['users']['recently_active'],
+                'recent' => UserResource::collection(
+                    $this->resource['users']['recent'],
+                ),
+                'recently_active' => UserResource::collection(
+                    $this->resource['users']['recently_active'],
+                ),
             ],
 
             'audit' => [
