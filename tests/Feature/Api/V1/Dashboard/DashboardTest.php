@@ -540,4 +540,23 @@ class DashboardTest extends TestCase
                 'data.audit.recent',
             );
     }
+
+    public function test_dashboard_returns_full_avatar_url_for_recent_users(): void
+    {
+        $user = $this->createUserWithDashboardPermission();
+
+        User::factory()->create([
+            'avatar' => 'avatars/test-avatar.png',
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->getJson('/api/v1/dashboard');
+
+        $response
+            ->assertOk()
+            ->assertJsonFragment([
+                'avatar' => asset('storage/avatars/test-avatar.png'),
+            ]);
+    }
 }
