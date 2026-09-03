@@ -18,6 +18,7 @@
 - Laravel Sanctum Authentication
 - UUID Primary Keys
 - Service Layer Pattern
+- Docker support
 - Form Request Validation
 - API Resources
 - Standard API Responses
@@ -42,6 +43,7 @@
 - PHP 8.4+
 - Composer 2.x
 - MySQL 8 / MariaDB 10.6+
+- Docker and Docker Compose
 - Laravel 13
 - Git
 
@@ -64,6 +66,24 @@ php artisan migrate
 
 php artisan serve
 ```
+
+### Docker
+
+The repository includes a Docker-based local stack with PHP-FPM, Nginx, MySQL, and Mailpit.
+
+```bash
+cp .env.docker.example .env
+docker compose up --build
+docker compose exec app php artisan key:generate
+docker compose exec app php artisan migrate
+```
+
+Open the API at `http://localhost:8080`.
+
+If you want to point the API container at a different frontend URL, update `FRONTEND_URL` in `.env`.
+
+Common Docker shortcuts are available through `make`, for example `make up`, `make migrate`, and `make test`.
+The helper targets run inside the app container as `root` so they can write to mounted project files and storage directories.
 
 ---
 
@@ -212,7 +232,7 @@ feature/*
 The current release line is `v0.8.0`.
 
 - `v0.8.0` released: Audit Logs & Dashboard APIs
-- `v0.9.0` planned: Docker, Performance & Infrastructure
+- `v0.9.0` in progress: Docker, Performance & Infrastructure
 
 See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the full release table and phase history.
 

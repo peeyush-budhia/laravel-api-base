@@ -19,7 +19,6 @@ The development environment should provide:
 
 Optional development services:
 
-- Redis
 - Mailpit
 - Docker
 
@@ -118,6 +117,57 @@ If using Laravel's built-in development server:
 ```bash
 php artisan serve
 ```
+
+## Docker Setup
+
+The repository includes a Docker stack for local backend development.
+
+1. Copy the Docker environment example.
+
+```bash
+cp .env.docker.example .env
+```
+
+2. Start the stack.
+
+```bash
+docker compose up --build
+```
+
+3. Generate the application key.
+
+```bash
+docker compose exec app php artisan key:generate
+```
+
+4. Run migrations after the containers are up.
+
+```bash
+docker compose exec app php artisan migrate
+```
+
+The API is exposed through Nginx on `http://localhost:8080` by default.
+
+### Convenience Commands
+
+Use the `Makefile` for common Docker tasks:
+
+```bash
+make up
+make down
+make logs
+make migrate
+make test
+```
+
+Run arbitrary Artisan or Composer commands:
+
+```bash
+make artisan ARGS="cache:clear"
+make composer ARGS="install"
+```
+
+The helper targets run inside the app container as `root` so they can write to the bind-mounted project files and storage directories without permission issues.
 
 The application will normally be available at:
 
