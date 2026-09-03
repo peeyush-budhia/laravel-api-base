@@ -6,7 +6,6 @@ namespace App\Http\Requests\Api\V1\Auth;
 
 use App\Policies\PasswordPolicy;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Password;
 
 class ChangePasswordRequest extends FormRequest
 {
@@ -25,21 +24,7 @@ class ChangePasswordRequest extends FormRequest
      */
     public function rules(): array
     {
-        $passwordPolicy = app(PasswordPolicy::class);
-
-        $passwordRule = Password::min($passwordPolicy->minLength());
-
-        if ($passwordPolicy->requiresMixedCase()) {
-            $passwordRule->mixedCase();
-        }
-
-        if ($passwordPolicy->requiresNumbers()) {
-            $passwordRule->numbers();
-        }
-
-        if ($passwordPolicy->requiresSymbols()) {
-            $passwordRule->symbols();
-        }
+        $passwordRule = app(PasswordPolicy::class)->validationRule();
 
         return [
             'current_password' => [

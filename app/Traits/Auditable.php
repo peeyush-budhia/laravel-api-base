@@ -85,6 +85,9 @@ trait Auditable
     public function getAuditExcludeAttributes(): array
     {
         return [
+            'must_change_password',
+            'updated_at',
+            'last_login_at',
             'password',
             'remember_token',
         ];
@@ -128,7 +131,10 @@ trait Auditable
         }
 
         if ($event === AuditEvent::Updated) {
-            $changes = $this->getChanges();
+            $changes = array_diff_key(
+                $this->getChanges(),
+                array_flip($excluded),
+            );
 
             if ($changes === []) {
                 return;

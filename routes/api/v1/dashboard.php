@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware([
     'auth:sanctum',
+    'password.changed',
     'permission:dashboard.view',
 ])->group(function (): void {
     Route::get('/dashboard', DashboardController::class)->name('api.v1.dashboard');

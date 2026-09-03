@@ -10,6 +10,7 @@ use App\Exceptions\RoleProtectionException;
 use App\Exceptions\UserRoleException;
 use App\Models\User;
 use App\Notifications\User\UserCreatedNotification;
+use App\Policies\PasswordPolicy;
 use App\Query\QueryExecutor;
 use App\Query\QueryParameters;
 use App\Query\UserQuery;
@@ -25,6 +26,7 @@ class UserService
     public function __construct(
         private readonly UserQuery $userQuery,
         private readonly QueryExecutor $queryExecutor,
+        private readonly PasswordPolicy $passwordPolicy,
     ) {}
 
     /**
@@ -61,7 +63,11 @@ class UserService
             // Only one user can have the super-admin role.
             $this->ensureSuperAdminIsAvailable($role);
 
-            $temporaryPassword = Str::password(12);
+            $temporaryPassword = Str::password(
+                length: max(12, $this->passwordPolicy->minLength()),
+                numbers: $this->passwordPolicy->requiresNumbers(),
+                symbols: $this->passwordPolicy->requiresSymbols(),
+            );
 
             $data['must_change_password'] = true;
 
@@ -125,7 +131,16 @@ class UserService
                 }
             }
 
+            $statusChangedToBlocked = isset($data['status'])
+                && ! UserStatus::from($data['status'])->canLogin();
+
+            $passwordChanged = isset($data['password']);
+
             $user->update($data);
+
+            if ($statusChangedToBlocked || $passwordChanged) {
+                $user->tokens()->delete();
+            }
 
             if ($role !== null) {
                 $user->syncRoles($role);

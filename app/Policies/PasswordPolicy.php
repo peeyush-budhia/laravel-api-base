@@ -2,6 +2,8 @@
 
 namespace App\Policies;
 
+use Illuminate\Validation\Rules\Password;
+
 final class PasswordPolicy
 {
     private const DEFAULT_MIN_LENGTH = 12;
@@ -44,7 +46,34 @@ final class PasswordPolicy
         );
     }
 
-    public function rules(): array
+    public function validationRule(): Password
+    {
+        $rule = Password::min($this->minLength());
+
+        if ($this->requiresMixedCase()) {
+            $rule->mixedCase();
+        }
+
+        if ($this->requiresNumbers()) {
+            $rule->numbers();
+        }
+
+        if ($this->requiresSymbols()) {
+            $rule->symbols();
+        }
+
+        return $rule;
+    }
+
+    /**
+     * @return array{
+     *     min_length: int,
+     *     require_mixed_case: bool,
+     *     require_numbers: bool,
+     *     require_symbols: bool
+     * }
+     */
+    public function configuration(): array
     {
         return [
             'min_length' => $this->minLength(),

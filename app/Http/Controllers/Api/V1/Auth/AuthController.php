@@ -122,14 +122,4 @@ class AuthController extends BaseApiController
             message: __('responses.password_changed'),
         );
     }
-
-    /**
-     * Get current password policy
-     */
-    public function passwordPolicy(): JsonResponse
-    {
-        return $this->success([
-            'min_length' => config('auth.password_min_length'),
-        ]);
-    }
 }

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+    'password_change_required' => 'You must change your password before continuing.',
 
     /*
     |--------------------------------------------------------------------------
