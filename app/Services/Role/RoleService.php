@@ -15,10 +15,15 @@ use App\Query\QueryParameters;
 use App\Query\RoleQuery;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class RoleService
 {
+    private const ALL_PERMISSIONS_CACHE_KEY = 'permissions:all:sanctum';
+
+    private const ALL_PERMISSIONS_CACHE_TTL_SECONDS = 300;
+
     public function __construct(
         private readonly RoleQuery $roleQuery,
         private readonly QueryExecutor $queryExecutor,
@@ -114,7 +119,16 @@ class RoleService
      */
     public function permissions(Role $role)
     {
-        return $role->permissions()->orderBy('name')->get();
+        return $role->permissions()
+            ->select([
+                'id',
+                'name',
+                'guard_name',
+                'created_at',
+                'updated_at',
+            ])
+            ->orderBy('name')
+            ->get();
     }
 
     /**
@@ -203,10 +217,21 @@ class RoleService
      */
     public function allPermissions(): Collection
     {
-        return Permission::query()
-            ->where('guard_name', 'sanctum')
-            ->orderBy('guard_name')
-            ->orderBy('name')
-            ->get();
+        return Cache::remember(
+            self::ALL_PERMISSIONS_CACHE_KEY,
+            self::ALL_PERMISSIONS_CACHE_TTL_SECONDS,
+            fn (): Collection => Permission::query()
+                ->select([
+                    'id',
+                    'name',
+                    'guard_name',
+                    'created_at',
+                    'updated_at',
+                ])
+                ->where('guard_name', 'sanctum')
+                ->orderBy('guard_name')
+                ->orderBy('name')
+                ->get(),
+        );
     }
 }

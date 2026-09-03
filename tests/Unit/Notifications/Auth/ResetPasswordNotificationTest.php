@@ -6,6 +6,7 @@ namespace Tests\Unit\Notifications\Auth;
 
 use App\Models\User;
 use App\Notifications\Auth\ResetPasswordNotification;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -43,5 +44,12 @@ final class ResetPasswordNotificationTest extends TestCase
             'email=peeyush%40example.com',
             $mail->actionUrl,
         );
+    }
+
+    public function test_reset_password_notification_is_queued(): void
+    {
+        $notification = new ResetPasswordNotification('test-reset-token');
+
+        $this->assertInstanceOf(ShouldQueue::class, $notification);
     }
 }

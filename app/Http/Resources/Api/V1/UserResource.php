@@ -33,12 +33,16 @@ class UserResource extends JsonResource
 
             'avatar' => $this->avatar ? asset('storage/'.ltrim($this->avatar, '/')) : null,
 
-            'role' => $this->getRoleNames()->first(),
+            'role' => $this->relationLoaded('roles')
+                ? $this->roles->first()?->name
+                : $this->getRoleNames()->first(),
 
-            'permissions' => $this->getAllPermissions()
-                ->pluck('name')
-                ->values()
-                ->all(),
+            'permissions' => $this->relationLoaded('permissions')
+                ? $this->permissions->pluck('name')->values()->all()
+                : $this->getAllPermissions()
+                    ->pluck('name')
+                    ->values()
+                    ->all(),
 
             'must_change_password' => $this->must_change_password,
 

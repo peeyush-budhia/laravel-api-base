@@ -46,7 +46,10 @@ class UserService
      */
     public function show(User $user): User
     {
-        return $user;
+        return $user->loadMissing([
+            'roles',
+            'permissions',
+        ]);
     }
 
     /**

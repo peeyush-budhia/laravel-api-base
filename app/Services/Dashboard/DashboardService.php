@@ -6,13 +6,20 @@ namespace App\Services\Dashboard;
 
 use App\Enums\AuditEvent;
 use App\Enums\UserStatus;
+use App\Http\Resources\Api\V1\AuditLogResource;
+use App\Http\Resources\Api\V1\UserResource;
 use App\Models\AuditLog;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 
 final class DashboardService
 {
+    private const CACHE_KEY = 'dashboard:v3';
+
+    private const CACHE_TTL_SECONDS = 60;
+
     /**
      * Get dashboard statistics.
      *
@@ -20,11 +27,15 @@ final class DashboardService
      */
     public function getDashboard(): array
     {
-        return [
-            'summary' => $this->summary(),
-            'users' => $this->userStatistics(),
-            'audit' => $this->auditStatistics(),
-        ];
+        return Cache::remember(
+            self::CACHE_KEY,
+            self::CACHE_TTL_SECONDS,
+            fn (): array => [
+                'summary' => $this->summary(),
+                'users' => $this->userStatistics(),
+                'audit' => $this->auditStatistics(),
+            ],
+        );
     }
 
     /**
@@ -80,14 +91,51 @@ final class DashboardService
                 fn ($item): array => [
                     $item->status->value => (int) $item->total,
                 ],
-            );
+            )
+            ->all();
 
         $recentUsers = User::query()
+            ->select([
+                'id',
+                'first_name',
+                'last_name',
+                'email',
+                'avatar',
+                'status',
+                'email_verified_at',
+                'last_login_at',
+                'must_change_password',
+                'created_at',
+                'updated_at',
+                'deleted_at',
+            ])
+            ->with([
+                'roles',
+                'permissions',
+            ])
             ->latest('created_at')
             ->limit(5)
             ->get();
 
         $recentlyActiveUsers = User::query()
+            ->select([
+                'id',
+                'first_name',
+                'last_name',
+                'email',
+                'avatar',
+                'status',
+                'email_verified_at',
+                'last_login_at',
+                'must_change_password',
+                'created_at',
+                'updated_at',
+                'deleted_at',
+            ])
+            ->with([
+                'roles',
+                'permissions',
+            ])
             ->whereNotNull('last_login_at')
             ->latest('last_login_at')
             ->limit(5)
@@ -95,8 +143,8 @@ final class DashboardService
 
         return [
             'by_status' => $usersByStatus,
-            'recent' => $recentUsers,
-            'recently_active' => $recentlyActiveUsers,
+            'recent' => UserResource::collection($recentUsers)->resolve(),
+            'recently_active' => UserResource::collection($recentlyActiveUsers)->resolve(),
         ];
     }
 
@@ -118,17 +166,35 @@ final class DashboardService
                         ? $item->event->value
                         : (string) $item->event => (int) $item->total,
                 ],
-            );
+            )
+            ->all();
 
         $recent = AuditLog::query()
-            ->with('user')
+            ->select([
+                'id',
+                'user_id',
+                'event',
+                'auditable_type',
+                'auditable_id',
+                'old_values',
+                'new_values',
+                'url',
+                'ip_address',
+                'user_agent',
+                'created_at',
+                'updated_at',
+            ])
+            ->with([
+                'user.roles',
+                'user.permissions',
+            ])
             ->latest('created_at')
             ->limit(5)
             ->get();
 
         return [
             'by_event' => $events,
-            'recent' => $recent,
+            'recent' => AuditLogResource::collection($recent)->resolve(),
         ];
     }
 }
