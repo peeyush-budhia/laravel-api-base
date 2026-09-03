@@ -44,7 +44,6 @@ final class AuditLogQuery implements QueryContract
         QueryParameters $parameters,
     ): Builder {
         return AuditLog::query()
-            ->with('user')
-            ->latest('created_at');
+            ->with('user');
     }
 }

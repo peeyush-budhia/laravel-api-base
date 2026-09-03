@@ -7,9 +7,9 @@ namespace App\Http\Requests\Api\V1\User;
 use App\Enums\UserStatus;
 use App\Models\Role;
 use App\Models\User;
+use App\Policies\PasswordPolicy;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Password;
 
 class UpdateUserRequest extends FormRequest
 {
@@ -70,7 +70,7 @@ class UpdateUserRequest extends FormRequest
             'password' => [
                 'sometimes',
                 'confirmed',
-                Password::defaults(),
+                app(PasswordPolicy::class)->validationRule(),
             ],
         ];
     }

@@ -1,29 +1,21 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Http\Requests\Api\V1\Auth;
 
+use App\Policies\PasswordPolicy;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Password;
 
 class ResetPasswordRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, mixed>
-     */
     public function rules(): array
     {
+        $passwordRule = app(PasswordPolicy::class)->validationRule();
+
         return [
             'token' => [
                 'required',
@@ -33,13 +25,18 @@ class ResetPasswordRequest extends FormRequest
             'email' => [
                 'required',
                 'email',
-                'max:255',
             ],
 
             'password' => [
                 'required',
+                'string',
                 'confirmed',
-                Password::defaults(),
+                $passwordRule,
+            ],
+
+            'password_confirmation' => [
+                'required',
+                'string',
             ],
         ];
     }

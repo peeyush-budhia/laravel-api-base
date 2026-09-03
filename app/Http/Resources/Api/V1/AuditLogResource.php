@@ -26,11 +26,7 @@ final class AuditLogResource extends JsonResource
             'user' => $this->whenLoaded(
                 'user',
                 fn () => $this->user
-                    ? [
-                        'id' => $this->user->id,
-                        'name' => $this->user->name,
-                        'email' => $this->user->email,
-                    ]
+                    ? new UserResource($this->user)
                     : null,
             ),
 

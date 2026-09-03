@@ -491,7 +491,7 @@ class DashboardTest extends TestCase
             );
     }
 
-    public function test_dashboard_returns_at_most_ten_recent_audit_logs(): void
+    public function test_dashboard_returns_at_most_five_recent_audit_logs(): void
     {
         $user = $this->createUserWithDashboardPermission();
 
@@ -508,7 +508,7 @@ class DashboardTest extends TestCase
         $response
             ->assertOk()
             ->assertJsonCount(
-                10,
+                5,
                 'data.audit.recent',
             );
     }

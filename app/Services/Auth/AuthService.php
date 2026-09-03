@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Auth;
 
+use App\Enums\UserStatus;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
@@ -30,7 +31,11 @@ class AuthService
 
         $user = $this->findUser($login);
 
-        if (! $user || ! Hash::check($password, $user->password)) {
+        if (
+            ! $user
+            || ! Hash::check($password, $user->password)
+            || ! UserStatus::from($user->getRawOriginal('status'))->canLogin()
+        ) {
             throw ValidationException::withMessages([
                 'login' => [__('auth.failed')],
             ]);

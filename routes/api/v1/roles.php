@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Api\V1\Role\RoleController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:sanctum')->group(function (): void {
+Route::middleware(['auth:sanctum', 'password.changed'])->group(function (): void {
 
     /*
     |--------------------------------------------------------------------------
@@ -26,15 +26,15 @@ Route::middleware('auth:sanctum')->group(function (): void {
     // IMPORTANT: Must be before roles/{role}
     Route::get('roles/permissions', [RoleController::class, 'allPermissions'])
         ->middleware('permission:roles.view')
-        ->name('roles.permissions.all');
+        ->name('api.v1.roles.permissions.all');
 
     Route::get('roles/{role}/permissions', [RoleController::class, 'permissions'])
         ->middleware('permission:roles.view')
-        ->name('roles.permissions');
+        ->name('api.v1.roles.permissions');
 
     Route::put('roles/{role}/permissions', [RoleController::class, 'syncPermissions'])
         ->middleware('permission:roles.manage-permissions')
-        ->name('roles.permissions.sync');
+        ->name('api.v1.roles.permissions.sync');
 
     /*
     |--------------------------------------------------------------------------
@@ -44,20 +44,21 @@ Route::middleware('auth:sanctum')->group(function (): void {
 
     Route::get('roles/{role}', [RoleController::class, 'show'])
         ->middleware('permission:roles.view')
-        ->name('roles.show');
+        ->name('api.v1.roles.show');
 
     Route::post('roles', [RoleController::class, 'store'])
         ->middleware('permission:roles.create')
-        ->name('roles.store');
+        ->name('api.v1.roles.store');
 
     Route::put('roles/{role}', [RoleController::class, 'update'])
         ->middleware('permission:roles.update')
-        ->name('roles.update');
+        ->name('api.v1.roles.update');
 
     Route::patch('roles/{role}', [RoleController::class, 'update'])
-        ->middleware('permission:roles.update');
+        ->middleware('permission:roles.update')
+        ->name('api.v1.roles.update.patch');
 
     Route::delete('roles/{role}', [RoleController::class, 'destroy'])
         ->middleware('permission:roles.delete')
-        ->name('roles.destroy');
+        ->name('api.v1.roles.destroy');
 });
