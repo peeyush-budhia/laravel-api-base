@@ -209,21 +209,12 @@ feature/*
 
 ## Roadmap
 
-The project roadmap includes:
+The current release line is `v0.8.0`.
 
-- API Foundation
-- User Management
-- Roles & Permissions
-- Notifications
-- Audit Logs
-- Dashboard API
-- API Documentation & Developer Experience
-- Docker Support
-- CI/CD
-- Performance Improvements
-- Optional Multi-Tenancy
+- `v0.8.0` released: Audit Logs & Dashboard APIs
+- `v0.9.0` planned: Docker, Performance & Infrastructure
 
-See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the complete roadmap.
+See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the full release table and phase history.
 
 ---
 
