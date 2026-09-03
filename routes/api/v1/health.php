@@ -20,4 +20,4 @@ Route::get('/health', function () {
         ],
         message: 'API is healthy.',
     );
-});
+})->name('api.v1.health');

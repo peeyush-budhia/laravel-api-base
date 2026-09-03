@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+    'password_change_required' => 'You must change your password before continuing.',
 
     /*
     |--------------------------------------------------------------------------
@@ -48,6 +49,9 @@ return [
     | Password Reset
     |--------------------------------------------------------------------------
     */
+
+    'password_policy' => 'Password policy retrieved successfully.',
+
     'password_reset_link_sent' => 'If an account exists for that email address, a password reset link has been sent.',
 
     'password_reset_success' => 'Your password has been reset successfully.',

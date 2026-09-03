@@ -123,7 +123,7 @@ final class DashboardService
         $recent = AuditLog::query()
             ->with('user')
             ->latest('created_at')
-            ->limit(10)
+            ->limit(5)
             ->get();
 
         return [

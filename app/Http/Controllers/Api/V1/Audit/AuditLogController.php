@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1\Audit;
 
 use App\Http\Controllers\BaseApiController;
-use App\Http\Requests\Api\V1\Audit\AuditLogIndexRequest;
 use App\Http\Resources\Api\V1\AuditLogResource;
+use App\Query\QueryParameters;
 use App\Services\Audit\AuditLogService;
-use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 final class AuditLogController extends BaseApiController
 {
@@ -20,16 +20,27 @@ final class AuditLogController extends BaseApiController
     /**
      * Display audit logs.
      */
-    public function index(
-        AuditLogIndexRequest $request,
-    ): JsonResponse {
-        $paginator = $this->auditLogService->paginate(
-            $request->queryParameters(),
-        );
+    public function index(Request $request): JsonResponse
+    {
+        $parameters = QueryParameters::fromRequest($request);
 
-        return ApiResponse::paginated(
+        $paginator = $this->auditLogService->index($parameters);
+
+        return $this->paginated(
             AuditLogResource::collection($paginator),
-            $paginator,
+            $paginator, __('responses.success'),
+        );
+    }
+
+    /**
+     * Display an audit log.
+     */
+    public function show(string $id): JsonResponse
+    {
+
+        return $this->success(
+            new AuditLogResource($this->auditLogService->find($id)),
+            __('responses.success')
         );
     }
 }

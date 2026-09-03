@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Api\V1\Auth;
 
+use App\Policies\PasswordPolicy;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Password;
 
 class ChangePasswordRequest extends FormRequest
 {
@@ -24,16 +24,24 @@ class ChangePasswordRequest extends FormRequest
      */
     public function rules(): array
     {
+        $passwordRule = app(PasswordPolicy::class)->validationRule();
+
         return [
             'current_password' => [
                 'required',
-                'string',
+                'current_password',
             ],
 
             'password' => [
                 'required',
+                'string',
                 'confirmed',
-                Password::defaults(),
+                $passwordRule,
+            ],
+
+            'password_confirmation' => [
+                'required',
+                'string',
             ],
         ];
     }
