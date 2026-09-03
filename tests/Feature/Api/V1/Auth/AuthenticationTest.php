@@ -130,8 +130,8 @@ class AuthenticationTest extends ApiTestCase
             '/api/v1/auth/change-password',
             [
                 'current_password' => 'old-password',
-                'password' => 'new-password',
-                'password_confirmation' => 'new-password',
+                'password' => 'NewPassword123!',
+                'password_confirmation' => 'NewPassword123!',
             ],
             $this->jsonHeaders(),
         );
@@ -148,7 +148,7 @@ class AuthenticationTest extends ApiTestCase
         $user->refresh();
 
         $this->assertTrue(
-            Hash::check('new-password', $user->password),
+            Hash::check('NewPassword123!', $user->password),
         );
 
         $this->assertFalse(
@@ -179,8 +179,8 @@ class AuthenticationTest extends ApiTestCase
             '/api/v1/auth/change-password',
             [
                 'current_password' => 'wrong-password',
-                'password' => 'new-password',
-                'password_confirmation' => 'new-password',
+                'password' => 'NewPassword123!',
+                'password_confirmation' => 'NewPassword123!',
             ],
             $this->jsonHeaders(),
         );
@@ -398,8 +398,8 @@ class AuthenticationTest extends ApiTestCase
             [
                 'token' => $token,
                 'email' => $user->email,
-                'password' => 'new-password',
-                'password_confirmation' => 'new-password',
+                'password' => 'NewPassword123!',
+                'password_confirmation' => 'NewPassword123!',
             ],
         );
 
@@ -415,7 +415,7 @@ class AuthenticationTest extends ApiTestCase
         $user->refresh();
 
         $this->assertTrue(
-            Hash::check('new-password', $user->password),
+            Hash::check('NewPassword123!', $user->password),
         );
 
         $this->assertFalse(
@@ -434,8 +434,8 @@ class AuthenticationTest extends ApiTestCase
             [
                 'token' => Str::random(64),
                 'email' => $user->email,
-                'password' => 'new-password',
-                'password_confirmation' => 'new-password',
+                'password' => 'NewPassword123!',
+                'password_confirmation' => 'NewPassword123!',
             ],
         );
 
@@ -461,7 +461,7 @@ class AuthenticationTest extends ApiTestCase
             [
                 'token' => $token,
                 'email' => $user->email,
-                'password' => 'new-password',
+                'password' => 'NewPassword123!',
                 'password_confirmation' => 'different-password',
             ],
         );
@@ -481,8 +481,8 @@ class AuthenticationTest extends ApiTestCase
             '/api/v1/auth/reset-password',
             [
                 'token' => Str::random(64),
-                'password' => 'new-password',
-                'password_confirmation' => 'new-password',
+                'password' => 'NewPassword123!',
+                'password_confirmation' => 'NewPassword123!',
             ],
         );
 
@@ -516,8 +516,8 @@ class AuthenticationTest extends ApiTestCase
             [
                 'token' => $token,
                 'email' => $user->email,
-                'password' => 'new-password',
-                'password_confirmation' => 'new-password',
+                'password' => 'NewPassword123!',
+                'password_confirmation' => 'NewPassword123!',
             ],
         );
 
@@ -541,7 +541,7 @@ class AuthenticationTest extends ApiTestCase
             '/api/v1/auth/change-password',
             [
                 'current_password' => 'old-password',
-                'password' => 'new-password',
+                'password' => 'NewPassword123!',
                 'password_confirmation' => 'different-password',
             ],
             $this->jsonHeaders(),
@@ -578,8 +578,8 @@ class AuthenticationTest extends ApiTestCase
             '/api/v1/auth/change-password',
             [
                 'current_password' => 'old-password',
-                'password' => 'new-password',
-                'password_confirmation' => 'new-password',
+                'password' => 'NewPassword123!',
+                'password_confirmation' => 'NewPassword123!',
             ],
             $this->jsonHeaders(),
         );

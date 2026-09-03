@@ -347,7 +347,9 @@ class AuditLogTest extends TestCase
 
         Sanctum::actingAs($user);
 
-        $response = $this->getJson('/api/v1/audit-logs');
+        $response = $this->getJson(
+            '/api/v1/audit-logs?sort=created_at&direction=desc',
+        );
 
         $response
             ->assertOk()

@@ -9,5 +9,5 @@ Route::middleware([
     'auth:sanctum',
     'permission:dashboard.view',
 ])->group(function (): void {
-    Route::get('/dashboard', DashboardController::class);
+    Route::get('/dashboard', DashboardController::class)->name('api.v1.dashboard');
 });

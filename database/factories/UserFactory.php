@@ -38,6 +38,7 @@ class UserFactory extends Factory
             'last_login_at' => null,
 
             'password' => static::$password ??= Hash::make('password'),
+            'must_change_password' => true,
 
             'remember_token' => Str::random(10),
         ];

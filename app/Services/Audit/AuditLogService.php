@@ -20,7 +20,7 @@ final class AuditLogService
     /**
      * Paginate audit logs.
      */
-    public function paginate(
+    public function index(
         QueryParameters $parameters,
     ): LengthAwarePaginator {
         return $this->queryExecutor->paginate(

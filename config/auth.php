@@ -115,4 +115,10 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    'password_rules' => [
+        'password_min_length' => env('AUTH_PASSWORD_MIN_LENGTH', 12),
+        'require_mixed_case' => env('AUTH_PASSWORD_REQUIRE_MIXED_CASE', true),
+        'require_numbers' => env('AUTH_PASSWORD_REQUIRE_NUMBERS', true),
+        'require_symbols' => env('AUTH_PASSWORD_REQUIRE_SYMBOLS', true),
+    ],
 ];
