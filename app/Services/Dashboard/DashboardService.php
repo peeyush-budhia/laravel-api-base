@@ -183,7 +183,7 @@ final class DashboardService
                 'user.permissions',
             ])
             ->latest('created_at')
-            ->limit(5)
+            ->limit(6)
             ->get();
 
         return [
