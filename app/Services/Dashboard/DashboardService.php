@@ -12,14 +12,10 @@ use App\Models\AuditLog;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
-use Illuminate\Support\Facades\Cache;
+use App\Support\DashboardCache;
 
 final class DashboardService
 {
-    private const CACHE_KEY = 'dashboard:v3';
-
-    private const CACHE_TTL_SECONDS = 60;
-
     /**
      * Get dashboard statistics.
      *
@@ -27,9 +23,7 @@ final class DashboardService
      */
     public function getDashboard(): array
     {
-        return Cache::remember(
-            self::CACHE_KEY,
-            self::CACHE_TTL_SECONDS,
+        return DashboardCache::remember(
             fn (): array => [
                 'summary' => $this->summary(),
                 'users' => $this->userStatistics(),

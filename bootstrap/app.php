@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Exceptions\ExceptionHandler;
 use App\Http\Middleware\EnsurePasswordIsChanged;
+use App\Http\Middleware\TrackApiPerformance;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -24,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => RoleMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
             'password.changed' => EnsurePasswordIsChanged::class,
+            'api.performance' => TrackApiPerformance::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

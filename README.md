@@ -229,10 +229,10 @@ feature/*
 
 ## Roadmap
 
-The current release line is `v0.8.0`.
+The current release line is `v0.9.0`.
 
 - `v0.8.0` released: Audit Logs & Dashboard APIs
-- `v0.9.0` in progress: Docker, Performance & Infrastructure
+- `v0.9.0` released: Docker, Performance & Infrastructure
 
 See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the full release table and phase history.
 

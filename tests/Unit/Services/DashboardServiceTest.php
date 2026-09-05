@@ -19,7 +19,7 @@ final class DashboardServiceTest extends TestCase
         Cache::shouldReceive('remember')
             ->once()
             ->with(
-                'dashboard:v3',
+                'dashboard:v5',
                 60,
                 Mockery::on(static fn ($callback): bool => is_callable($callback)),
             )

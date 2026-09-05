@@ -26,7 +26,7 @@ final class AuditLogResource extends JsonResource
             'user' => $this->whenLoaded(
                 'user',
                 fn () => $this->user
-                    ? new UserResource($this->user)
+                    ? UserResource::make($this->user)->resolve($request)
                     : null,
             ),
 
@@ -40,8 +40,8 @@ final class AuditLogResource extends JsonResource
             'ip_address' => $this->ip_address,
             'user_agent' => $this->user_agent,
 
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $this->updated_at?->toIso8601String(),
         ];
     }
 }

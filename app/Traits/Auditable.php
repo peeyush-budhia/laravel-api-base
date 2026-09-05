@@ -6,6 +6,7 @@ namespace App\Traits;
 
 use App\Enums\AuditEvent;
 use App\Models\AuditLog;
+use App\Support\DashboardCache;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -162,5 +163,7 @@ trait Auditable
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
         ]);
+
+        DashboardCache::forget();
     }
 }

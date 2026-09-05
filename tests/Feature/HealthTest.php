@@ -16,5 +16,9 @@ class HealthTest extends ApiTestCase
         $response->assertOk();
 
         $this->assertApiSuccess($response);
+        $this->assertMatchesRegularExpression(
+            '/^\d+\.\d{2}ms$/',
+            (string) $response->headers->get('X-Response-Time'),
+        );
     }
 }
