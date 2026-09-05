@@ -23,7 +23,7 @@ final class RoleServiceTest extends TestCase
         Cache::shouldReceive('remember')
             ->once()
             ->with(
-                'permissions:all:sanctum',
+                'permissions:all:sanctum:v2',
                 300,
                 Mockery::on(static fn ($callback): bool => is_callable($callback)),
             )

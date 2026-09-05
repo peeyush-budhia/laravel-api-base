@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Traits\SerializesDatesToIso8601;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 abstract class BaseModel extends Model
 {
     use HasUuids;
+    use SerializesDatesToIso8601;
 
     /**
      * The primary key type.

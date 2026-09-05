@@ -8,6 +8,7 @@ use App\Contracts\Auditable as AuditableContract;
 use App\Enums\UserStatus;
 use App\Notifications\Auth\ResetPasswordNotification;
 use App\Traits\Auditable;
+use App\Traits\SerializesDatesToIso8601;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -39,6 +40,7 @@ class User extends Authenticatable implements AuditableContract
     use HasRoles;
     use HasUuids;
     use Notifiable;
+    use SerializesDatesToIso8601;
     use SoftDeletes;
 
     /**

@@ -375,6 +375,14 @@ class DashboardTest extends TestCase
                 5,
                 'data.users.recent',
             );
+
+        $this->assertIso8601DateTime(
+            $response->json('data.users.recent.0.created_at'),
+        );
+
+        $this->assertIso8601DateTime(
+            $response->json('data.users.recent.0.updated_at'),
+        );
     }
 
     public function test_dashboard_returns_recently_active_users(): void
@@ -415,6 +423,10 @@ class DashboardTest extends TestCase
                 5,
                 'data.users.recently_active',
             );
+
+        $this->assertIso8601DateTime(
+            $response->json('data.users.recently_active.0.last_login_at'),
+        );
     }
 
     /*
@@ -491,7 +503,7 @@ class DashboardTest extends TestCase
             );
     }
 
-    public function test_dashboard_returns_at_most_five_recent_audit_logs(): void
+    public function test_dashboard_returns_at_most_six_recent_audit_logs(): void
     {
         $user = $this->createUserWithDashboardPermission();
 
@@ -508,9 +520,17 @@ class DashboardTest extends TestCase
         $response
             ->assertOk()
             ->assertJsonCount(
-                5,
+                6,
                 'data.audit.recent',
             );
+
+        $this->assertIso8601DateTime(
+            $response->json('data.audit.recent.0.created_at'),
+        );
+
+        $this->assertIso8601DateTime(
+            $response->json('data.audit.recent.0.updated_at'),
+        );
     }
 
     /*

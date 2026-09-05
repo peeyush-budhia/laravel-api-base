@@ -20,6 +20,7 @@ class AuthenticationTest extends ApiTestCase
         $user = User::factory()->create([
             'email' => 'admin@example.com',
             'password' => Hash::make('password'),
+            'email_verified_at' => now(),
         ]);
 
         $response = $this->postJson(
@@ -38,6 +39,22 @@ class AuthenticationTest extends ApiTestCase
         $response->assertJsonPath(
             'data.user.email',
             $user->email,
+        );
+
+        $this->assertIso8601DateTime(
+            $response->json('data.user.created_at'),
+        );
+
+        $this->assertIso8601DateTime(
+            $response->json('data.user.updated_at'),
+        );
+
+        $this->assertIso8601DateTime(
+            $response->json('data.user.email_verified_at'),
+        );
+
+        $this->assertIso8601DateTime(
+            $response->json('data.user.last_login_at'),
         );
 
         $response->assertJsonStructure([
@@ -198,8 +215,8 @@ class AuthenticationTest extends ApiTestCase
         );
 
         $this->assertSame(
-            $emailVerifiedAt?->toISOString(),
-            $user->email_verified_at?->toISOString(),
+            $emailVerifiedAt?->toIso8601String(),
+            $user->email_verified_at?->toIso8601String(),
         );
 
         $this->assertTrue(

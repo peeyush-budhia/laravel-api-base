@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\DB;
 
 class RoleService
 {
-    private const ALL_PERMISSIONS_CACHE_KEY = 'permissions:all:sanctum';
+    private const ALL_PERMISSIONS_CACHE_KEY = 'permissions:all:sanctum:v2';
 
     private const ALL_PERMISSIONS_CACHE_TTL_SECONDS = 300;
 
@@ -217,10 +217,10 @@ class RoleService
      */
     public function allPermissions(): Collection
     {
-        return Cache::remember(
+        $cachedPermissions = Cache::remember(
             self::ALL_PERMISSIONS_CACHE_KEY,
             self::ALL_PERMISSIONS_CACHE_TTL_SECONDS,
-            fn (): Collection => Permission::query()
+            fn (): array => Permission::query()
                 ->select([
                     'id',
                     'name',
@@ -231,7 +231,17 @@ class RoleService
                 ->where('guard_name', 'sanctum')
                 ->orderBy('guard_name')
                 ->orderBy('name')
-                ->get(),
+                ->get()
+                ->map(static fn (Permission $permission): array => [
+                    'id' => $permission->id,
+                    'name' => $permission->name,
+                    'guard_name' => $permission->guard_name,
+                    'created_at' => $permission->created_at?->toIso8601String(),
+                    'updated_at' => $permission->updated_at?->toIso8601String(),
+                ])
+                ->all(),
         );
+
+        return Permission::hydrate($cachedPermissions);
     }
 }
