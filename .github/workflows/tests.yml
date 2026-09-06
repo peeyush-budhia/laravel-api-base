@@ -80,6 +80,12 @@ jobs:
       - name: Install Composer Dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
+      - name: Check Formatting
+        run: composer lint
+
+      - name: Run Static Analysis
+        run: composer analyse
+
       - name: Prepare Environment
         run: cp .env.ci .env
 

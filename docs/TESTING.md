@@ -201,16 +201,18 @@ The expected workflow is:
 ```text
 Install Dependencies
 ↓
-Static Analysis
-↓
 Code Style Check
+↓
+Static Analysis
 ↓
 Run Tests
 ↓
-Build
-↓
-Deploy
+OpenAPI Validation
 ```
+
+The GitHub Actions test workflow runs `composer lint` and `composer analyse`
+after installing dependencies. Both checks are required alongside the test and
+OpenAPI validation steps.
 
 A Pull Request should not be merged when required CI checks are failing.
 

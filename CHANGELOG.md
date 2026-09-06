@@ -2,6 +2,8 @@
 
 ### Added
 
+- Required formatting and PHPStan static-analysis checks in the GitHub Actions
+  test workflow.
 - Added daily retention cleanup for expired reset tokens, failed jobs older than
   three days, and audit logs older than thirty days, with configurable retention
   periods.
