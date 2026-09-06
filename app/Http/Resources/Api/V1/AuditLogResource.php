@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Api\V1;
 
+use App\Support\AuditValueNormalizer;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -33,8 +34,8 @@ final class AuditLogResource extends JsonResource
             'auditable_type' => $this->auditable_type,
             'auditable_id' => $this->auditable_id,
 
-            'old_values' => $this->old_values,
-            'new_values' => $this->new_values,
+            'old_values' => AuditValueNormalizer::normalize($this->old_values),
+            'new_values' => AuditValueNormalizer::normalize($this->new_values),
 
             'url' => $this->url,
             'ip_address' => $this->ip_address,

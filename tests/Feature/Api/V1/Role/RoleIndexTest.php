@@ -112,7 +112,7 @@ final class RoleIndexTest extends ApiTestCase
             ->assertJsonPath('data.1.name', 'z-role');
     }
 
-    public function test_unsupported_sort_is_ignored(): void
+    public function test_unsupported_sort_is_rejected(): void
     {
         Role::findOrCreate('z-role', 'sanctum');
         Role::findOrCreate('a-role', 'sanctum');
@@ -122,7 +122,7 @@ final class RoleIndexTest extends ApiTestCase
         );
 
         $response
-            ->assertOk()
-            ->assertJsonCount(2, 'data');
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('sort');
     }
 }

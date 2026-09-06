@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Role;
 
-use App\Enums\AuditEvent as EnumsAuditEvent;
+use App\Enums\AuditEvent;
 use App\Enums\Role as EnumsRole;
 use App\Exceptions\RoleDeletionException;
 use App\Exceptions\RoleProtectionException;
@@ -133,9 +133,6 @@ class RoleService
 
     /**
      * Synchronize permissions assigned to a role.
-     */
-    /**
-     * Synchronize permissions assigned to a role.
      *
      * Records the permission relationship change in the audit log.
      */
@@ -169,21 +166,12 @@ class RoleService
                 ->all();
 
             if ($oldPermissions !== $newPermissions) {
-                $role->auditLogs()->create([
-                    'user_id' => auth()->id(),
-                    'event' => EnumsAuditEvent::PermissionsSynced->value,
-                    'auditable_type' => $role->getMorphClass(),
-                    'auditable_id' => (string) $role->getKey(),
-                    'old_values' => [
-                        'permissions' => $oldPermissions,
-                    ],
-                    'new_values' => [
-                        'permissions' => $newPermissions,
-                    ],
-                    'url' => request()->fullUrl(),
-                    'ip_address' => request()->ip(),
-                    'user_agent' => request()->userAgent(),
-                ]);
+                $role->auditRelationshipChange(
+                    AuditEvent::PermissionsSynced,
+                    'permissions',
+                    $oldPermissions,
+                    $newPermissions,
+                );
             }
 
             return $role->fresh('permissions');

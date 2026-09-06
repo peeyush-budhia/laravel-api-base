@@ -36,7 +36,7 @@ final class AuditLogService
     {
         return AuditLog::query()
             ->with([
-                'user.roles',
+                'user.roles.permissions',
                 'user.permissions',
             ])
             ->findOrFail($id);

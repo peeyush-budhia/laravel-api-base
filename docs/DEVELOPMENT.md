@@ -87,11 +87,47 @@ Run migrations:
 php artisan migrate
 ```
 
-If seeders are available:
+Seed the baseline roles and permissions together with local demonstration data:
 
 ```bash
 php artisan db:seed
 ```
+
+The demonstration accounts are created only when `APP_ENV` is `local` or
+`testing`. Rerunning the seeder does not reset their passwords or add another
+batch of generated users.
+
+The local accounts are:
+
+| Email                     | Role          | Initial password |
+| ------------------------- | ------------- | ---------------- |
+| `super-admin@example.com` | `super-admin` | `password`       |
+| `admin@example.com`       | `admin`       | `password`       |
+| `user@example.com`        | `user`        | `password`       |
+
+These credentials are development fixtures and are never created by the
+default seeder in production.
+
+For production, seed the baseline authorization data and provision the initial
+super administrator separately:
+
+```bash
+php artisan db:seed --force
+php artisan app:provision-super-admin
+```
+
+Identity values can also be supplied as command arguments and options:
+
+```bash
+php artisan app:provision-super-admin owner@example.com \
+    --first-name=Primary \
+    --last-name=Owner
+```
+
+The provisioning command collects the password through hidden prompts, applies
+the application's password policy, refuses to create a second super
+administrator—including a soft-deleted one—and never accepts the password as a
+command-line argument, so the password is not exposed in shell history.
 
 ## Application Configuration
 
@@ -117,6 +153,31 @@ If using Laravel's built-in development server:
 ```bash
 php artisan serve
 ```
+
+Run a queue worker in another terminal to deliver password-reset and account
+activation emails:
+
+```bash
+php artisan queue:work
+```
+
+The default `.env.example` uses `QUEUE_CONNECTION=database`. Keep a worker
+running in each environment where onboarding mail must be delivered. Check
+failed jobs with `php artisan queue:failed` when a committed user does not
+receive the notification.
+
+Account-onboarding notifications are queued only after the user creation
+transaction commits. Configure `FRONTEND_URL` with a frontend route at
+`/activate-account`; that page submits the activation token and chosen password
+to `POST /api/v1/auth/reset-password`.
+The companion `laravel-api-base-ui` project implements this route and displays
+backend validation for invalid, expired, and already-used activation links.
+
+For transaction testing, use an asynchronous queue connection such as
+`database`. The onboarding transaction tests assert that no job is visible
+before the outer commit, one job appears after commit, and rollback leaves no
+user, activation token, or queued job. Unit coverage also verifies the link,
+expiry text, and absence of temporary credentials from the serialized payload.
 
 ## Docker Setup
 

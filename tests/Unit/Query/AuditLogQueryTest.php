@@ -19,7 +19,7 @@ final class AuditLogQueryTest extends TestCase
             new QueryParameters,
         );
 
-        $this->assertArrayHasKey('user.roles', $query->getEagerLoads());
+        $this->assertArrayHasKey('user.roles.permissions', $query->getEagerLoads());
         $this->assertArrayHasKey('user.permissions', $query->getEagerLoads());
         $this->assertSame([
             'id',

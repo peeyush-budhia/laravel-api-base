@@ -99,6 +99,27 @@ final class UserIndexTest extends ApiTestCase
             ->assertJsonPath('meta.per_page', 5);
     }
 
+    public function test_pagination_links_preserve_listing_parameters(): void
+    {
+        User::factory()->count(3)->create([
+            'first_name' => 'Test',
+            'status' => UserStatus::ACTIVE,
+        ]);
+
+        $response = $this->apiGet(
+            '/users?per_page=1&status=active&search=Test',
+        );
+
+        $response->assertOk();
+
+        $nextLink = $response->json('meta.links.next');
+
+        $this->assertIsString($nextLink);
+        $this->assertStringContainsString('per_page=1', $nextLink);
+        $this->assertStringContainsString('status=active', $nextLink);
+        $this->assertStringContainsString('search=Test', $nextLink);
+    }
+
     public function test_users_can_be_searched(): void
     {
         User::factory()->create([
@@ -222,7 +243,7 @@ final class UserIndexTest extends ApiTestCase
             );
     }
 
-    public function test_unsupported_filters_are_ignored(): void
+    public function test_unsupported_filters_are_rejected(): void
     {
         User::factory()->create([
             'first_name' => 'John',
@@ -237,8 +258,8 @@ final class UserIndexTest extends ApiTestCase
         $response = $this->apiGet('/users?unsupported=value');
 
         $response
-            ->assertOk()
-            ->assertJsonCount(3, 'data');
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('unsupported');
     }
 
     public function test_page_is_normalized_to_one(): void
@@ -276,7 +297,7 @@ final class UserIndexTest extends ApiTestCase
             ->assertJsonCount(100, 'data');
     }
 
-    public function test_invalid_direction_defaults_to_ascending(): void
+    public function test_invalid_direction_is_rejected(): void
     {
         User::factory()->create([
             'first_name' => 'Zack',
@@ -291,14 +312,11 @@ final class UserIndexTest extends ApiTestCase
         );
 
         $response
-            ->assertOk()
-            ->assertJsonPath('data.0.first_name', 'Alice')
-            ->assertJsonFragment([
-                'first_name' => 'Zack',
-            ]);
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('direction');
     }
 
-    public function test_unsupported_sort_is_ignored(): void
+    public function test_unsupported_sort_is_rejected(): void
     {
         User::factory()->create([
             'first_name' => 'Zack',
@@ -309,12 +327,12 @@ final class UserIndexTest extends ApiTestCase
         ]);
 
         $response = $this->apiGet(
-            '/users?sort=email&direction=desc',
+            '/users?sort=unsupported&direction=desc',
         );
 
         $response
-            ->assertOk()
-            ->assertJsonCount(3, 'data');
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('sort');
     }
 
     public function test_users_can_be_sorted_by_allowed_field(): void
@@ -425,7 +443,7 @@ final class UserIndexTest extends ApiTestCase
             ->assertJsonCount(3, 'data');
     }
 
-    public function test_invalid_trashed_value_defaults_to_without(): void
+    public function test_invalid_trashed_value_is_rejected(): void
     {
         User::factory()->create([
             'first_name' => 'Active',
@@ -440,7 +458,7 @@ final class UserIndexTest extends ApiTestCase
         $response = $this->apiGet('/users?trashed=invalid');
 
         $response
-            ->assertOk()
-            ->assertJsonCount(2, 'data');
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('trashed');
     }
 }

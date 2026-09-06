@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api\V1\User;
 
+use App\Enums\AuditEvent;
 use App\Enums\Role as EnumsRole;
 use App\Enums\UserStatus;
+use App\Models\AuditLog;
 use App\Models\Role;
 use App\Models\User;
 use Tests\Feature\Api\V1\ApiTestCase;
@@ -108,6 +110,41 @@ final class UserUpdateTest extends ApiTestCase
         );
     }
 
+    public function test_role_only_change_is_audited(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole(EnumsRole::USER->value);
+
+        $response = $this->apiPut(
+            "/users/{$user->id}",
+            [
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'email' => $user->email,
+                'status' => $user->status->value,
+                'role' => EnumsRole::ADMIN->value,
+            ],
+        );
+
+        $response->assertOk();
+
+        $auditLog = AuditLog::query()
+            ->where('auditable_type', $user->getMorphClass())
+            ->where('auditable_id', $user->getKey())
+            ->where('event', AuditEvent::RolesSynced->value)
+            ->sole();
+
+        $this->assertSame(
+            ['roles' => [EnumsRole::USER->value]],
+            $auditLog->old_values,
+        );
+        $this->assertSame(
+            ['roles' => [EnumsRole::ADMIN->value]],
+            $auditLog->new_values,
+        );
+        $this->assertSame($this->user->id, $auditLog->user_id);
+    }
+
     public function test_password_is_not_updated_when_password_is_not_provided(): void
     {
         $user = User::factory()->create();
@@ -132,6 +169,30 @@ final class UserUpdateTest extends ApiTestCase
         );
     }
 
+    public function test_administrator_email_change_clears_existing_verification(): void
+    {
+        $user = User::factory()->create([
+            'email_verified_at' => now(),
+        ]);
+        $user->assignRole(EnumsRole::USER->value);
+
+        $response = $this->apiPut(
+            "/users/{$user->id}",
+            [
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'email' => fake()->unique()->safeEmail(),
+                'role' => EnumsRole::USER->value,
+            ],
+        );
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('data.email_verified_at', null);
+
+        $this->assertNull($user->fresh()->email_verified_at);
+    }
+
     public function test_user_role_must_exist_when_updating(): void
     {
         $user = User::factory()->create();
@@ -151,6 +212,23 @@ final class UserUpdateTest extends ApiTestCase
             ->assertJsonValidationErrors([
                 'role',
             ]);
+    }
+
+    public function test_avatar_path_cannot_be_set_when_updating_a_user(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->apiPut(
+            "/users/{$user->id}",
+            [
+                'role' => EnumsRole::USER->value,
+                'avatar' => 'avatars/another-user/private.jpg',
+            ],
+        );
+
+        $response
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['avatar']);
     }
 
     public function test_user_cannot_modify_their_own_account_through_user_management(): void

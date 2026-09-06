@@ -395,6 +395,34 @@ DB::transaction(function () {
 
 Never leave partially completed operations.
 
+External side effects that depend on committed records must be deferred until
+the outermost transaction commits. Queued notifications use
+`ShouldQueueAfterCommit`; cache and storage cleanup use transaction commit
+callbacks where appropriate. A rollback must discard the pending side effect
+along with the database changes that caused it.
+
+Administrator-created user onboarding follows this boundary:
+
+```text
+Create user and assign role
+            ↓
+Create password-broker activation token
+            ↓
+Register queued onboarding notification
+            ↓
+Commit outermost database transaction
+            ↓
+Publish notification job to the configured queue
+            ↓
+Worker sends the activation email
+```
+
+The generated initial credential is random and remains unknown. Only the
+activation token is passed to the notification, and neither a temporary
+password nor the generated credential is serialized into the queued job. If
+user creation rolls back, the user, activation token, and pending notification
+are all discarded.
+
 ---
 
 # Authentication

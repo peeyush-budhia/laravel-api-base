@@ -58,7 +58,7 @@ final class AuditLogQuery implements QueryContract
             'updated_at',
         ])
             ->with([
-                'user.roles',
+                'user.roles.permissions',
                 'user.permissions',
             ]);
     }

@@ -13,6 +13,6 @@ trait SerializesDatesToIso8601
      */
     protected function serializeDate(DateTimeInterface $date): string
     {
-        return $date->toIso8601String();
+        return $date->format(DateTimeInterface::ATOM);
     }
 }

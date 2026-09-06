@@ -88,6 +88,44 @@ final class UserProfileTest extends ApiTestCase
             );
     }
 
+    public function test_changing_email_clears_existing_verification(): void
+    {
+        $this->user->forceFill([
+            'email_verified_at' => now(),
+        ])->saveQuietly();
+
+        $response = $this->apiPut('/profile', [
+            'first_name' => $this->user->first_name,
+            'last_name' => $this->user->last_name,
+            'email' => fake()->unique()->safeEmail(),
+        ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('data.email_verified_at', null);
+
+        $this->assertNull($this->user->fresh()->email_verified_at);
+    }
+
+    public function test_keeping_email_preserves_existing_verification(): void
+    {
+        $verifiedAt = now()->subDay()->startOfSecond();
+        $this->user->forceFill([
+            'email_verified_at' => $verifiedAt,
+        ])->saveQuietly();
+
+        $this->apiPut('/profile', [
+            'first_name' => 'Updated',
+            'last_name' => $this->user->last_name,
+            'email' => $this->user->email,
+        ])->assertOk();
+
+        $this->assertSame(
+            $verifiedAt->toIso8601String(),
+            $this->user->fresh()->email_verified_at?->toIso8601String(),
+        );
+    }
+
     public function test_profile_update_requires_first_name(): void
     {
         $response = $this->apiPut('/profile', [

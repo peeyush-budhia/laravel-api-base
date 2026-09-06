@@ -6,6 +6,7 @@ namespace Tests\Unit\Query;
 
 use App\Query\QueryParameters;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 final class QueryParametersTest extends TestCase
@@ -70,15 +71,15 @@ final class QueryParametersTest extends TestCase
         $this->assertSame('desc', $parameters->direction);
     }
 
-    public function test_it_defaults_invalid_direction_to_ascending(): void
+    public function test_it_rejects_invalid_direction(): void
     {
+        $this->expectException(ValidationException::class);
+
         $request = Request::create('/users', 'GET', [
             'direction' => 'invalid',
         ]);
 
-        $parameters = QueryParameters::fromRequest($request);
-
-        $this->assertSame('asc', $parameters->direction);
+        QueryParameters::fromRequest($request);
     }
 
     public function test_it_extracts_filters(): void
@@ -114,5 +115,40 @@ final class QueryParametersTest extends TestCase
         $parameters = QueryParameters::fromRequest($request);
 
         $this->assertSame([], $parameters->filters);
+    }
+
+    public function test_it_rejects_array_pagination_and_search_inputs(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        QueryParameters::fromRequest(
+            Request::create('/users', 'GET', [
+                'page' => ['1'],
+                'search' => ['john'],
+            ]),
+        );
+    }
+
+    public function test_it_rejects_invalid_direction_and_long_search_values(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        QueryParameters::fromRequest(
+            Request::create('/users', 'GET', [
+                'direction' => 'sideways',
+                'search' => str_repeat('x', 256),
+            ]),
+        );
+    }
+
+    public function test_it_rejects_array_filter_values(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        QueryParameters::fromRequest(
+            Request::create('/users', 'GET', [
+                'status' => ['active'],
+            ]),
+        );
     }
 }

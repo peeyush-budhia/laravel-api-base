@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Api\V1\Dashboard;
 
 use App\Enums\AuditEvent;
+use App\Enums\Permission as PermissionEnum;
 use App\Enums\UserStatus;
 use App\Models\AuditLog;
 use App\Models\Permission;
@@ -32,11 +33,16 @@ class DashboardTest extends TestCase
     |--------------------------------------------------------------------------
     */
 
-    private function createUserWithDashboardPermission(): User
-    {
-        $user = User::factory()->create();
+    private function createUserWithDashboardPermission(
+        array $additionalPermissions = [],
+    ): User {
+        $user = User::factory()->create([
+        ]);
 
-        $user->givePermissionTo('dashboard.view');
+        $user->givePermissionTo([
+            PermissionEnum::DASHBOARD_VIEW->value,
+            ...$additionalPermissions,
+        ]);
 
         return $user;
     }
@@ -110,6 +116,60 @@ class DashboardTest extends TestCase
                 'data',
                 'errors',
             ]);
+    }
+
+    public function test_dashboard_permission_does_not_expose_user_or_audit_details(): void
+    {
+        $user = $this->createUserWithDashboardPermission();
+
+        User::factory()->create();
+        $this->createAuditLog($user);
+
+        Sanctum::actingAs($user);
+
+        $this->getJson('/api/v1/dashboard')
+            ->assertOk()
+            ->assertJsonCount(0, 'data.users.recent')
+            ->assertJsonCount(0, 'data.users.recently_active')
+            ->assertJsonCount(0, 'data.audit.recent');
+    }
+
+    public function test_dashboard_cache_keeps_permission_scopes_separate(): void
+    {
+        $limitedUser = $this->createUserWithDashboardPermission();
+        $privilegedUser = $this->createUserWithDashboardPermission([
+            PermissionEnum::USERS_VIEW->value,
+            PermissionEnum::AUDIT_LOGS_VIEW->value,
+        ]);
+
+        $auditLog = $this->createAuditLog($privilegedUser, [
+            'url' => 'http://example.test/api/v1/sensitive-audit-entry',
+            'ip_address' => '203.0.113.50',
+        ]);
+
+        Sanctum::actingAs($limitedUser);
+
+        $this->getJson('/api/v1/dashboard')
+            ->assertOk()
+            ->assertJsonCount(0, 'data.users.recent')
+            ->assertJsonCount(0, 'data.audit.recent');
+
+        Sanctum::actingAs($privilegedUser);
+
+        $this->getJson('/api/v1/dashboard')
+            ->assertOk()
+            ->assertJsonCount(2, 'data.users.recent')
+            ->assertJsonFragment([
+                'id' => $auditLog->id,
+                'ip_address' => '203.0.113.50',
+            ]);
+
+        Sanctum::actingAs($limitedUser);
+
+        $this->getJson('/api/v1/dashboard')
+            ->assertOk()
+            ->assertJsonCount(0, 'data.users.recent')
+            ->assertJsonCount(0, 'data.audit.recent');
     }
 
     /*
@@ -334,7 +394,13 @@ class DashboardTest extends TestCase
 
     public function test_dashboard_returns_recent_users(): void
     {
-        $user = $this->createUserWithDashboardPermission();
+        $user = $this->createUserWithDashboardPermission([
+            PermissionEnum::USERS_VIEW->value,
+        ]);
+        $user->forceFill([
+            'created_at' => now()->subDay(),
+            'updated_at' => now()->subDay(),
+        ])->saveQuietly();
 
         $recentUsers = User::factory()
             ->count(5)
@@ -361,7 +427,9 @@ class DashboardTest extends TestCase
 
     public function test_dashboard_returns_at_most_five_recent_users(): void
     {
-        $user = $this->createUserWithDashboardPermission();
+        $user = $this->createUserWithDashboardPermission([
+            PermissionEnum::USERS_VIEW->value,
+        ]);
 
         User::factory()->count(8)->create();
 
@@ -387,7 +455,9 @@ class DashboardTest extends TestCase
 
     public function test_dashboard_returns_recently_active_users(): void
     {
-        $user = $this->createUserWithDashboardPermission();
+        $user = $this->createUserWithDashboardPermission([
+            PermissionEnum::USERS_VIEW->value,
+        ]);
 
         User::factory()->count(3)->create([
             'last_login_at' => now(),
@@ -407,7 +477,9 @@ class DashboardTest extends TestCase
 
     public function test_dashboard_returns_at_most_five_recently_active_users(): void
     {
-        $user = $this->createUserWithDashboardPermission();
+        $user = $this->createUserWithDashboardPermission([
+            PermissionEnum::USERS_VIEW->value,
+        ]);
 
         User::factory()->count(8)->create([
             'last_login_at' => now(),
@@ -481,7 +553,9 @@ class DashboardTest extends TestCase
 
     public function test_dashboard_returns_recent_audit_logs(): void
     {
-        $user = $this->createUserWithDashboardPermission();
+        $user = $this->createUserWithDashboardPermission([
+            PermissionEnum::AUDIT_LOGS_VIEW->value,
+        ]);
 
         AuditLog::query()->delete();
 
@@ -505,7 +579,9 @@ class DashboardTest extends TestCase
 
     public function test_dashboard_returns_at_most_six_recent_audit_logs(): void
     {
-        $user = $this->createUserWithDashboardPermission();
+        $user = $this->createUserWithDashboardPermission([
+            PermissionEnum::AUDIT_LOGS_VIEW->value,
+        ]);
 
         AuditLog::query()->delete();
 
@@ -563,7 +639,9 @@ class DashboardTest extends TestCase
 
     public function test_dashboard_returns_full_avatar_url_for_recent_users(): void
     {
-        $user = $this->createUserWithDashboardPermission();
+        $user = $this->createUserWithDashboardPermission([
+            PermissionEnum::USERS_VIEW->value,
+        ]);
 
         User::factory()->create([
             'avatar' => 'avatars/test-avatar.png',

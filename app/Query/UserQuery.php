@@ -50,14 +50,13 @@ final class UserQuery implements QueryContract
             'status',
             'email_verified_at',
             'last_login_at',
-            'must_change_password',
             'created_at',
             'updated_at',
             'deleted_at',
         ]);
 
         $query->with([
-            'roles',
+            'roles.permissions',
             'permissions',
         ]);
 

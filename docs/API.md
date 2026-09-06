@@ -103,6 +103,87 @@ Validation and other API errors follow the common error structure:
 | POST   | `/auth/reset-password`  | No             | Reset the password                       |
 | POST   | `/auth/change-password` | Yes            | Change the authenticated user's password |
 
+## Authentication Rate Limits
+
+The public authentication endpoints use independent account and IP limits. All
+limits use a one-minute window.
+
+| Endpoint                | Account limit | IP limit |
+| ----------------------- | ------------- | -------- |
+| `/auth/login`           | 5 requests    | 20 requests |
+| `/auth/forgot-password` | 3 requests    | 10 requests |
+| `/auth/reset-password`  | 5 requests    | 10 requests |
+
+The login account key uses the normalized `login` value. Password-reset account
+keys use the normalized `email` value. Identifiers are hashed before being
+stored in cache keys.
+
+Exceeding either limit returns HTTP `429` using the standard API error envelope:
+
+```json
+{
+    "success": false,
+    "status": 429,
+    "message": "Too many requests. Please try again later.",
+    "data": null,
+    "errors": null,
+    "meta": {}
+}
+```
+
+## Authentication Token Lifecycle
+
+Sanctum tokens are revoked when authentication or account state changes make
+existing sessions unsafe.
+
+| Account action | Token behavior |
+| -------------- | -------------- |
+| Logout | Revokes the bearer token used for the request |
+| Authenticated password change | Preserves the current bearer token and revokes all other personal access tokens |
+| Password change without a persisted bearer token | Revokes all personal access tokens |
+| Password reset | Revokes all personal access tokens |
+| Administrator password change | Revokes all personal access tokens |
+| Administrator blocks the account | Revokes all personal access tokens |
+| Soft deletion | Revokes all personal access tokens in the deletion transaction |
+| Account restoration | Does not restore or recreate previously revoked tokens |
+
+After another session is revoked, requests using its bearer token return HTTP
+`401`. A restored user must authenticate again to receive a new token.
+
+## Account Activation
+
+When an administrator creates a user, the API generates an unknown initial
+credential and an expiring activation token. The queued onboarding email does
+not contain a temporary password. It links to the frontend URL configured by
+`FRONTEND_URL`:
+
+```text
+{FRONTEND_URL}/activate-account?token={token}&email={email}
+```
+
+The activation token uses Laravel's `users` password broker and expires after
+`auth.passwords.users.expire` minutes, which defaults to 60. The frontend
+collects and confirms the user's new password, then submits the token, email,
+password, and password confirmation to `POST /api/v1/auth/reset-password`.
+A successful activation consumes the token and sets `email_verified_at` to the
+current time because possession of the activation link proves access to the
+onboarding address. Login does not mark an email as verified. Changing the email
+after the account has been used clears verification, and a later password reset
+or login does not restore it automatically.
+
+The activation token and user are created in the same database transaction.
+`UserCreatedNotification` implements `ShouldQueueAfterCommit`, so the queued
+email is published only after the outermost transaction commits, including when
+user creation is called inside another transaction. Before that commit, an
+external worker cannot reserve the onboarding job. A rollback removes the user
+and token and prevents the queue job from being created, including when the
+application uses an external queue such as Redis.
+
+The queued payload contains the activation token required to build the link. It
+does not contain a temporary password or the unknown generated credential. The
+token remains subject to the password broker's configured expiry and one-time
+reset behavior even if email delivery is delayed.
+
 ## Login
 
 ```http
@@ -169,6 +250,19 @@ Form field:
 avatar
 ```
 
+The file must be a JPG, JPEG, PNG, or WebP image no larger than 5 MB. Uploaded
+files are stored under `avatars/{user-uuid}/` on the public disk. User create
+and update endpoints do not accept an `avatar` storage path; supplying one
+returns a `422` validation response. Clients must use this authenticated upload
+endpoint to change an avatar.
+
+When an avatar is replaced, the API updates the database before deleting the
+previous file. The previous file is removed only after the transaction commits
+and only when it belongs to the authenticated user's avatar directory. A failed
+upload, database write, or surrounding transaction preserves the previous file
+and removes the new upload. Files outside the user's directory are never
+deleted by this flow.
+
 ---
 
 # Users
@@ -213,6 +307,43 @@ Example:
 ```text
 GET /api/v1/users?page=1&per_page=20&search=john&sort=created_at&direction=desc&trashed=without
 ```
+
+Listing parameters are validated before they are parsed. Pagination values must
+be integers; search, sort, direction, trashed, and filter values must be scalar
+strings within their length limits. Array inputs such as `search[]=john` return
+the standard `422` validation response.
+
+Each endpoint validates sort and filter names against its supported fields.
+Unsupported names and invalid direction or trashed values return `422` rather
+than being silently ignored. Results are ordered by `id` when no sort is
+provided, and valid sorted queries use `id` as a deterministic tie-breaker.
+
+Pagination links retain the original search, filter, sort, direction, and page
+size parameters.
+
+## User Permission Responses
+
+Every serialized user contains a `permissions` array with the user's effective
+permissions. This array combines permissions assigned directly to the user with
+permissions inherited through roles. Duplicate names are removed and the
+remaining names are sorted alphabetically, so the same user receives the same
+permission list from authentication, profile, user-management, dashboard, and
+audit responses.
+
+```json
+{
+    "role": "editor",
+    "permissions": [
+        "profile.update",
+        "users.update",
+        "users.view"
+    ]
+}
+```
+
+User collection, dashboard, and audit queries eager-load direct permissions and
+`roles.permissions`. Individual user resources load either relationship when it
+is missing.
 
 ---
 
@@ -364,6 +495,24 @@ updated
 deleted
 restored
 force_deleted
+permissions_synced
+roles_synced
+```
+
+`roles_synced` records role assignments made while creating or updating a
+user. `permissions_synced` records changes to a role's permission set. Their
+`old_values` and `new_values` contain sorted relationship names:
+
+```json
+{
+    "event": "roles_synced",
+    "old_values": {
+        "roles": ["user"]
+    },
+    "new_values": {
+        "roles": ["admin"]
+    }
+}
 ```
 
 ### Audit Log Fields
@@ -387,11 +536,35 @@ updated_at
 
 The `user` relationship identifies the authenticated actor when an audit event was generated in an authenticated request.
 
+### Audit Snapshot Datetimes
+
+Datetime values inside `old_values` and `new_values` use ISO 8601 with a UTC
+offset, matching top-level resource timestamps:
+
+```json
+{
+    "old_values": {
+        "email_verified_at": "2026-09-05T10:20:30+00:00"
+    },
+    "new_values": {
+        "email_verified_at": "2026-09-06T14:30:00+00:00"
+    }
+}
+```
+
+New snapshots normalize timestamps and attributes declared with Eloquent date
+or datetime casts before storage. Audit responses also normalize historical
+`*_at` fields recursively, including nested values. Null values remain null. An
+invalid legacy datetime string is returned unchanged so one malformed field
+does not prevent the audit record from being read.
+
 ### Audited Model Changes
 
 #### User
 
-User creation, updates, deletion, restoration, and force deletion are recorded.
+User creation, updates, deletion, restoration, force deletion, and role
+assignments are recorded. A role-only update produces a `roles_synced` audit
+even when no user attribute changes.
 
 Sensitive authentication fields such as passwords and remember tokens are excluded from audit values.
 
@@ -399,13 +572,20 @@ Sensitive authentication fields such as passwords and remember tokens are exclud
 
 Role creation, updates, and deletion are recorded.
 
-Role permission synchronization is also part of the role authorization lifecycle and should be represented by the audit activity generated by the affected role/permission model operations.
+Role permission synchronization produces a `permissions_synced` audit with the
+previous and resulting permission names.
 
 #### Permission
 
 Permission creation, updates, and deletion are recorded.
 
 Audit logging uses the model's UUID as `auditable_id`.
+
+Audit writes participate in the same database transaction as the audited
+change. Dashboard cache invalidation is registered after the audit is written
+and executes only after the outermost transaction commits. If the transaction
+rolls back, the audit and relationship change are rolled back and the existing
+dashboard cache remains valid.
 
 ### Pagination
 
@@ -435,6 +615,19 @@ permission:dashboard.view
 ```
 
 A user must have both a valid Sanctum token and the `dashboard.view` permission.
+
+`dashboard.view` grants access to aggregate dashboard statistics. Detailed user
+and audit data use their existing module permissions:
+
+| Dashboard data | Additional permission | Behavior without permission |
+| -------------- | --------------------- | --------------------------- |
+| `users.recent` | `users.view` | Returns an empty array |
+| `users.recently_active` | `users.view` | Returns an empty array |
+| `audit.recent` | `audit-logs.view` | Returns an empty array |
+
+Summary totals, `users.by_status`, and `audit.by_event` remain available with
+`dashboard.view`. The response structure does not change when detailed data is
+hidden.
 
 ## Dashboard Response
 
@@ -474,9 +667,11 @@ users.recently_active
 
 `by_status` groups users by their status.
 
-`recent` contains up to five recently created users.
+`recent` contains up to five recently created users when the viewer has
+`users.view`; otherwise, it is an empty array.
 
-`recently_active` contains up to five users ordered by their latest login activity.
+`recently_active` contains up to five users ordered by their latest login
+activity when the viewer has `users.view`; otherwise, it is an empty array.
 
 ### Audit Statistics
 
@@ -489,7 +684,15 @@ audit.recent
 
 `by_event` contains audit-log counts grouped by event.
 
-`recent` contains up to ten most recent audit logs and includes the associated audit actor where available.
+`recent` contains up to six recent audit logs and includes the associated audit
+actor when available. It requires `audit-logs.view`; otherwise, it is an empty
+array.
+
+Dashboard responses are cached separately for each combination of user-detail
+and audit-detail access. A response cached for one permission scope cannot be
+served to another scope. Changes recorded by auditable models, user role
+assignments, and role permission synchronization invalidate every scoped cache
+variant after their database transaction commits.
 
 ### Example Response Shape
 
@@ -634,9 +837,20 @@ Paginated endpoints return:
 }
 ```
 
+The `links` URLs retain the listing parameters used for the current request, so
+following `next` or `last` preserves the active filters and sort order.
+
 ---
 
 # HTTP Status Codes
+
+Requests under `/api/*` always receive the standard JSON error envelope,
+regardless of the request's `Accept` header. This also applies when the header
+is absent.
+
+Framework response headers are preserved alongside the envelope. For example,
+method-not-allowed responses include `Allow`, and throttled responses include
+`Retry-After` when supplied by the rate limiter.
 
 | Status | Meaning                            |
 | -----: | ---------------------------------- |

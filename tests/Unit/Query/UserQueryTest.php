@@ -19,7 +19,7 @@ final class UserQueryTest extends TestCase
             new QueryParameters,
         );
 
-        $this->assertArrayHasKey('roles', $query->getEagerLoads());
+        $this->assertArrayHasKey('roles.permissions', $query->getEagerLoads());
         $this->assertArrayHasKey('permissions', $query->getEagerLoads());
         $this->assertSame([
             'id',
@@ -30,7 +30,6 @@ final class UserQueryTest extends TestCase
             'status',
             'email_verified_at',
             'last_login_at',
-            'must_change_password',
             'created_at',
             'updated_at',
             'deleted_at',

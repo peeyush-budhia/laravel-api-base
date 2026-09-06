@@ -167,6 +167,25 @@ Authentication is powered by Laravel Sanctum.
 Authorization: Bearer <token>
 ```
 
+Login, forgot-password, and reset-password requests are rate limited by both
+account identifier and IP address. See [`docs/API.md`](docs/API.md#authentication-rate-limits)
+for the active limits and `429` response contract.
+
+Password changes, password resets, account blocking, and soft deletion revoke
+affected Sanctum sessions. See the
+[`token lifecycle`](docs/API.md#authentication-token-lifecycle) for the exact
+behavior.
+
+Administrator-created users receive an expiring activation link after their
+database transaction commits. Temporary passwords are not sent by email. See
+the [`account activation`](docs/API.md#account-activation) contract.
+The companion `laravel-api-base-ui` project provides the public activation page
+and submits the token through the existing reset-password endpoint.
+
+Demonstration users are seeded only in local/testing environments. Production
+administrators must be created with `php artisan app:provision-super-admin` as
+described in [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md#4-configure-database).
+
 ---
 
 ## Standard API Response
@@ -229,10 +248,10 @@ feature/*
 
 ## Roadmap
 
-The current release line is `v0.9.0`.
+The current development line is `v0.9.0`.
 
-- `v0.8.0` released: Audit Logs & Dashboard APIs
-- `v0.9.0` released: Docker, Performance & Infrastructure
+- `v0.8.0` completed: Audit Logs & Dashboard APIs
+- `v0.9.0` completed: Docker, Performance & Infrastructure
 
 See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the full release table and phase history.
 

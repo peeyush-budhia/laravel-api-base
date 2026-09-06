@@ -20,43 +20,47 @@ class UserResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        /** @var User $user */
+        $user = $this->resource;
+
+        $user->loadMissing([
+            'roles.permissions',
+            'permissions',
+        ]);
+
         return [
-            'id' => $this->id,
+            'id' => $user->id,
 
-            'first_name' => $this->first_name,
+            'first_name' => $user->first_name,
 
-            'last_name' => $this->last_name,
+            'last_name' => $user->last_name,
 
-            'full_name' => trim("{$this->first_name} {$this->last_name}"),
+            'full_name' => trim("{$user->first_name} {$user->last_name}"),
 
-            'email' => $this->email,
+            'email' => $user->email,
 
-            'avatar' => $this->avatar ? asset('storage/'.ltrim($this->avatar, '/')) : null,
+            'avatar' => $user->avatar ? asset('storage/'.ltrim($user->avatar, '/')) : null,
 
-            'role' => $this->relationLoaded('roles')
-                ? $this->roles->first()?->name
-                : $this->getRoleNames()->first(),
+            'role' => $user->getRoleNames()->first(),
 
-            'permissions' => $this->relationLoaded('permissions')
-                ? $this->permissions->pluck('name')->values()->all()
-                : $this->getAllPermissions()
-                    ->pluck('name')
-                    ->values()
-                    ->all(),
+            'permissions' => $user->getAllPermissions()
+                ->pluck('name')
+                ->unique()
+                ->sort()
+                ->values()
+                ->all(),
 
-            'must_change_password' => $this->must_change_password,
+            'status' => $user->status?->value,
 
-            'status' => $this->status?->value,
+            'email_verified_at' => $user->email_verified_at?->toIso8601String(),
 
-            'email_verified_at' => $this->email_verified_at?->toIso8601String(),
+            'last_login_at' => $user->last_login_at?->toIso8601String(),
 
-            'last_login_at' => $this->last_login_at?->toIso8601String(),
+            'created_at' => $user->created_at?->toIso8601String(),
 
-            'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $user->updated_at?->toIso8601String(),
 
-            'updated_at' => $this->updated_at?->toIso8601String(),
-
-            'deleted_at' => $this->deleted_at?->toIso8601String(),
+            'deleted_at' => $user->deleted_at?->toIso8601String(),
         ];
     }
 }

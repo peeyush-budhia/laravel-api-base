@@ -18,7 +18,8 @@ abstract class ApiTestCase extends TestCase
      */
     protected function authenticate(?User $user = null): User
     {
-        $user ??= User::factory()->create();
+        $user ??= User::factory()->create([
+        ]);
 
         Sanctum::actingAs($user);
 

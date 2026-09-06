@@ -1,3 +1,73 @@
+## [Unreleased]
+
+### Added
+
+- Added `app:provision-super-admin` for secure initial production administrator
+  provisioning with hidden password prompts and password-policy validation.
+- Added regression coverage for authentication throttling and environment-safe
+  database seeding.
+- Added regression coverage ensuring user permissions remain identical whether
+  permission relationships are preloaded or loaded by the API resource.
+- Added explicit `roles_synced` and `permissions_synced` audit events with old
+  and new relationship values.
+- Added expiring account-activation links for administrator-created users using
+  the existing password-reset token broker.
+
+### Fixed
+
+- Removed the obsolete forced-password-change flag and middleware now that
+  administrator-created users choose their password through account activation.
+- Made user responses consistently return sorted, deduplicated effective
+  permissions from direct assignments and assigned roles.
+- Eager-loaded role permissions for user lists, dashboard users, and audit-log
+  actors to avoid per-resource permission queries.
+- Normalized datetime values inside new audit snapshots to ISO 8601 using model
+  timestamp and datetime-cast metadata.
+- Normalized historical `*_at` fields recursively when serializing audit logs,
+  while preserving null and invalid legacy values safely.
+- Validated shared listing parameters before casting, rejected unsupported sort
+  and filter names, and added deterministic ID tie-breakers to list queries.
+- Preserved active listing parameters in pagination links.
+- Made API exceptions return the JSON error envelope without requiring an
+  `Accept` header, while preserving framework response headers.
+- Deferred dashboard cache invalidation until the surrounding database
+  transaction commits and discarded pending invalidation after rollback.
+- Included role-only user updates and role permission synchronization in audit
+  history and dashboard cache invalidation.
+- Isolated avatar uploads by user and coordinated file cleanup with database
+  commits and rollbacks.
+- Deferred queued account-onboarding notifications until the user transaction
+  commits, kept jobs invisible to external workers before the outermost commit,
+  and discarded the user, activation token, and pending notification after
+  rollback.
+- Marked never-used accounts as email-verified when their activation token
+  successfully sets the initial password. Login no longer verifies email, and
+  password changes preserve the current verification state.
+
+### Security
+
+- Added independent account and IP rate limits to login, forgot-password, and
+  reset-password endpoints.
+- Restricted dashboard user details to viewers with `users.view` and recent
+  audit records to viewers with `audit-logs.view`.
+- Segmented dashboard caches by user-detail and audit-detail access so cached
+  privileged data cannot be returned to less privileged viewers.
+- Revoked other Sanctum sessions after an authenticated password change and all
+  sessions after a password reset, administrator password change, account
+  blocking, or soft deletion.
+- Ensured restoring a soft-deleted account cannot reactivate previously issued
+  bearer tokens.
+- Restricted demonstration accounts and credentials to local/testing seeding.
+- Prevented repeated demo seeding from resetting existing account passwords or
+  adding duplicate batches of generated users.
+- Prohibited client-supplied avatar storage paths in user create and update
+  requests, and restricted deletion to files owned by the affected user.
+- Removed temporary passwords from onboarding emails and queued notification
+  payloads; administrator-created users now choose a password through an
+  expiring, one-time activation link.
+
+---
+
 ## [0.7.0] - 2026-08-23
 
 ### Added
@@ -224,8 +294,8 @@
 | v0.5.0  | ✅ Complete | Query Infrastructure & API Improvements       |
 | v0.6.0  | ✅ Released | Backend Cleanup & Foundation Stabilization    |
 | v0.7.0  | ✅ Released | API Documentation & Developer Experience      |
-| v0.8.0  | 🚧 Next     | Audit Logs & Dashboard APIs                   |
-| v0.9.0  | 📋 Planned  | Docker, Performance & Infrastructure          |
+| v0.8.0  | ✅ Complete | Audit Logs & Dashboard APIs                   |
+| v0.9.0  | ✅ Complete | Docker, Performance & Infrastructure          |
 | v1.0.0  | 🎯 Target   | Production Ready API Template                 |
 
 ---

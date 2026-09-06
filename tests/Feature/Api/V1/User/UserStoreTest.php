@@ -64,10 +64,6 @@ final class UserStoreTest extends ApiTestCase
             $user->hasRole(EnumsRole::ADMIN),
         );
 
-        $this->assertTrue(
-            $user->must_change_password,
-        );
-
         $this->assertNull(
             $user->email_verified_at,
         );
@@ -92,9 +88,6 @@ final class UserStoreTest extends ApiTestCase
             $user->email_verified_at,
         );
 
-        $this->assertTrue(
-            $user->must_change_password,
-        );
     }
 
     public function test_user_role_must_exist(): void
@@ -142,6 +135,18 @@ final class UserStoreTest extends ApiTestCase
             ]);
     }
 
+    public function test_avatar_path_cannot_be_set_when_creating_a_user(): void
+    {
+        $response = $this->apiPost('/users', $this->validUserData([
+            'role' => EnumsRole::ADMIN,
+            'avatar' => 'avatars/another-user/private.jpg',
+        ]));
+
+        $response
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['avatar']);
+    }
+
     public function test_user_created_notification_is_sent(): void
     {
         Notification::fake();
@@ -161,6 +166,10 @@ final class UserStoreTest extends ApiTestCase
             $user,
             UserCreatedNotification::class,
         );
+
+        $this->assertDatabaseHas('password_reset_tokens', [
+            'email' => $user->email,
+        ]);
     }
 
     public function test_password_is_generated_for_new_user(): void

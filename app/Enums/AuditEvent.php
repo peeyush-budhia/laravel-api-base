@@ -12,4 +12,5 @@ enum AuditEvent: string
     case Restored = 'restored';
     case ForceDeleted = 'force_deleted';
     case PermissionsSynced = 'permissions_synced';
+    case RolesSynced = 'roles_synced';
 }

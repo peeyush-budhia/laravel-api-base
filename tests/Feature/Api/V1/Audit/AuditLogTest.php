@@ -34,7 +34,8 @@ class AuditLogTest extends TestCase
     private function createUserWithPermission(
         string $permission = 'audit-logs.view',
     ): User {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+        ]);
 
         $user->givePermissionTo($permission);
 

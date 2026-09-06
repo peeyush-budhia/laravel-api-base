@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Dashboard;
 
 use App\Enums\AuditEvent;
+use App\Enums\Permission as PermissionEnum;
 use App\Enums\UserStatus;
 use App\Http\Resources\Api\V1\AuditLogResource;
 use App\Http\Resources\Api\V1\UserResource;
@@ -21,13 +22,18 @@ final class DashboardService
      *
      * @return array<string, mixed>
      */
-    public function getDashboard(): array
+    public function getDashboard(User $viewer): array
     {
+        $includeUserDetails = $viewer->can(PermissionEnum::USERS_VIEW->value);
+        $includeAuditDetails = $viewer->can(PermissionEnum::AUDIT_LOGS_VIEW->value);
+
         return DashboardCache::remember(
+            $includeUserDetails,
+            $includeAuditDetails,
             fn (): array => [
                 'summary' => $this->summary(),
-                'users' => $this->userStatistics(),
-                'audit' => $this->auditStatistics(),
+                'users' => $this->userStatistics($includeUserDetails),
+                'audit' => $this->auditStatistics($includeAuditDetails),
             ],
         );
     }
@@ -74,7 +80,7 @@ final class DashboardService
      *
      * @return array<string, mixed>
      */
-    private function userStatistics(): array
+    private function userStatistics(bool $includeDetails): array
     {
         $usersByStatus = User::query()
             ->select('status')
@@ -88,6 +94,14 @@ final class DashboardService
             )
             ->all();
 
+        if (! $includeDetails) {
+            return [
+                'by_status' => $usersByStatus,
+                'recent' => [],
+                'recently_active' => [],
+            ];
+        }
+
         $recentUsers = User::query()
             ->select([
                 'id',
@@ -98,13 +112,12 @@ final class DashboardService
                 'status',
                 'email_verified_at',
                 'last_login_at',
-                'must_change_password',
                 'created_at',
                 'updated_at',
                 'deleted_at',
             ])
             ->with([
-                'roles',
+                'roles.permissions',
                 'permissions',
             ])
             ->latest('created_at')
@@ -121,13 +134,12 @@ final class DashboardService
                 'status',
                 'email_verified_at',
                 'last_login_at',
-                'must_change_password',
                 'created_at',
                 'updated_at',
                 'deleted_at',
             ])
             ->with([
-                'roles',
+                'roles.permissions',
                 'permissions',
             ])
             ->whereNotNull('last_login_at')
@@ -147,7 +159,7 @@ final class DashboardService
      *
      * @return array<string, mixed>
      */
-    private function auditStatistics(): array
+    private function auditStatistics(bool $includeDetails): array
     {
         $events = AuditLog::query()
             ->select('event')
@@ -162,6 +174,13 @@ final class DashboardService
                 ],
             )
             ->all();
+
+        if (! $includeDetails) {
+            return [
+                'by_event' => $events,
+                'recent' => [],
+            ];
+        }
 
         $recent = AuditLog::query()
             ->select([
@@ -179,7 +198,7 @@ final class DashboardService
                 'updated_at',
             ])
             ->with([
-                'user.roles',
+                'user.roles.permissions',
                 'user.permissions',
             ])
             ->latest('created_at')

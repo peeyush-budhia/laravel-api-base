@@ -4,29 +4,33 @@ declare(strict_types=1);
 
 namespace App\Services\User;
 
+use App\Enums\AuditEvent;
 use App\Enums\Role as EnumsRole;
 use App\Enums\UserStatus;
 use App\Exceptions\RoleProtectionException;
 use App\Exceptions\UserRoleException;
 use App\Models\User;
 use App\Notifications\User\UserCreatedNotification;
-use App\Policies\PasswordPolicy;
 use App\Query\QueryExecutor;
 use App\Query\QueryParameters;
 use App\Query\UserQuery;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Connection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use RuntimeException;
+use Throwable;
 
 class UserService
 {
     public function __construct(
         private readonly UserQuery $userQuery,
         private readonly QueryExecutor $queryExecutor,
-        private readonly PasswordPolicy $passwordPolicy,
     ) {}
 
     /**
@@ -47,7 +51,7 @@ class UserService
     public function show(User $user): User
     {
         return $user->loadMissing([
-            'roles',
+            'roles.permissions',
             'permissions',
         ]);
     }
@@ -61,30 +65,29 @@ class UserService
             $data['status'] ??= UserStatus::ACTIVE;
 
             $role = $data['role'];
-            unset($data['role']);
+            unset($data['role'], $data['avatar']);
 
             // Only one user can have the super-admin role.
             $this->ensureSuperAdminIsAvailable($role);
 
-            $temporaryPassword = Str::password(
-                length: max(12, $this->passwordPolicy->minLength()),
-                numbers: $this->passwordPolicy->requiresNumbers(),
-                symbols: $this->passwordPolicy->requiresSymbols(),
-            );
-
-            $data['must_change_password'] = true;
-
             /** @var User $user */
             $user = User::create([
                 ...$data,
-                'password' => Hash::make($temporaryPassword),
+                'password' => Hash::make(Str::random(64)),
             ]);
 
             $user->assignRole($role);
+            $user->auditRelationshipChange(
+                AuditEvent::RolesSynced,
+                'roles',
+                [],
+                $this->roleNames($user),
+            );
 
-            // Send temporary credentials after successful creation.
+            $activationToken = Password::createToken($user);
+
             $user->notify(
-                new UserCreatedNotification($temporaryPassword),
+                new UserCreatedNotification($activationToken),
             );
 
             return $user->fresh();
@@ -114,7 +117,11 @@ class UserService
             }
 
             $role = $data['role'] ?? null;
-            unset($data['role']);
+            unset($data['role'], $data['avatar']);
+
+            $oldRoles = $role !== null
+                ? $this->roleNames($user)
+                : [];
 
             if ($role !== null) {
                 // Only one user can have the super-admin role.
@@ -139,7 +146,7 @@ class UserService
 
             $passwordChanged = isset($data['password']);
 
-            $user->update($data);
+            $this->updateAttributes($user, $data);
 
             if ($statusChangedToBlocked || $passwordChanged) {
                 $user->tokens()->delete();
@@ -147,6 +154,12 @@ class UserService
 
             if ($role !== null) {
                 $user->syncRoles($role);
+                $user->auditRelationshipChange(
+                    AuditEvent::RolesSynced,
+                    'roles',
+                    $oldRoles,
+                    $this->roleNames($user),
+                );
             }
 
             return $user->fresh();
@@ -168,12 +181,40 @@ class UserService
                 unset($data['password']);
             }
 
-            unset($data['role']);
+            unset($data['role'], $data['avatar']);
 
-            $user->update($data);
+            $this->updateAttributes($user, $data);
 
             return $user->fresh();
         });
+    }
+
+    /**
+     * Update a user and clear verification when the email address changes.
+     */
+    private function updateAttributes(User $user, array $data): void
+    {
+        $user->fill($data);
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
+    }
+
+    /**
+     * Get the user's assigned role names in deterministic order.
+     *
+     * @return array<int, string>
+     */
+    private function roleNames(User $user): array
+    {
+        return $user->roles()
+            ->orderBy('name')
+            ->pluck('name')
+            ->values()
+            ->all();
     }
 
     /**
@@ -190,7 +231,15 @@ class UserService
             $user,
         );
 
-        return (bool) $user->delete();
+        return DB::transaction(function () use ($user): bool {
+            $deleted = (bool) $user->delete();
+
+            if ($deleted) {
+                $user->tokens()->delete();
+            }
+
+            return $deleted;
+        });
     }
 
     /**
@@ -233,21 +282,113 @@ class UserService
         User $user,
         UploadedFile $avatar,
     ): User {
-        return DB::transaction(function () use ($user, $avatar): User {
-            $oldAvatar = $user->avatar;
+        $oldAvatar = $user->avatar;
+        $path = $avatar->store(
+            $this->avatarDirectory($user),
+            'public',
+        );
 
-            $path = $avatar->store('avatars', 'public');
-
-            $user->update([
-                'avatar' => $path,
-            ]);
-
-            if ($oldAvatar) {
-                Storage::disk('public')->delete($oldAvatar);
+        if (
+            ! is_string($path)
+            || ! $this->isOwnedAvatarPath($user, $path)
+        ) {
+            if (is_string($path)) {
+                $this->deleteAvatarFile($user, $path);
             }
 
-            return $user->fresh();
-        });
+            throw new RuntimeException('Unable to store the avatar.');
+        }
+
+        /** @var Connection $connection */
+        $connection = DB::connection($user->getConnectionName());
+
+        try {
+            return $connection->transaction(function () use (
+                $connection,
+                $user,
+                $oldAvatar,
+                $path,
+            ): User {
+                $user->update([
+                    'avatar' => $path,
+                ]);
+
+                /** @var User $updatedUser */
+                $updatedUser = $user->fresh();
+
+                $connection->afterRollBack(
+                    fn (): bool => $this->deleteAvatarFile($user, $path),
+                );
+
+                if (
+                    is_string($oldAvatar)
+                    && $this->isOwnedAvatarPath($user, $oldAvatar)
+                ) {
+                    $connection->afterCommit(
+                        fn (): bool => $this->deleteAvatarFile(
+                            $user,
+                            $oldAvatar,
+                        ),
+                    );
+                }
+
+                return $updatedUser;
+            });
+        } catch (Throwable $exception) {
+            $this->deleteAvatarFile($user, $path);
+
+            throw $exception;
+        }
+    }
+
+    private function avatarDirectory(User $user): string
+    {
+        return 'avatars/'.$user->getKey();
+    }
+
+    private function isOwnedAvatarPath(User $user, string $path): bool
+    {
+        $normalizedPath = str_replace('\\', '/', $path);
+        $segments = explode('/', $normalizedPath);
+
+        return $normalizedPath === ltrim($normalizedPath, '/')
+            && ! in_array('..', $segments, true)
+            && ! in_array('.', $segments, true)
+            && str_starts_with(
+                $normalizedPath,
+                $this->avatarDirectory($user).'/',
+            );
+    }
+
+    private function deleteAvatarFile(User $user, string $path): bool
+    {
+        if (! $this->isOwnedAvatarPath($user, $path)) {
+            Log::warning('Refused to delete an unowned avatar path.', [
+                'user_id' => $user->getKey(),
+                'path' => $path,
+            ]);
+
+            return false;
+        }
+
+        try {
+            $deleted = Storage::disk('public')->delete($path);
+        } catch (Throwable $exception) {
+            Log::warning('Unable to delete an avatar file.', [
+                'path' => $path,
+                'exception' => $exception::class,
+            ]);
+
+            return false;
+        }
+
+        if (! $deleted) {
+            Log::warning('Unable to delete an avatar file.', [
+                'path' => $path,
+            ]);
+        }
+
+        return $deleted;
     }
 
     /**

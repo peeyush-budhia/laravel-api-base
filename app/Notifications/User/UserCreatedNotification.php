@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace App\Notifications\User;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueueAfterCommit;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 
-class UserCreatedNotification extends Notification implements ShouldQueue
+class UserCreatedNotification extends Notification implements ShouldQueueAfterCommit
 {
     use Queueable;
 
     public function __construct(
-        private readonly string $temporaryPassword,
+        private readonly string $activationToken,
     ) {}
 
     /**
@@ -36,24 +36,27 @@ class UserCreatedNotification extends Notification implements ShouldQueue
             ->line(__('users.account_created_email', [
                 'email' => $notifiable->email,
             ]))
-            ->line(__('users.account_created_password', [
-                'password' => $this->temporaryPassword,
-            ]))
+            ->line(__('users.account_created_activation'))
             ->action(
                 __('users.account_created_action'),
-                $this->loginUrl(),
+                $this->activationUrl($notifiable),
             )
-            ->line(__('users.account_created_security'));
+            ->line(__('users.account_created_expiry', [
+                'count' => config('auth.passwords.users.expire', 60),
+            ]));
     }
 
     /**
-     * Build the frontend sign-in URL.
+     * Build the frontend account activation URL.
      */
-    private function loginUrl(): string
+    private function activationUrl(object $notifiable): string
     {
         return rtrim(
             (string) config('app.frontend_url'),
             '/',
-        ).'/signin';
+        ).'/activate-account?'.http_build_query([
+            'token' => $this->activationToken,
+            'email' => $notifiable->getEmailForPasswordReset(),
+        ]);
     }
 }

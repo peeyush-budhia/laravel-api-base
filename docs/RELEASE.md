@@ -219,7 +219,7 @@ The roadmap should reflect:
 - Current version
 - Next version
 - Planned work
-- Released milestones
+- Completed milestones
 
 Do not mark a feature as completed until it has actually been implemented and tested.
 

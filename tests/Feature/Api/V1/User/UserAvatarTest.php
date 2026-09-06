@@ -52,6 +52,10 @@ final class UserAvatarTest extends ApiTestCase
         $avatarPath = $this->user->fresh()->avatar;
 
         $this->assertNotNull($avatarPath);
+        $this->assertStringStartsWith(
+            "avatars/{$this->user->id}/",
+            $avatarPath,
+        );
 
         /** @var FilesystemAdapter $disk */
         $disk = Storage::disk('public');

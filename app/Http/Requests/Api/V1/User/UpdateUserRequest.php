@@ -51,9 +51,7 @@ class UpdateUserRequest extends FormRequest
             ],
 
             'avatar' => [
-                'nullable',
-                'string',
-                'max:255',
+                'prohibited',
             ],
 
             'status' => [
