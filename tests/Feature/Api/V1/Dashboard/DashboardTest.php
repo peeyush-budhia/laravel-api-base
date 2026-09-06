@@ -423,6 +423,9 @@ class DashboardTest extends TestCase
                 'email' => $recentUser->email,
             ]);
         }
+
+        $response->assertJsonMissingPath('data.users.recent.0.permissions');
+        $response->assertJsonMissingPath('data.users.recent.0.role');
     }
 
     public function test_dashboard_returns_at_most_five_recent_users(): void
@@ -575,6 +578,9 @@ class DashboardTest extends TestCase
                 3,
                 'data.audit.recent',
             );
+
+        $response->assertJsonMissingPath('data.audit.recent.0.user.permissions');
+        $response->assertJsonMissingPath('data.audit.recent.0.user.status');
     }
 
     public function test_dashboard_returns_at_most_six_recent_audit_logs(): void

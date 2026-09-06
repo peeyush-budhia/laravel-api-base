@@ -685,6 +685,10 @@ users.recently_active
 `recently_active` contains up to five users ordered by their latest login
 activity when the viewer has `users.view`; otherwise, it is an empty array.
 
+Recent dashboard users are summary records containing identity, avatar, status,
+verification, login, and lifecycle timestamps. They do not include role or
+permission collections.
+
 ### Audit Statistics
 
 The `audit` section contains:
@@ -699,6 +703,13 @@ audit.recent
 `recent` contains up to six recent audit logs and includes the associated audit
 actor when available. It requires `audit-logs.view`; otherwise, it is an empty
 array.
+
+Audit actors are limited to their ID, name, email, and avatar. Role and
+permission collections are excluded from dashboard audit entries.
+
+Dashboard user-status and audit-event totals are calculated from the same
+grouped datasets used by `users.by_status` and `audit.by_event`, so the summary
+does not issue duplicate count queries.
 
 Dashboard responses are cached separately for each combination of user-detail
 and audit-detail access. A response cached for one permission scope cannot be

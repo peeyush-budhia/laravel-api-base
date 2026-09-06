@@ -8,7 +8,7 @@ use App\Enums\AuditEvent;
 use App\Enums\Permission as PermissionEnum;
 use App\Enums\UserStatus;
 use App\Http\Resources\Api\V1\AuditLogResource;
-use App\Http\Resources\Api\V1\UserResource;
+use App\Http\Resources\Api\V1\UserSummaryResource;
 use App\Models\AuditLog;
 use App\Models\Permission;
 use App\Models\Role;
@@ -30,12 +30,43 @@ final class DashboardService
         return DashboardCache::remember(
             $includeUserDetails,
             $includeAuditDetails,
-            fn (): array => [
-                'summary' => $this->summary(),
-                'users' => $this->userStatistics($includeUserDetails),
-                'audit' => $this->auditStatistics($includeAuditDetails),
-            ],
+            fn (): array => $this->buildDashboard(
+                $includeUserDetails,
+                $includeAuditDetails,
+            ),
         );
+    }
+
+    /**
+     * Build the dashboard from one grouped query per status/event dimension.
+     *
+     * @return array<string, mixed>
+     */
+    private function buildDashboard(bool $includeUserDetails, bool $includeAuditDetails): array
+    {
+        $userCounts = User::query()
+            ->select('status')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('status')
+            ->get()
+            ->mapWithKeys(fn ($item): array => [$item->status->value => (int) $item->total])
+            ->all();
+
+        $auditCounts = AuditLog::query()
+            ->select('event')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('event')
+            ->get()
+            ->mapWithKeys(fn ($item): array => [
+                $item->event instanceof AuditEvent ? $item->event->value : (string) $item->event => (int) $item->total,
+            ])
+            ->all();
+
+        return [
+            'summary' => $this->summary($userCounts, $auditCounts),
+            'users' => $this->userStatistics($includeUserDetails, $userCounts),
+            'audit' => $this->auditStatistics($includeAuditDetails, $auditCounts),
+        ];
     }
 
     /**
@@ -43,20 +74,14 @@ final class DashboardService
      *
      * @return array<string, mixed>
      */
-    private function summary(): array
+    private function summary(array $userCounts, array $auditCounts): array
     {
         return [
             'users' => [
-                'total' => User::query()->count(),
-                'active' => User::query()
-                    ->where('status', UserStatus::ACTIVE->value)
-                    ->count(),
-                'inactive' => User::query()
-                    ->where('status', UserStatus::INACTIVE->value)
-                    ->count(),
-                'suspended' => User::query()
-                    ->where('status', UserStatus::SUSPENDED->value)
-                    ->count(),
+                'total' => array_sum($userCounts),
+                'active' => $userCounts[UserStatus::ACTIVE->value] ?? 0,
+                'inactive' => $userCounts[UserStatus::INACTIVE->value] ?? 0,
+                'suspended' => $userCounts[UserStatus::SUSPENDED->value] ?? 0,
             ],
 
             'roles' => [
@@ -70,7 +95,7 @@ final class DashboardService
             ],
 
             'audit_logs' => [
-                'total' => AuditLog::query()->count(),
+                'total' => array_sum($auditCounts),
             ],
         ];
     }
@@ -80,20 +105,8 @@ final class DashboardService
      *
      * @return array<string, mixed>
      */
-    private function userStatistics(bool $includeDetails): array
+    private function userStatistics(bool $includeDetails, array $usersByStatus): array
     {
-        $usersByStatus = User::query()
-            ->select('status')
-            ->selectRaw('COUNT(*) as total')
-            ->groupBy('status')
-            ->get()
-            ->mapWithKeys(
-                fn ($item): array => [
-                    $item->status->value => (int) $item->total,
-                ],
-            )
-            ->all();
-
         if (! $includeDetails) {
             return [
                 'by_status' => $usersByStatus,
@@ -116,10 +129,6 @@ final class DashboardService
                 'updated_at',
                 'deleted_at',
             ])
-            ->with([
-                'roles.permissions',
-                'permissions',
-            ])
             ->latest('created_at')
             ->limit(5)
             ->get();
@@ -138,10 +147,6 @@ final class DashboardService
                 'updated_at',
                 'deleted_at',
             ])
-            ->with([
-                'roles.permissions',
-                'permissions',
-            ])
             ->whereNotNull('last_login_at')
             ->latest('last_login_at')
             ->limit(5)
@@ -149,8 +154,8 @@ final class DashboardService
 
         return [
             'by_status' => $usersByStatus,
-            'recent' => UserResource::collection($recentUsers)->resolve(),
-            'recently_active' => UserResource::collection($recentlyActiveUsers)->resolve(),
+            'recent' => UserSummaryResource::collection($recentUsers)->resolve(),
+            'recently_active' => UserSummaryResource::collection($recentlyActiveUsers)->resolve(),
         ];
     }
 
@@ -159,22 +164,8 @@ final class DashboardService
      *
      * @return array<string, mixed>
      */
-    private function auditStatistics(bool $includeDetails): array
+    private function auditStatistics(bool $includeDetails, array $events): array
     {
-        $events = AuditLog::query()
-            ->select('event')
-            ->selectRaw('COUNT(*) as total')
-            ->groupBy('event')
-            ->get()
-            ->mapWithKeys(
-                fn ($item): array => [
-                    $item->event instanceof AuditEvent
-                        ? $item->event->value
-                        : (string) $item->event => (int) $item->total,
-                ],
-            )
-            ->all();
-
         if (! $includeDetails) {
             return [
                 'by_event' => $events,
@@ -198,8 +189,7 @@ final class DashboardService
                 'updated_at',
             ])
             ->with([
-                'user.roles.permissions',
-                'user.permissions',
+                'user:id,first_name,last_name,email,avatar',
             ])
             ->latest('created_at')
             ->limit(6)

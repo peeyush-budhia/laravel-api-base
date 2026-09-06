@@ -27,7 +27,7 @@ final class AuditLogResource extends JsonResource
             'user' => $this->whenLoaded(
                 'user',
                 fn () => $this->user
-                    ? UserResource::make($this->user)->resolve($request)
+                    ? AuditActorResource::make($this->user)->resolve($request)
                     : null,
             ),
 

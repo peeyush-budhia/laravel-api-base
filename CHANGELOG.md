@@ -15,6 +15,9 @@
 
 ### Fixed
 
+- Consolidated dashboard user and audit count aggregation and reduced recent
+  user and audit actor payloads to summary fields without role or permission
+  collections.
 - Removed the obsolete forced-password-change flag and middleware now that
   administrator-created users choose their password through account activation.
 - Serialized super-admin creation and promotion on the protected role record,
