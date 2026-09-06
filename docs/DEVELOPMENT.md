@@ -524,6 +524,18 @@ When adding a new endpoint:
 5. Define not-found behavior.
 6. Ensure the responses are represented correctly in API documentation.
 
+### Dashboard and Audit Payloads
+
+The dashboard service groups user statuses and audit events once and reuses
+those aggregates for summary totals and grouped statistics. Keep new dashboard
+totals derived from these grouped datasets instead of adding a separate
+`count()` query for each status or event.
+
+Recent dashboard users use `UserSummaryResource`, while audit actors use
+`AuditActorResource`. These resources intentionally expose identity and display
+fields only; role and permission collections belong to dedicated user and role
+endpoints and should not be eager-loaded into dashboard or audit summaries.
+
 ## Authentication
 
 Authentication uses Laravel Sanctum.
