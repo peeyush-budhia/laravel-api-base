@@ -35,6 +35,34 @@ final class MaintenanceCleanupTest extends TestCase
         ]);
     }
 
+    public function test_failed_jobs_older_than_three_days_are_removed(): void
+    {
+        DB::table('failed_jobs')->insert([
+            [
+                'uuid' => 'expired-failed-job',
+                'connection' => 'database',
+                'queue' => 'default',
+                'payload' => '{}',
+                'exception' => 'expired',
+                'failed_at' => now()->subDays(4),
+            ],
+            [
+                'uuid' => 'recent-failed-job',
+                'connection' => 'database',
+                'queue' => 'default',
+                'payload' => '{}',
+                'exception' => 'recent',
+                'failed_at' => now()->subDay(),
+            ],
+        ]);
+
+        $this->artisan('queue:prune-failed', ['--hours' => 72])
+            ->assertSuccessful();
+
+        $this->assertDatabaseMissing('failed_jobs', ['uuid' => 'expired-failed-job']);
+        $this->assertDatabaseHas('failed_jobs', ['uuid' => 'recent-failed-job']);
+    }
+
     public function test_audit_prune_keeps_logs_within_the_configured_retention(): void
     {
         $user = User::factory()->createQuietly();
