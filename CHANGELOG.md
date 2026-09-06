@@ -17,6 +17,9 @@
 
 - Removed the obsolete forced-password-change flag and middleware now that
   administrator-created users choose their password through account activation.
+- Serialized super-admin creation and promotion on the protected role record,
+  including soft-deleted ownership, so concurrent requests cannot create two
+  super administrators.
 - Made user responses consistently return sorted, deduplicated effective
   permissions from direct assignments and assigned roles.
 - Eager-loaded role permissions for user lists, dashboard users, and audit-log

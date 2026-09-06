@@ -321,6 +321,18 @@ provided, and valid sorted queries use `id` as a deterministic tie-breaker.
 Pagination links retain the original search, filter, sort, direction, and page
 size parameters.
 
+## Super-Admin Role Invariant
+
+Only one user may hold the `super-admin` role, including users that have been
+soft-deleted. Creating a user with that role or promoting an existing user is
+serialized on the protected role record before the assignment is checked. If
+another super-admin already exists, the API returns `409 Conflict` with the
+`users.super_admin_already_assigned` message.
+
+This locking applies to concurrent API requests and to the
+`app:provision-super-admin` command. A failed attempt does not create a partial
+user or role assignment.
+
 ## User Permission Responses
 
 Every serialized user contains a `permissions` array with the user's effective
