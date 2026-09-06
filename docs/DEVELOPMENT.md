@@ -128,6 +128,9 @@ The provisioning command collects the password through hidden prompts, applies
 the application's password policy, refuses to create a second super
 administrator—including a soft-deleted one—and never accepts the password as a
 command-line argument, so the password is not exposed in shell history.
+The command locks the protected super-admin role while it rechecks ownership
+and creates the account. API user creation and promotion use the same lock, so
+simultaneous provisioning attempts cannot create two super administrators.
 
 ## Application Configuration
 

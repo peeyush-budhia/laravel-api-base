@@ -270,4 +270,25 @@ final class UserStoreTest extends ApiTestCase
             User::role(EnumsRole::SUPER_ADMIN->value, 'sanctum')->count(),
         );
     }
+
+    public function test_soft_deleted_super_admin_still_blocks_creation(): void
+    {
+        $role = Role::create([
+            'name' => EnumsRole::SUPER_ADMIN->value,
+            'guard_name' => 'sanctum',
+        ]);
+
+        $existingSuperAdmin = User::factory()->create();
+        $existingSuperAdmin->assignRole($role);
+        $existingSuperAdmin->delete();
+
+        $response = $this->apiPost('/users', $this->validUserData([
+            'email' => fake()->unique()->safeEmail(),
+            'role' => EnumsRole::SUPER_ADMIN->value,
+        ]));
+
+        $response
+            ->assertStatus(409)
+            ->assertJsonPath('message', __('users.super_admin_already_assigned'));
+    }
 }

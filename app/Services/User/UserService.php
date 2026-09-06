@@ -9,6 +9,7 @@ use App\Enums\Role as EnumsRole;
 use App\Enums\UserStatus;
 use App\Exceptions\RoleProtectionException;
 use App\Exceptions\UserRoleException;
+use App\Models\Role;
 use App\Models\User;
 use App\Notifications\User\UserCreatedNotification;
 use App\Query\QueryExecutor;
@@ -443,10 +444,18 @@ class UserService
             return;
         }
 
+        Role::query()
+            ->where('name', EnumsRole::SUPER_ADMIN->value)
+            ->where('guard_name', 'sanctum')
+            ->lockForUpdate()
+            ->firstOrFail();
+
         $query = User::role(
             EnumsRole::SUPER_ADMIN->value,
             'sanctum',
         );
+
+        $query->withTrashed();
 
         if ($currentUser) {
             $query->whereKeyNot($currentUser->getKey());
