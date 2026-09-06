@@ -2,6 +2,9 @@
 
 ### Added
 
+- Added daily retention cleanup for expired reset tokens, failed jobs older than
+  three days, and audit logs older than thirty days, with configurable retention
+  periods.
 - Added `app:provision-super-admin` for secure initial production administrator
   provisioning with hidden password prompts and password-policy validation.
 - Added regression coverage for authentication throttling and environment-safe

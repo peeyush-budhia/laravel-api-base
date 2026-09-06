@@ -576,6 +576,20 @@ Use:
 ```
 
 for documenting required environment variables.
+
+### Scheduled Retention Cleanup
+
+The scheduler runs these maintenance commands daily:
+
+- `auth:clear-resets` removes expired password-reset and account-activation
+  tokens according to `auth.passwords.users.expire`.
+- `queue:prune-failed --hours=72` removes failed jobs older than three days.
+- `audit:prune --days=30` removes audit logs older than thirty days.
+
+The failed-job and audit-log retention periods can be changed with
+`FAILED_JOB_RETENTION_DAYS` and `AUDIT_LOG_RETENTION_DAYS`. Run a scheduler
+worker in production with `php artisan schedule:work` or invoke the commands
+individually during a controlled maintenance window.
 Never place:
 
 - Passwords
