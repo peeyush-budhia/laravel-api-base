@@ -43,6 +43,26 @@ final class DashboardCacheTest extends TestCase
         $this->assertCacheVariantsExist();
     }
 
+    public function test_each_permission_scope_is_cached_until_expiration(): void
+    {
+        $calls = 0;
+
+        $first = DashboardCache::remember(true, false, function () use (&$calls): array {
+            $calls++;
+
+            return ['value' => 'cached'];
+        });
+        $second = DashboardCache::remember(true, false, function () use (&$calls): array {
+            $calls++;
+
+            return ['value' => 'recomputed'];
+        });
+
+        $this->assertSame(['value' => 'cached'], $first);
+        $this->assertSame($first, $second);
+        $this->assertSame(1, $calls);
+    }
+
     private function seedCacheVariants(): void
     {
         foreach (self::KEYS as $key) {

@@ -9,6 +9,7 @@ use App\Enums\UserStatus as EnumsUserStatus;
 use App\Models\Role;
 use App\Models\User;
 use App\Notifications\User\UserCreatedNotification;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Tests\Feature\Api\V1\ApiTestCase;
@@ -236,6 +237,35 @@ final class UserStoreTest extends ApiTestCase
         $this->assertTrue(
             $user->hasRole(EnumsRole::SUPER_ADMIN->value),
         );
+    }
+
+    public function test_super_admin_creation_locks_the_protected_role_row(): void
+    {
+        if (DB::getDriverName() !== 'mysql') {
+            $this->markTestSkipped('Row-lock SQL is only exposed by the MySQL test connection.');
+        }
+
+        Role::create([
+            'name' => EnumsRole::SUPER_ADMIN->value,
+            'guard_name' => 'sanctum',
+        ]);
+
+        $lockedRoleQuery = false;
+        DB::listen(function ($query) use (&$lockedRoleQuery): void {
+            $sql = strtolower($query->sql);
+
+            if (str_contains($sql, 'from `roles`') && str_contains($sql, 'for update')) {
+                $lockedRoleQuery = true;
+            }
+        });
+
+        Notification::fake();
+
+        $this->apiPost('/users', $this->validUserData([
+            'role' => EnumsRole::SUPER_ADMIN->value,
+        ]))->assertCreated();
+
+        $this->assertTrue($lockedRoleQuery);
     }
 
     public function test_second_super_admin_cannot_be_created(): void

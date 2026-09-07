@@ -461,4 +461,17 @@ final class UserIndexTest extends ApiTestCase
             ->assertUnprocessable()
             ->assertJsonValidationErrors('trashed');
     }
+
+    public function test_array_listing_inputs_are_rejected_without_casting_errors(): void
+    {
+        foreach (['page', 'per_page', 'search', 'sort', 'direction', 'trashed', 'status'] as $parameter) {
+            $response = $this->apiGet('/users?'.http_build_query([
+                $parameter => ['invalid'],
+            ]));
+
+            $response
+                ->assertUnprocessable()
+                ->assertJsonValidationErrors($parameter);
+        }
+    }
 }

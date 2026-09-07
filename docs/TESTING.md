@@ -216,6 +216,11 @@ OpenAPI validation steps.
 
 A Pull Request should not be merged when required CI checks are failing.
 
+Regression tests should cover concurrent protection for singleton roles,
+permission-scoped dashboard cache behavior, and array/object listing inputs so
+malformed query parameters return validation errors instead of reaching query
+builders or scalar casts.
+
 Testing Goals
 Maintain:
 

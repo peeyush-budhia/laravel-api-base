@@ -4,6 +4,8 @@
 
 - Required formatting and PHPStan static-analysis checks in the GitHub Actions
   test workflow.
+- Added regression coverage for super-admin row locking, dashboard cache reuse,
+  and malformed array listing parameters.
 - Added daily retention cleanup for expired reset tokens, failed jobs older than
   three days, and audit logs older than thirty days, with configurable retention
   periods.

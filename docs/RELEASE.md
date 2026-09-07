@@ -171,6 +171,9 @@ Run the complete test suite:
 php artisan test
 ```
 
+The release test suite includes regression coverage for super-admin concurrency
+guards, dashboard cache scope behavior, and malformed listing parameters.
+
 Check for whitespace errors:
 
 ```bash

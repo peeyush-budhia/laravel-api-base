@@ -350,6 +350,10 @@ Run a specific test:
 php artisan test tests/Feature/Api/ApiDocumentationTest.php
 ```
 
+When changing authorization, caching, or shared listing parameters, retain
+regression coverage for concurrent singleton-role protection, permission-scoped
+cache reuse and invalidation, and array or object query inputs.
+
 Run tests with coverage when coverage tooling is available:
 
 ```bash
