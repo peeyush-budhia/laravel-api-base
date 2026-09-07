@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Role;
 
-use App\Enums\AuditEvent as EnumsAuditEvent;
+use App\Enums\AuditEvent;
 use App\Enums\Role as EnumsRole;
 use App\Exceptions\RoleDeletionException;
 use App\Exceptions\RoleProtectionException;
@@ -15,10 +15,15 @@ use App\Query\QueryParameters;
 use App\Query\RoleQuery;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class RoleService
 {
+    private const ALL_PERMISSIONS_CACHE_KEY = 'permissions:all:sanctum:v2';
+
+    private const ALL_PERMISSIONS_CACHE_TTL_SECONDS = 300;
+
     public function __construct(
         private readonly RoleQuery $roleQuery,
         private readonly QueryExecutor $queryExecutor,
@@ -114,12 +119,18 @@ class RoleService
      */
     public function permissions(Role $role)
     {
-        return $role->permissions()->orderBy('name')->get();
+        return $role->permissions()
+            ->select([
+                'id',
+                'name',
+                'guard_name',
+                'created_at',
+                'updated_at',
+            ])
+            ->orderBy('name')
+            ->get();
     }
 
-    /**
-     * Synchronize permissions assigned to a role.
-     */
     /**
      * Synchronize permissions assigned to a role.
      *
@@ -155,21 +166,12 @@ class RoleService
                 ->all();
 
             if ($oldPermissions !== $newPermissions) {
-                $role->auditLogs()->create([
-                    'user_id' => auth()->id(),
-                    'event' => EnumsAuditEvent::PermissionsSynced->value,
-                    'auditable_type' => $role->getMorphClass(),
-                    'auditable_id' => (string) $role->getKey(),
-                    'old_values' => [
-                        'permissions' => $oldPermissions,
-                    ],
-                    'new_values' => [
-                        'permissions' => $newPermissions,
-                    ],
-                    'url' => request()->fullUrl(),
-                    'ip_address' => request()->ip(),
-                    'user_agent' => request()->userAgent(),
-                ]);
+                $role->auditRelationshipChange(
+                    AuditEvent::PermissionsSynced,
+                    'permissions',
+                    $oldPermissions,
+                    $newPermissions,
+                );
             }
 
             return $role->fresh('permissions');
@@ -203,10 +205,31 @@ class RoleService
      */
     public function allPermissions(): Collection
     {
-        return Permission::query()
-            ->where('guard_name', 'sanctum')
-            ->orderBy('guard_name')
-            ->orderBy('name')
-            ->get();
+        $cachedPermissions = Cache::remember(
+            self::ALL_PERMISSIONS_CACHE_KEY,
+            self::ALL_PERMISSIONS_CACHE_TTL_SECONDS,
+            fn (): array => Permission::query()
+                ->select([
+                    'id',
+                    'name',
+                    'guard_name',
+                    'created_at',
+                    'updated_at',
+                ])
+                ->where('guard_name', 'sanctum')
+                ->orderBy('guard_name')
+                ->orderBy('name')
+                ->get()
+                ->map(static fn (Permission $permission): array => [
+                    'id' => $permission->id,
+                    'name' => $permission->name,
+                    'guard_name' => $permission->guard_name,
+                    'created_at' => $permission->created_at?->toIso8601String(),
+                    'updated_at' => $permission->updated_at?->toIso8601String(),
+                ])
+                ->all(),
+        );
+
+        return Permission::hydrate($cachedPermissions);
     }
 }

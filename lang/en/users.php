@@ -15,9 +15,9 @@ return [
 
     'account_created_email' => 'Email address: :email',
 
-    'account_created_password' => 'Temporary password: :password',
+    'account_created_activation' => 'Use the link below to create your password and activate your account.',
 
-    'account_created_action' => 'Sign In',
+    'account_created_action' => 'Activate Account',
 
-    'account_created_security' => 'Please sign in and change your password after your first login.',
+    'account_created_expiry' => 'This activation link expires in :count minutes.',
 ];

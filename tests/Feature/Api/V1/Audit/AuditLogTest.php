@@ -34,7 +34,8 @@ class AuditLogTest extends TestCase
     private function createUserWithPermission(
         string $permission = 'audit-logs.view',
     ): User {
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+        ]);
 
         $user->givePermissionTo($permission);
 
@@ -180,6 +181,14 @@ class AuditLogTest extends TestCase
         $response->assertJsonPath(
             'data.0.event',
             AuditEvent::Updated->value,
+        );
+
+        $this->assertIso8601DateTime(
+            $response->json('data.0.created_at'),
+        );
+
+        $this->assertIso8601DateTime(
+            $response->json('data.0.updated_at'),
         );
     }
 

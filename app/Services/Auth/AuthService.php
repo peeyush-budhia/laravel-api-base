@@ -139,11 +139,16 @@ class AuthService
         $status = Password::reset(
             $credentials,
             function (User $user, string $password): void {
-                $user->forceFill([
+                $attributes = [
                     'password' => $password,
                     'remember_token' => Str::random(60),
-                    'must_change_password' => false,
-                ])->save();
+                ];
+
+                if ($user->last_login_at === null && $user->email_verified_at === null) {
+                    $attributes['email_verified_at'] = now();
+                }
+
+                $user->forceFill($attributes)->save();
 
                 // Invalidate all existing Sanctum sessions after a
                 // successful password reset.
@@ -182,9 +187,33 @@ class AuthService
 
         $user->forceFill([
             'password' => $credentials['password'],
-            'must_change_password' => false,
             'remember_token' => Str::random(60),
-            'email_verified_at' => $user->email_verified_at ?? now(),
         ])->save();
+
+        $this->revokeOtherTokens($user);
+    }
+
+    /**
+     * Revoke every Sanctum token except the one used for this request.
+     */
+    private function revokeOtherTokens(User $user): void
+    {
+        $bearerToken = request()->bearerToken();
+        $currentToken = $bearerToken
+            ? PersonalAccessToken::findToken($bearerToken)
+            : null;
+
+        if (
+            $currentToken
+            && (string) $currentToken->tokenable_id === (string) $user->getKey()
+        ) {
+            $user->tokens()
+                ->where('id', '!=', $currentToken->getKey())
+                ->delete();
+
+            return;
+        }
+
+        $user->tokens()->delete();
     }
 }

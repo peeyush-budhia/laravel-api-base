@@ -19,7 +19,6 @@ The development environment should provide:
 
 Optional development services:
 
-- Redis
 - Mailpit
 - Docker
 
@@ -88,11 +87,50 @@ Run migrations:
 php artisan migrate
 ```
 
-If seeders are available:
+Seed the baseline roles and permissions together with local demonstration data:
 
 ```bash
 php artisan db:seed
 ```
+
+The demonstration accounts are created only when `APP_ENV` is `local` or
+`testing`. Rerunning the seeder does not reset their passwords or add another
+batch of generated users.
+
+The local accounts are:
+
+| Email                     | Role          | Initial password |
+| ------------------------- | ------------- | ---------------- |
+| `super-admin@example.com` | `super-admin` | `password`       |
+| `admin@example.com`       | `admin`       | `password`       |
+| `user@example.com`        | `user`        | `password`       |
+
+These credentials are development fixtures and are never created by the
+default seeder in production.
+
+For production, seed the baseline authorization data and provision the initial
+super administrator separately:
+
+```bash
+php artisan db:seed --force
+php artisan app:provision-super-admin
+```
+
+Identity values can also be supplied as command arguments and options:
+
+```bash
+php artisan app:provision-super-admin owner@example.com \
+    --first-name=Primary \
+    --last-name=Owner
+```
+
+The provisioning command collects the password through hidden prompts, applies
+the application's password policy, refuses to create a second super
+administrator—including a soft-deleted one—and never accepts the password as a
+command-line argument, so the password is not exposed in shell history.
+The command locks the protected super-admin role while it rechecks ownership
+and creates the account. API user creation and promotion use the same lock, so
+simultaneous provisioning attempts cannot create two super administrators.
 
 ## Application Configuration
 
@@ -118,6 +156,82 @@ If using Laravel's built-in development server:
 ```bash
 php artisan serve
 ```
+
+Run a queue worker in another terminal to deliver password-reset and account
+activation emails:
+
+```bash
+php artisan queue:work
+```
+
+The default `.env.example` uses `QUEUE_CONNECTION=database`. Keep a worker
+running in each environment where onboarding mail must be delivered. Check
+failed jobs with `php artisan queue:failed` when a committed user does not
+receive the notification.
+
+Account-onboarding notifications are queued only after the user creation
+transaction commits. Configure `FRONTEND_URL` with a frontend route at
+`/activate-account`; that page submits the activation token and chosen password
+to `POST /api/v1/auth/reset-password`.
+The companion `laravel-api-base-ui` project implements this route and displays
+backend validation for invalid, expired, and already-used activation links.
+
+For transaction testing, use an asynchronous queue connection such as
+`database`. The onboarding transaction tests assert that no job is visible
+before the outer commit, one job appears after commit, and rollback leaves no
+user, activation token, or queued job. Unit coverage also verifies the link,
+expiry text, and absence of temporary credentials from the serialized payload.
+
+## Docker Setup
+
+The repository includes a Docker stack for local backend development.
+
+1. Copy the Docker environment example.
+
+```bash
+cp .env.docker.example .env
+```
+
+2. Start the stack.
+
+```bash
+docker compose up --build
+```
+
+3. Generate the application key.
+
+```bash
+docker compose exec app php artisan key:generate
+```
+
+4. Run migrations after the containers are up.
+
+```bash
+docker compose exec app php artisan migrate
+```
+
+The API is exposed through Nginx on `http://localhost:8080` by default.
+
+### Convenience Commands
+
+Use the `Makefile` for common Docker tasks:
+
+```bash
+make up
+make down
+make logs
+make migrate
+make test
+```
+
+Run arbitrary Artisan or Composer commands:
+
+```bash
+make artisan ARGS="cache:clear"
+make composer ARGS="install"
+```
+
+The helper targets run inside the app container as `root` so they can write to the bind-mounted project files and storage directories without permission issues.
 
 The application will normally be available at:
 
@@ -235,6 +349,10 @@ Run a specific test:
 ```bash
 php artisan test tests/Feature/Api/ApiDocumentationTest.php
 ```
+
+When changing authorization, caching, or shared listing parameters, retain
+regression coverage for concurrent singleton-role protection, permission-scoped
+cache reuse and invalidation, and array or object query inputs.
 
 Run tests with coverage when coverage tooling is available:
 
@@ -410,6 +528,18 @@ When adding a new endpoint:
 5. Define not-found behavior.
 6. Ensure the responses are represented correctly in API documentation.
 
+### Dashboard and Audit Payloads
+
+The dashboard service groups user statuses and audit events once and reuses
+those aggregates for summary totals and grouped statistics. Keep new dashboard
+totals derived from these grouped datasets instead of adding a separate
+`count()` query for each status or event.
+
+Recent dashboard users use `UserSummaryResource`, while audit actors use
+`AuditActorResource`. These resources intentionally expose identity and display
+fields only; role and permission collections belong to dedicated user and role
+endpoints and should not be eager-loaded into dashboard or audit summaries.
+
 ## Authentication
 
 Authentication uses Laravel Sanctum.
@@ -450,6 +580,20 @@ Use:
 ```
 
 for documenting required environment variables.
+
+### Scheduled Retention Cleanup
+
+The scheduler runs these maintenance commands daily:
+
+- `auth:clear-resets` removes expired password-reset and account-activation
+  tokens according to `auth.passwords.users.expire`.
+- `queue:prune-failed --hours=72` removes failed jobs older than three days.
+- `audit:prune --days=30` removes audit logs older than thirty days.
+
+The failed-job and audit-log retention periods can be changed with
+`FAILED_JOB_RETENTION_DAYS` and `AUDIT_LOG_RETENTION_DAYS`. Run a scheduler
+worker in production with `php artisan schedule:work` or invoke the commands
+individually during a controlled maintenance window.
 Never place:
 
 - Passwords

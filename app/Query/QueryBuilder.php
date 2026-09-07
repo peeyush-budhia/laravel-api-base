@@ -6,6 +6,7 @@ namespace App\Query;
 
 use App\Query\Contracts\QueryDefinition;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Validation\ValidationException;
 
 final class QueryBuilder
 {
@@ -82,15 +83,16 @@ final class QueryBuilder
         array $filterable,
     ): void {
         if (
-            $parameters->filters === [] ||
-            $filterable === []
+            $parameters->filters === []
         ) {
             return;
         }
 
         foreach ($parameters->filters as $column => $value) {
             if (! in_array($column, $filterable, true)) {
-                continue;
+                throw ValidationException::withMessages([
+                    $column => ['The filter is not supported.'],
+                ]);
             }
 
             if ($value === null || $value === '') {
@@ -111,20 +113,23 @@ final class QueryBuilder
         QueryParameters $parameters,
         array $sortable,
     ): void {
-        if (
-            $parameters->sort === null ||
-            $sortable === []
-        ) {
+        if ($parameters->sort === null) {
+            $query->orderBy('id', 'asc');
+
             return;
         }
 
         if (! in_array($parameters->sort, $sortable, true)) {
-            return;
+            throw ValidationException::withMessages([
+                'sort' => ['The selected sort field is not supported.'],
+            ]);
         }
 
         $query->orderBy(
             $parameters->sort,
             $parameters->direction,
         );
+
+        $query->orderBy('id', $parameters->direction);
     }
 }

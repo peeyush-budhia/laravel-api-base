@@ -48,5 +48,13 @@ final class PermissionIndexTest extends ApiTestCase
             'name' => 'roles.view',
             'guard_name' => 'sanctum',
         ]);
+
+        $this->assertIso8601DateTime(
+            $response->json('data.0.created_at'),
+        );
+
+        $this->assertIso8601DateTime(
+            $response->json('data.0.updated_at'),
+        );
     }
 }

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api\V1\Role;
 
+use App\Enums\AuditEvent;
 use App\Enums\Permission as EnumsPermission;
 use App\Enums\Role as EnumsRole;
+use App\Models\AuditLog;
 use App\Models\Permission;
 use App\Models\Role;
 use Tests\Feature\Api\V1\ApiTestCase;
@@ -126,6 +128,22 @@ final class RolePermissionTest extends ApiTestCase
         $this->assertTrue(
             $role->fresh()->hasPermissionTo('users.create'),
         );
+
+        $auditLog = AuditLog::query()
+            ->where('auditable_type', $role->getMorphClass())
+            ->where('auditable_id', $role->getKey())
+            ->where('event', AuditEvent::PermissionsSynced->value)
+            ->sole();
+
+        $this->assertSame(
+            ['permissions' => ['users.view']],
+            $auditLog->old_values,
+        );
+        $this->assertSame(
+            ['permissions' => ['users.create', 'users.view']],
+            $auditLog->new_values,
+        );
+        $this->assertSame($this->user->id, $auditLog->user_id);
     }
 
     public function test_permission_synchronization_removes_omitted_permissions(): void

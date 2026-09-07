@@ -20,6 +20,7 @@ class AuthenticationTest extends ApiTestCase
         $user = User::factory()->create([
             'email' => 'admin@example.com',
             'password' => Hash::make('password'),
+            'email_verified_at' => now(),
         ]);
 
         $response = $this->postJson(
@@ -38,6 +39,22 @@ class AuthenticationTest extends ApiTestCase
         $response->assertJsonPath(
             'data.user.email',
             $user->email,
+        );
+
+        $this->assertIso8601DateTime(
+            $response->json('data.user.created_at'),
+        );
+
+        $this->assertIso8601DateTime(
+            $response->json('data.user.updated_at'),
+        );
+
+        $this->assertIso8601DateTime(
+            $response->json('data.user.email_verified_at'),
+        );
+
+        $this->assertIso8601DateTime(
+            $response->json('data.user.last_login_at'),
         );
 
         $response->assertJsonStructure([
@@ -116,13 +133,12 @@ class AuthenticationTest extends ApiTestCase
 
     }
 
-    public function test_authenticated_user_can_change_password(): void
+    public function test_authenticated_user_can_change_password_without_verifying_email(): void
     {
         $user = $this->authenticate();
 
         $user->update([
             'password' => 'old-password',
-            'must_change_password' => true,
             'email_verified_at' => null,
         ]);
 
@@ -155,12 +171,34 @@ class AuthenticationTest extends ApiTestCase
             Hash::check('old-password', $user->password),
         );
 
-        $this->assertFalse(
-            $user->must_change_password,
+        $this->assertNull(
+            $user->email_verified_at,
+        );
+    }
+
+    public function test_changing_password_preserves_existing_email_verification(): void
+    {
+        $verifiedAt = now()->subDay()->startOfSecond();
+        $user = $this->authenticate(
+            User::factory()->create([
+                'password' => 'old-password',
+                'email_verified_at' => $verifiedAt,
+            ]),
         );
 
-        $this->assertNotNull(
-            $user->email_verified_at,
+        $this->postJson(
+            '/api/v1/auth/change-password',
+            [
+                'current_password' => 'old-password',
+                'password' => 'NewPassword123!',
+                'password_confirmation' => 'NewPassword123!',
+            ],
+            $this->jsonHeaders(),
+        )->assertOk();
+
+        $this->assertSame(
+            $verifiedAt->toIso8601String(),
+            $user->fresh()->email_verified_at?->toIso8601String(),
         );
     }
 
@@ -170,7 +208,6 @@ class AuthenticationTest extends ApiTestCase
 
         $user->update([
             'password' => 'old-password',
-            'must_change_password' => true,
         ]);
 
         $emailVerifiedAt = $user->email_verified_at;
@@ -193,13 +230,9 @@ class AuthenticationTest extends ApiTestCase
 
         $user->refresh();
 
-        $this->assertTrue(
-            $user->must_change_password,
-        );
-
         $this->assertSame(
-            $emailVerifiedAt?->toISOString(),
-            $user->email_verified_at?->toISOString(),
+            $emailVerifiedAt?->toIso8601String(),
+            $user->email_verified_at?->toIso8601String(),
         );
 
         $this->assertTrue(
@@ -421,6 +454,51 @@ class AuthenticationTest extends ApiTestCase
         $this->assertFalse(
             Hash::check('old-password', $user->password),
         );
+
+        $this->assertNotNull($user->email_verified_at);
+    }
+
+    public function test_password_reset_preserves_existing_email_verification(): void
+    {
+        $verifiedAt = now()->subDay()->startOfSecond();
+        $user = User::factory()->create([
+            'email' => 'verified-reset@example.com',
+            'password' => 'old-password',
+            'email_verified_at' => $verifiedAt,
+        ]);
+        $token = Password::createToken($user);
+
+        $this->postJson('/api/v1/auth/reset-password', [
+            'token' => $token,
+            'email' => $user->email,
+            'password' => 'NewPassword123!',
+            'password_confirmation' => 'NewPassword123!',
+        ])->assertOk();
+
+        $this->assertSame(
+            $verifiedAt->toIso8601String(),
+            $user->fresh()->email_verified_at?->toIso8601String(),
+        );
+    }
+
+    public function test_password_reset_does_not_reverify_email_changed_after_login(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'changed-email@example.com',
+            'password' => 'old-password',
+            'email_verified_at' => null,
+            'last_login_at' => now()->subDay(),
+        ]);
+        $token = Password::createToken($user);
+
+        $this->postJson('/api/v1/auth/reset-password', [
+            'token' => $token,
+            'email' => $user->email,
+            'password' => 'NewPassword123!',
+            'password_confirmation' => 'NewPassword123!',
+        ])->assertOk();
+
+        $this->assertNull($user->fresh()->email_verified_at);
     }
 
     public function test_password_reset_rejects_invalid_token(): void
