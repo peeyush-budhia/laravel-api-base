@@ -324,22 +324,23 @@
 
 ## Version History
 
-| Version | Status      | Focus                                         |
-| ------- | ----------- | --------------------------------------------- |
-| v0.1.0  | ✅ Complete | API Foundation & Authentication               |
-| v0.2.0  | ✅ Complete | User Management                               |
-| v0.3.0  | ✅ Complete | Roles & Permissions                           |
-| v0.4.0  | ✅ Complete | User Lifecycle, Authorization & Notifications |
-| v0.5.0  | ✅ Complete | Query Infrastructure & API Improvements       |
-| v0.6.0  | ✅ Released | Backend Cleanup & Foundation Stabilization    |
-| v0.7.0  | ✅ Released | API Documentation & Developer Experience      |
-| v0.8.0  | ✅ Complete | Audit Logs & Dashboard APIs                   |
-| v0.9.0  | 🚧 In Progress | Security, Performance & Infrastructure     |
-| v1.0.0  | 🎯 Target   | Production Ready API Template                 |
+| Version | Status         | Focus                                         |
+| ------- | -------------- | --------------------------------------------- |
+| v0.1.0  | ✅ Complete    | API Foundation & Authentication               |
+| v0.2.0  | ✅ Complete    | User Management                               |
+| v0.3.0  | ✅ Complete    | Roles & Permissions                           |
+| v0.4.0  | ✅ Complete    | User Lifecycle, Authorization & Notifications |
+| v0.5.0  | ✅ Complete    | Query Infrastructure & API Improvements       |
+| v0.6.0  | ✅ Released    | Backend Cleanup & Foundation Stabilization    |
+| v0.7.0  | ✅ Released    | API Documentation & Developer Experience      |
+| v0.8.0  | ✅ Complete    | Audit Logs & Dashboard APIs                   |
+| v0.9.0  | 🚧 In Progress | Security, Performance & Infrastructure        |
+| v1.0.0  | 🎯 Target      | Production Ready API Template                 |
 
 ---
 
-[0.9.0]: https://github.com/peeyush-budhia/laravel-api-base/compare/v0.7.0...HEAD
+[0.9.0]: https://github.com/peeyush-budhia/laravel-api-base/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/peeyush-budhia/laravel-api-base/releases/tag/v0.8.0
 [0.7.0]: https://github.com/peeyush-budhia/laravel-api-base/releases/tag/v0.7.0
 [0.6.0]: https://github.com/peeyush-budhia/laravel-api-base/releases/tag/v0.6.0
 [0.5.0]: https://github.com/peeyush-budhia/laravel-api-base/releases/tag/v0.5.0
