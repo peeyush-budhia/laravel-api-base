@@ -9,6 +9,7 @@ use App\Enums\UserStatus as EnumsUserStatus;
 use App\Models\Role;
 use App\Models\User;
 use App\Notifications\User\UserCreatedNotification;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Tests\Feature\Api\V1\ApiTestCase;
@@ -64,10 +65,6 @@ final class UserStoreTest extends ApiTestCase
             $user->hasRole(EnumsRole::ADMIN),
         );
 
-        $this->assertTrue(
-            $user->must_change_password,
-        );
-
         $this->assertNull(
             $user->email_verified_at,
         );
@@ -92,9 +89,6 @@ final class UserStoreTest extends ApiTestCase
             $user->email_verified_at,
         );
 
-        $this->assertTrue(
-            $user->must_change_password,
-        );
     }
 
     public function test_user_role_must_exist(): void
@@ -142,6 +136,18 @@ final class UserStoreTest extends ApiTestCase
             ]);
     }
 
+    public function test_avatar_path_cannot_be_set_when_creating_a_user(): void
+    {
+        $response = $this->apiPost('/users', $this->validUserData([
+            'role' => EnumsRole::ADMIN,
+            'avatar' => 'avatars/another-user/private.jpg',
+        ]));
+
+        $response
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['avatar']);
+    }
+
     public function test_user_created_notification_is_sent(): void
     {
         Notification::fake();
@@ -161,6 +167,10 @@ final class UserStoreTest extends ApiTestCase
             $user,
             UserCreatedNotification::class,
         );
+
+        $this->assertDatabaseHas('password_reset_tokens', [
+            'email' => $user->email,
+        ]);
     }
 
     public function test_password_is_generated_for_new_user(): void
@@ -229,6 +239,35 @@ final class UserStoreTest extends ApiTestCase
         );
     }
 
+    public function test_super_admin_creation_locks_the_protected_role_row(): void
+    {
+        if (DB::getDriverName() !== 'mysql') {
+            $this->markTestSkipped('Row-lock SQL is only exposed by the MySQL test connection.');
+        }
+
+        Role::create([
+            'name' => EnumsRole::SUPER_ADMIN->value,
+            'guard_name' => 'sanctum',
+        ]);
+
+        $lockedRoleQuery = false;
+        DB::listen(function ($query) use (&$lockedRoleQuery): void {
+            $sql = strtolower($query->sql);
+
+            if (str_contains($sql, 'from `roles`') && str_contains($sql, 'for update')) {
+                $lockedRoleQuery = true;
+            }
+        });
+
+        Notification::fake();
+
+        $this->apiPost('/users', $this->validUserData([
+            'role' => EnumsRole::SUPER_ADMIN->value,
+        ]))->assertCreated();
+
+        $this->assertTrue($lockedRoleQuery);
+    }
+
     public function test_second_super_admin_cannot_be_created(): void
     {
         $role = Role::create([
@@ -260,5 +299,26 @@ final class UserStoreTest extends ApiTestCase
             1,
             User::role(EnumsRole::SUPER_ADMIN->value, 'sanctum')->count(),
         );
+    }
+
+    public function test_soft_deleted_super_admin_still_blocks_creation(): void
+    {
+        $role = Role::create([
+            'name' => EnumsRole::SUPER_ADMIN->value,
+            'guard_name' => 'sanctum',
+        ]);
+
+        $existingSuperAdmin = User::factory()->create();
+        $existingSuperAdmin->assignRole($role);
+        $existingSuperAdmin->delete();
+
+        $response = $this->apiPost('/users', $this->validUserData([
+            'email' => fake()->unique()->safeEmail(),
+            'role' => EnumsRole::SUPER_ADMIN->value,
+        ]));
+
+        $response
+            ->assertStatus(409)
+            ->assertJsonPath('message', __('users.super_admin_already_assigned'));
     }
 }

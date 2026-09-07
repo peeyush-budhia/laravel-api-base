@@ -43,7 +43,23 @@ final class AuditLogQuery implements QueryContract
     public function build(
         QueryParameters $parameters,
     ): Builder {
-        return AuditLog::query()
-            ->with('user');
+        return AuditLog::query()->select([
+            'id',
+            'user_id',
+            'event',
+            'auditable_type',
+            'auditable_id',
+            'old_values',
+            'new_values',
+            'url',
+            'ip_address',
+            'user_agent',
+            'created_at',
+            'updated_at',
+        ])
+            ->with([
+                'user.roles.permissions',
+                'user.permissions',
+            ]);
     }
 }

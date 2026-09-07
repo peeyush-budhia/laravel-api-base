@@ -60,6 +60,14 @@ final class UserShowTest extends ApiTestCase
                 'errors',
                 'meta',
             ]);
+
+        $this->assertIso8601DateTime(
+            $response->json('data.created_at'),
+        );
+
+        $this->assertIso8601DateTime(
+            $response->json('data.updated_at'),
+        );
     }
 
     public function test_non_existing_user_returns_not_found(): void

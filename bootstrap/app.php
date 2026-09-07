@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use App\Exceptions\ExceptionHandler;
-use App\Http\Middleware\EnsurePasswordIsChanged;
+use App\Http\Middleware\TrackApiPerformance;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,13 +18,20 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withCommands()
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'permission' => PermissionMiddleware::class,
             'role' => RoleMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
-            'password.changed' => EnsurePasswordIsChanged::class,
+            'api.performance' => TrackApiPerformance::class,
         ]);
+
+        $middleware->redirectGuestsTo(
+            fn (Request $request): ?string => $request->is('api/*')
+                ? null
+                : route('login'),
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
 

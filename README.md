@@ -1,229 +1,96 @@
 # Laravel API Base
 
-> A production-ready Laravel 13 REST API Starter Kit with Authentication, API Versioning, Service Layer Architecture, UUID Support, Standardized API Responses, API Documentation, and Comprehensive Testing.
+Laravel API Base is the backend for the Laravel API Base UI. It provides a versioned Laravel 13 REST API for authentication, onboarding, users, roles, permissions, profiles, avatars, audit logs, and dashboard statistics.
 
-![Laravel](https://img.shields.io/badge/Laravel-13.x-red)
-![PHP](https://img.shields.io/badge/PHP-8.4-blue)
-![License](https://img.shields.io/badge/License-MIT-green)
-![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen)
-
----
-
-## Features
-
-- Laravel 13
-- PHP 8.4
-- REST API Architecture
-- API Versioning
-- Laravel Sanctum Authentication
-- UUID Primary Keys
-- Service Layer Pattern
-- Form Request Validation
-- API Resources
-- Standard API Responses
-- Global Exception Handling
-- Health Check Endpoint
-- User Management
-- Roles & Permissions
-- User Profile Management
-- Avatar Management
-- Password Management
-- Notifications
-- Swagger/OpenAPI API Documentation
-- Feature Testing
-- Laravel Pint
-- GitHub Actions Ready
-- Template Repository Ready
-
----
+Current release: **v0.9.0**.
 
 ## Requirements
 
 - PHP 8.4+
-- Composer 2.x
-- MySQL 8 / MariaDB 10.6+
-- Laravel 13
+- Composer 2+
+- MySQL 8 / MariaDB 10.6+ (SQLite is suitable for local tests)
 - Git
 
----
-
-## Quick Start
+## Quick start
 
 ```bash
-git clone git@github.com:peeyush-budhia/laravel-api-base.git
-
+git clone https://github.com/peeyush-budhia/laravel-api-base.git
 cd laravel-api-base
-
 composer install
-
 cp .env.example .env
-
 php artisan key:generate
-
 php artisan migrate
-
-php artisan serve
+php artisan serve --host=localhost --port=8000
 ```
 
----
+The API is available at `http://localhost:8000/api/v1`. For a complete backend-and-frontend setup, see [SETUP_GUIDE.md](SETUP_GUIDE.md).
 
-## Project Structure
-
-```text
-app/
-bootstrap/
-config/
-database/
-routes/
-tests/
-docs/
-scripts/
-```
-
----
-
-## API Versioning
-
-```text
-/api/v1/*
-```
-
-Examples:
-
-```text
-POST /api/v1/auth/login
-GET  /api/v1/auth/me
-POST /api/v1/auth/logout
-GET  /api/v1/users
-GET  /api/v1/roles
-```
-
----
-
-## API Documentation
-
-The project provides API documentation through Swagger/OpenAPI.
-
-### Swagger UI
-
-When running the application locally:
-
-```text
-http://example.test/docs/api
-```
-
-The Swagger UI provides interactive documentation for the available API endpoints, request parameters, authentication, responses, and schemas.
-
-### Documentation Files
-
-Project documentation is available in the `docs/` directory.
-
-Important documentation includes:
-
-- `docs/API.md` — API usage and endpoint documentation
-- `docs/ROADMAP.md` — Project roadmap and planned evolution
-
----
-
-## Frontend
-
-The Laravel API Base backend is designed to work with a separate frontend application.
-
-### Laravel API Base UI
-
-Frontend repository:
-
-https://github.com/peeyush-budhia/laravel-api-base-ui
-
-The frontend is built as a separate application and consumes this Laravel API through the versioned `/api/v1` endpoints.
-
----
-
-## Authentication
-
-Authentication is powered by Laravel Sanctum.
-
-```text
-Authorization: Bearer <token>
-```
-
----
-
-## Standard API Response
-
-### Success
-
-```json
-{
-    "success": true,
-    "status": 200,
-    "message": "Request completed successfully.",
-    "data": {},
-    "errors": null,
-    "meta": {}
-}
-```
-
-### Error
-
-```json
-{
-    "success": false,
-    "status": 422,
-    "message": "Validation failed.",
-    "data": null,
-    "errors": {},
-    "meta": {}
-}
-```
-
----
-
-## Running Tests
+Create the first production administrator with:
 
 ```bash
-php artisan test
+php artisan app:provision-super-admin
 ```
 
----
+Local and testing environments may use seeded demo accounts. Production seeding does not create demo users.
 
-## Code Style
+## Background processes
+
+User onboarding notifications use the configured queue connection. Run a worker while testing account creation:
 
 ```bash
-vendor/bin/pint
+php artisan queue:work
 ```
 
----
+Run the scheduler to execute expired-token, failed-job, and audit-log retention cleanup:
 
-## Git Workflow
+```bash
+php artisan schedule:work
+```
+
+Retention defaults are three days for failed jobs and thirty days for audit logs. They can be changed with `FAILED_JOB_RETENTION_DAYS` and `AUDIT_LOG_RETENTION_DAYS`.
+
+## API and documentation
+
+All application routes are versioned under `/api/v1`.
+
+- `GET /api/v1/health` — health check
+- `POST /api/v1/auth/login` — authenticate and receive a Sanctum token
+- `GET /api/v1/users` — permission-protected user listing
+- `GET /api/v1/audit-logs` — permission-protected audit listing
+- `GET /api/v1/dashboard` — permission-protected dashboard statistics
+
+Interactive OpenAPI documentation is available at `/docs/api` while the application is running. Detailed contracts and authorization rules are in [docs/API.md](docs/API.md) and [docs/API_STANDARDS.md](docs/API_STANDARDS.md).
+
+## Architecture
 
 ```text
-main
- │
-develop
- │
-feature/*
+app/Http       controllers, requests, resources, middleware
+app/Services   business workflows
+app/Query      reusable listing, filtering, and sorting queries
+app/Models     persistence models
+database       migrations, factories, and seeders
+routes/api     versioned API route files
+tests          feature and unit tests
+docs           API, development, testing, and release guidance
 ```
 
----
+The API uses Sanctum bearer tokens, UUID identifiers, service-layer workflows, standard response envelopes, transaction-aware audit logging, and permission-scoped dashboard caching.
 
-## Roadmap
+## Quality checks
 
-The current release line is `v0.8.0`.
+```bash
+composer test
+composer lint
+composer analyse
+composer docs:check
+```
 
-- `v0.8.0` released: Audit Logs & Dashboard APIs
-- `v0.9.0` planned: Docker, Performance & Infrastructure
+GitHub Actions runs formatting, PHPStan, the test suite, and OpenAPI validation before changes can be merged.
 
-See [`docs/ROADMAP.md`](docs/ROADMAP.md) for the full release table and phase history.
+## Related frontend
 
----
+The companion React application is maintained at [laravel-api-base-ui](https://github.com/peeyush-budhia/laravel-api-base-ui). It consumes this API through `/api/v1` and provides account activation, authentication, profile, user, role, permission, audit, and dashboard screens.
 
-## Contributing
+## Contributing and license
 
-Please read `CONTRIBUTING.md` before submitting pull requests.
-
----
-
-## License
-
-MIT License
+Use feature branches and read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. This project is released under the MIT License.

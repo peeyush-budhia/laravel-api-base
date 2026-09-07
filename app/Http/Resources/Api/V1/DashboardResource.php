@@ -21,23 +21,6 @@ class DashboardResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return [
-            'summary' => $this->resource['summary'],
-
-            'users' => [
-                'by_status' => $this->resource['users']['by_status'],
-                'recent' => UserResource::collection(
-                    $this->resource['users']['recent'],
-                ),
-                'recently_active' => UserResource::collection(
-                    $this->resource['users']['recently_active'],
-                ),
-            ],
-
-            'audit' => [
-                'by_event' => $this->resource['audit']['by_event'],
-                'recent' => $this->resource['audit']['recent'],
-            ],
-        ];
+        return $this->resource;
     }
 }

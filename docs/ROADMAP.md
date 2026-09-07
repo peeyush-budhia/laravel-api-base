@@ -23,7 +23,7 @@ This roadmap outlines the planned evolution of the project.
 # Current Version
 
 ```text
-v0.8.0
+v0.9.0 (released 2026-09-07)
 ```
 
 ---
@@ -80,6 +80,8 @@ v0.8.0
 - Authorization
 - User Profile Management
 - Avatar Management
+- Per-User Avatar Storage Isolation
+- Transaction-Aware Avatar Cleanup
 - User Restore
 - User Force Delete
 - Password Management
@@ -123,7 +125,8 @@ v0.8.0
 
 - Email Notifications
 - Password Reset Notifications
-- Welcome Emails
+- Expiring Account Activation Emails
+- After-Commit Notification Dispatch
 - Frontend URL Integration
 - Notification Testing
 
@@ -163,6 +166,9 @@ v0.8.0
 - Role Audit Logging
 - Permission Audit Logging
 - User Audit Logging
+- User Role Relationship Auditing
+- Role Permission Relationship Auditing
+- Transaction-Aware Audit Persistence
 
 ## Auditable Models
 
@@ -247,14 +253,13 @@ audit
 
 # Phase 7 — Docker Support
 
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 
 ## Features
 
 - PHP
 - Nginx
 - MySQL / MariaDB
-- Redis
 - Mailpit
 - Development Environment
 - Production Environment
@@ -307,14 +312,14 @@ Deploy
 
 # Phase 9 — Performance
 
-**Status:** 📋 Planned
+**Status:** ✅ Completed
 
 ## Features
 
-- Redis Cache
 - Query Optimization
 - Eager Loading
 - Response Caching
+- Post-Commit Dashboard Cache Invalidation
 - Queue Optimization
 - Database Index Optimization
 - API Performance Monitoring
@@ -414,8 +419,8 @@ These can be implemented in projects that use Laravel API Base as their foundati
 | v0.5.0  | ✅ Complete | Query Infrastructure & API Improvements           |
 | v0.6.0  | ✅ Released | Backend Cleanup & Foundation Stabilization        |
 | v0.7.0  | ✅ Released | Postman, API Documentation & Developer Experience |
-| v0.8.0  | ✅ Released | Audit Logs & Dashboard APIs                       |
-| v0.9.0  | 📋 Planned  | Docker, Performance & Infrastructure              |
+| v0.8.0  | ✅ Complete | Audit Logs & Dashboard APIs                       |
+| v0.9.0  | ✅ Released | Security, Performance & Infrastructure            |
 | v1.0.0  | 🎯 Target   | Production Ready API Template                     |
 
 ---

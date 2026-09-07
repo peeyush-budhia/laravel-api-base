@@ -41,7 +41,24 @@ final class UserQuery implements QueryContract
     public function build(
         QueryParameters $parameters,
     ): Builder {
-        $query = User::query();
+        $query = User::query()->select([
+            'id',
+            'first_name',
+            'last_name',
+            'email',
+            'avatar',
+            'status',
+            'email_verified_at',
+            'last_login_at',
+            'created_at',
+            'updated_at',
+            'deleted_at',
+        ]);
+
+        $query->with([
+            'roles.permissions',
+            'permissions',
+        ]);
 
         return match ($parameters->trashed) {
             'only' => $query->onlyTrashed(),

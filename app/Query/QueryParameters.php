@@ -6,6 +6,8 @@ namespace App\Query;
 
 use App\Constants\PaginationConstants;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 final readonly class QueryParameters
 {
@@ -24,6 +26,46 @@ final readonly class QueryParameters
 
     public static function fromRequest(Request $request): self
     {
+        $input = $request->query();
+        $controlParameters = [
+            'page',
+            'per_page',
+            'search',
+            'sort',
+            'direction',
+            'trashed',
+        ];
+
+        $rules = [
+            'page' => ['nullable', 'integer'],
+            'per_page' => ['nullable', 'integer'],
+            'search' => ['nullable', 'string', 'max:255'],
+            'sort' => ['nullable', 'string', 'max:100'],
+            'direction' => [
+                'nullable',
+                'string',
+                Rule::in(['asc', 'desc', 'ASC', 'DESC']),
+            ],
+            'trashed' => [
+                'nullable',
+                'string',
+                Rule::in([
+                    'without',
+                    'only',
+                    'with',
+                    'WITHOUT',
+                    'ONLY',
+                    'WITH',
+                ]),
+            ],
+        ];
+
+        foreach (array_diff_key($input, array_flip($controlParameters)) as $key => $value) {
+            $rules[$key] = ['nullable', 'string', 'max:255'];
+        }
+
+        Validator::make($input, $rules)->validate();
+
         $page = max(
             1,
             $request->integer('page', 1),

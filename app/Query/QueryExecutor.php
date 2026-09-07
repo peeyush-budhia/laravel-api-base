@@ -31,6 +31,7 @@ final class QueryExecutor
             ->paginate(
                 perPage: $parameters->perPage,
                 page: $parameters->page,
-            );
+            )
+            ->withQueryString();
     }
 }

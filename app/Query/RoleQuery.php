@@ -37,6 +37,12 @@ final class RoleQuery implements QueryContract
     public function build(
         QueryParameters $parameters,
     ): Builder {
-        return Role::query();
+        return Role::query()->select([
+            'id',
+            'name',
+            'guard_name',
+            'created_at',
+            'updated_at',
+        ]);
     }
 }

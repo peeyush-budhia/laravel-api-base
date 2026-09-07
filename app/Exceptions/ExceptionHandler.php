@@ -22,11 +22,11 @@ final class ExceptionHandler
 {
     public static function render(Request $request, Throwable $e)
     {
-        if (! $request->expectsJson()) {
+        if (! $request->is('api/*')) {
             throw $e;
         }
 
-        return match (true) {
+        $response = match (true) {
 
             /*
             |--------------------------------------------------------------------------
@@ -151,5 +151,11 @@ final class ExceptionHandler
                     : null,
             ),
         };
+
+        if ($e instanceof HttpExceptionInterface) {
+            $response->headers->add($e->getHeaders());
+        }
+
+        return $response;
     }
 }

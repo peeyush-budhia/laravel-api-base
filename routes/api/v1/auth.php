@@ -11,17 +11,23 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [
         AuthController::class,
         'login',
-    ])->name('api.v1.auth.login');
+    ])
+        ->middleware('throttle:auth.login')
+        ->name('api.v1.auth.login');
 
     Route::post('/forgot-password', [
         AuthController::class,
         'forgotPassword',
-    ])->name('api.v1.auth.forgot-password');
+    ])
+        ->middleware('throttle:auth.forgot-password')
+        ->name('api.v1.auth.forgot-password');
 
     Route::post('/reset-password', [
         AuthController::class,
         'resetPassword',
-    ])->name('api.v1.auth.reset-password');
+    ])
+        ->middleware('throttle:auth.reset-password')
+        ->name('api.v1.auth.reset-password');
 
     Route::get('/password-policy', [
         PasswordPolicyController::class,

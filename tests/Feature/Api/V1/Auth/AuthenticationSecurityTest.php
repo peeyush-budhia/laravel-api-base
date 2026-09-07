@@ -9,7 +9,6 @@ use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 final class AuthenticationSecurityTest extends TestCase
@@ -54,6 +53,7 @@ final class AuthenticationSecurityTest extends TestCase
     {
         $user = User::factory()->create([
             'password' => Hash::make('password'),
+            'email_verified_at' => now(),
         ]);
         $auditLogCount = AuditLog::query()->count();
 
@@ -66,42 +66,38 @@ final class AuthenticationSecurityTest extends TestCase
         $this->assertSame($auditLogCount, AuditLog::query()->count());
     }
 
-    public function test_user_must_change_password_before_accessing_protected_modules(): void
+    public function test_first_successful_login_does_not_verify_an_unverified_user(): void
     {
-        $user = User::factory()->mustChangePassword()->create();
-        Sanctum::actingAs($user);
-
-        $this->getJson('/api/v1/users')
-            ->assertForbidden()
-            ->assertJsonPath(
-                'message',
-                __('responses.password_change_required'),
-            );
-    }
-
-    public function test_user_required_to_change_password_can_access_me(): void
-    {
-        $user = User::factory()->mustChangePassword()->create();
-        Sanctum::actingAs($user);
-
-        $this->getJson('/api/v1/auth/me')
-            ->assertOk()
-            ->assertJsonPath('data.id', $user->id);
-    }
-
-    public function test_changing_password_removes_forced_password_restriction(): void
-    {
-        $user = User::factory()->mustChangePassword()->create([
-            'password' => Hash::make('old-password'),
+        $user = User::factory()->create([
+            'email' => 'first-login@example.com',
+            'password' => Hash::make('password'),
+            'email_verified_at' => null,
+            'last_login_at' => null,
         ]);
-        Sanctum::actingAs($user);
 
-        $this->postJson('/api/v1/auth/change-password', [
-            'current_password' => 'old-password',
-            'password' => 'New-password-123!',
-            'password_confirmation' => 'New-password-123!',
+        $this->postJson('/api/v1/auth/login', [
+            'login' => $user->email,
+            'password' => 'password',
         ])->assertOk();
 
-        $this->assertFalse($user->fresh()->must_change_password);
+        $this->assertNull($user->fresh()->email_verified_at);
+    }
+
+    public function test_later_login_does_not_reverify_an_account_with_no_first_login_marker(): void
+    {
+        $previousLogin = now()->subDay()->startOfSecond();
+        $user = User::factory()->create([
+            'email' => 'existing-login@example.com',
+            'password' => Hash::make('password'),
+            'email_verified_at' => null,
+            'last_login_at' => $previousLogin,
+        ]);
+
+        $this->postJson('/api/v1/auth/login', [
+            'login' => $user->email,
+            'password' => 'password',
+        ])->assertOk();
+
+        $this->assertNull($user->fresh()->email_verified_at);
     }
 }
