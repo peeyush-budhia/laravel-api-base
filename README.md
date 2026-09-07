@@ -61,6 +61,8 @@ All application routes are versioned under `/api/v1`.
 
 Interactive OpenAPI documentation is available at `/docs/api` while the application is running. Detailed contracts and authorization rules are in [docs/API.md](docs/API.md), [docs/API_STANDARDS.md](docs/API_STANDARDS.md), and the [v1.0.0 contract freeze](docs/API_CONTRACT_FREEZE.md).
 
+Production environment, CORS, worker, scheduler, and deployment instructions are in [docs/PRODUCTION.md](docs/PRODUCTION.md).
+
 ## Architecture
 
 ```text

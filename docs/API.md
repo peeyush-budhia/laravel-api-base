@@ -6,6 +6,9 @@ Laravel API Base provides a versioned REST API for authentication, user manageme
 
 The v1.0.0 compatibility boundary is recorded in [API_CONTRACT_FREEZE.md](API_CONTRACT_FREEZE.md).
 
+Browser clients must use an origin listed in `CORS_ALLOWED_ORIGINS`; see
+[PRODUCTION.md](PRODUCTION.md) for production CORS and deployment settings.
+
 The API is designed as a reusable, domain-agnostic Laravel backend foundation.
 
 ---

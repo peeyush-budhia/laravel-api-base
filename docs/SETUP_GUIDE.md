@@ -115,3 +115,9 @@ npm run build
 - Activation email missing: confirm `php artisan queue:work` is running and inspect the configured mail output.
 - Vite host errors: recreate the ignored config with `cp vite.config.example.ts vite.config.ts`.
 - Database errors: verify `.env`, run `php artisan migrate`, and clear cached configuration with `php artisan optimize:clear`.
+
+## Production deployment
+
+For production environment values, CORS allowlists, web-server requirements,
+queue workers, scheduler management, health checks, and the release checklist,
+see [PRODUCTION.md](PRODUCTION.md).
