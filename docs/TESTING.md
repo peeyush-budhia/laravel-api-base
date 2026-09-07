@@ -234,3 +234,24 @@ Maintain:
 - Automated CI execution
 
 Every new API endpoint should include appropriate feature tests.
+
+## MySQL integration tests
+
+The default suite uses isolated in-memory SQLite. To validate production-like
+transactions, queue dispatch, and the single-super-admin lock against MySQL,
+create a dedicated empty test database and run:
+
+~~~bash
+RUN_MYSQL_INTEGRATION_TESTS=true \
+DB_CONNECTION=mysql \
+DB_HOST=127.0.0.1 \
+DB_PORT=3306 \
+DB_DATABASE=laravel_api_test \
+DB_USERNAME=laravel_test \
+DB_PASSWORD='secret' \
+php artisan test tests/Integration/MySqlProductionIntegrationTest.php
+~~~
+
+The suite includes an end-to-end login and onboarding flow and a two-process
+concurrency race. Never point these tests at a shared or production database;
+the database reset trait resets the configured test database.
