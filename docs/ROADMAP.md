@@ -23,7 +23,7 @@ This roadmap outlines the planned evolution of the project.
 # Current Version
 
 ```text
-v0.9.0
+v0.9.0 (released 2026-09-07)
 ```
 
 ---
@@ -420,7 +420,7 @@ These can be implemented in projects that use Laravel API Base as their foundati
 | v0.6.0  | ✅ Released | Backend Cleanup & Foundation Stabilization        |
 | v0.7.0  | ✅ Released | Postman, API Documentation & Developer Experience |
 | v0.8.0  | ✅ Complete | Audit Logs & Dashboard APIs                       |
-| v0.9.0  | ✅ Complete | Docker, Performance & Infrastructure              |
+| v0.9.0  | ✅ Released | Security, Performance & Infrastructure            |
 | v1.0.0  | 🎯 Target   | Production Ready API Template                     |
 
 ---

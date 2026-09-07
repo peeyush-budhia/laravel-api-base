@@ -1,4 +1,4 @@
-## [0.9.0] - Unreleased
+## [0.9.0] - 2026-09-07
 
 ### Added
 
@@ -334,13 +334,12 @@
 | v0.6.0  | ✅ Released    | Backend Cleanup & Foundation Stabilization    |
 | v0.7.0  | ✅ Released    | API Documentation & Developer Experience      |
 | v0.8.0  | ✅ Complete    | Audit Logs & Dashboard APIs                   |
-| v0.9.0  | 🚧 In Progress | Security, Performance & Infrastructure        |
+| v0.9.0  | ✅ Released | Security, Performance & Infrastructure        |
 | v1.0.0  | 🎯 Target      | Production Ready API Template                 |
 
 ---
 
-[0.9.0]: https://github.com/peeyush-budhia/laravel-api-base/compare/v0.8.0...HEAD
-[0.8.0]: https://github.com/peeyush-budhia/laravel-api-base/releases/tag/v0.8.0
+[0.9.0]: https://github.com/peeyush-budhia/laravel-api-base/releases/tag/v0.9.0
 [0.7.0]: https://github.com/peeyush-budhia/laravel-api-base/releases/tag/v0.7.0
 [0.6.0]: https://github.com/peeyush-budhia/laravel-api-base/releases/tag/v0.6.0
 [0.5.0]: https://github.com/peeyush-budhia/laravel-api-base/releases/tag/v0.5.0

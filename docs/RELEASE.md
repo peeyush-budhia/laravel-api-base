@@ -4,6 +4,10 @@ This guide defines the release process for Laravel API Base.
 
 The project follows a controlled branch and release workflow so that `main` always represents a stable version of the API Base template.
 
+The current release is **v0.9.0**, released on 2026-09-07. Its release notes
+are recorded in [CHANGELOG.md](../CHANGELOG.md); the v0.8.0 history covers the
+Audit Logs and Dashboard APIs milestone.
+
 ---
 
 # Branches
