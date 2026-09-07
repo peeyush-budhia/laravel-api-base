@@ -134,9 +134,7 @@ final class ExceptionHandler
 
             $e instanceof HttpExceptionInterface => ApiResponse::error(
                 status: $e->getStatusCode(),
-                message: $e->getMessage() !== ''
-                    ? $e->getMessage()
-                    : (Response::$statusTexts[$e->getStatusCode()] ?? 'HTTP Error'),
+                message: self::httpMessage($e),
             ),
 
             /*
@@ -157,5 +155,18 @@ final class ExceptionHandler
         }
 
         return $response;
+    }
+
+    private static function httpMessage(HttpExceptionInterface $exception): string
+    {
+        $status = $exception->getStatusCode();
+
+        if ($status >= Response::HTTP_INTERNAL_SERVER_ERROR && ! config('app.debug')) {
+            return __('responses.server_error');
+        }
+
+        return $exception->getMessage() !== ''
+            ? $exception->getMessage()
+            : (Response::$statusTexts[$status] ?? 'HTTP Error');
     }
 }

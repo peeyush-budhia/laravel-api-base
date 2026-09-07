@@ -63,6 +63,8 @@ Interactive OpenAPI documentation is available at `/docs/api` while the applicat
 
 Production environment, CORS, worker, scheduler, and deployment instructions are in [docs/PRODUCTION.md](docs/PRODUCTION.md).
 
+Security controls and API failure behavior are documented in [docs/SECURITY.md](docs/SECURITY.md) and [docs/ERROR_HANDLING.md](docs/ERROR_HANDLING.md).
+
 ## Architecture
 
 ```text
