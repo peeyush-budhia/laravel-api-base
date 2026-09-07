@@ -34,8 +34,6 @@ laravel-api-base/
 ├── composer.lock
 ├── phpunit.xml
 ├── README.md
-├── CHANGELOG.md
-├── CONTRIBUTING.md
 └── LICENSE
 ```
 

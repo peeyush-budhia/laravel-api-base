@@ -23,7 +23,7 @@ php artisan migrate
 php artisan serve --host=localhost --port=8000
 ```
 
-The API is available at `http://localhost:8000/api/v1`. For a complete backend-and-frontend setup, see [SETUP_GUIDE.md](SETUP_GUIDE.md).
+The API is available at `http://localhost:8000/api/v1`. For a complete backend-and-frontend setup, see [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md).
 
 Create the first production administrator with:
 
@@ -59,7 +59,7 @@ All application routes are versioned under `/api/v1`.
 - `GET /api/v1/audit-logs` — permission-protected audit listing
 - `GET /api/v1/dashboard` — permission-protected dashboard statistics
 
-Interactive OpenAPI documentation is available at `/docs/api` while the application is running. Detailed contracts and authorization rules are in [docs/API.md](docs/API.md) and [docs/API_STANDARDS.md](docs/API_STANDARDS.md).
+Interactive OpenAPI documentation is available at `/docs/api` while the application is running. Detailed contracts and authorization rules are in [docs/API.md](docs/API.md), [docs/API_STANDARDS.md](docs/API_STANDARDS.md), and the [v1.0.0 contract freeze](docs/API_CONTRACT_FREEZE.md).
 
 ## Architecture
 
@@ -93,4 +93,4 @@ The companion React application is maintained at [laravel-api-base-ui](https://g
 
 ## Contributing and license
 
-Use feature branches and read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. This project is released under the MIT License.
+Use feature branches and read [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) before opening a pull request. This project is released under the MIT License.

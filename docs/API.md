@@ -4,6 +4,8 @@
 
 Laravel API Base provides a versioned REST API for authentication, user management, profile management, roles, permissions, audit logging, dashboard statistics, and system health.
 
+The v1.0.0 compatibility boundary is recorded in [API_CONTRACT_FREEZE.md](API_CONTRACT_FREEZE.md).
+
 The API is designed as a reusable, domain-agnostic Laravel backend foundation.
 
 ---
