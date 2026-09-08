@@ -235,6 +235,19 @@ Maintain:
 
 Every new API endpoint should include appropriate feature tests.
 
+## Coverage threshold
+
+CI collects line coverage with PCOV and fails the release gate below 70 percent:
+
+~~~bash
+composer coverage
+~~~
+
+The threshold applies to application code under app/. Coverage is a signal for
+untested behavior, not a replacement for endpoint, authorization, concurrency,
+or integration tests. Raise the threshold when a release has materially
+increased meaningful coverage.
+
 ## MySQL integration tests
 
 The default suite uses isolated in-memory SQLite. To validate production-like
