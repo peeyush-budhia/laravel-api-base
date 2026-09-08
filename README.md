@@ -2,7 +2,8 @@
 
 Laravel API Base is the backend for the Laravel API Base UI. It provides a versioned Laravel 13 REST API for authentication, onboarding, users, roles, permissions, profiles, avatars, audit logs, and dashboard statistics.
 
-Current release: **v0.9.0**.
+Latest published release: **v0.9.0**. The `release/v1.0.0` branch contains the
+validated **v1.0.0 release candidate**.
 
 ## Requirements
 
@@ -89,9 +90,12 @@ composer test
 composer lint
 composer analyse
 composer docs:check
+composer contract:export
 ```
 
-GitHub Actions runs formatting, PHPStan, the test suite, and OpenAPI validation before changes can be merged.
+GitHub Actions runs dependency validation, formatting, PHPStan, the test suite
+with its coverage threshold, MySQL integration tests, OpenAPI analysis, and a
+generated-contract freshness check before changes can be merged.
 
 ## Related frontend
 

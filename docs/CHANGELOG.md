@@ -1,3 +1,59 @@
+## [1.0.0] - Unreleased
+
+### Added
+
+- Added a frozen v1 API contract and a committed OpenAPI snapshot for
+  deterministic frontend type generation.
+- Added production CORS configuration and deployment guidance for application,
+  queue-worker, scheduler, health, storage, and rollback operations.
+- Added real MySQL integration coverage for account onboarding and concurrent
+  super-admin creation.
+- Added enum-owned labels and semantic tones for user statuses and audit events,
+  plus translated permission descriptions in API resources.
+- Added `DemoRolesSeeder` for a local/testing-only `admin` role with limited
+  dashboard, audit-log, user-management, and role-view permissions.
+
+### Changed
+
+- Production baseline seeding now creates all permissions and only the protected
+  `super-admin` role. Demo roles and users remain restricted to local and
+  testing environments.
+- Reduced the core role enum to the only application invariant,
+  `super-admin`; application-specific roles are created through the API or
+  project seeders.
+- Reorganized `.env.example` around production configuration areas and
+  documented the exact backend/frontend setup sequence.
+- Added deterministic OpenAPI export and CI checks that reject stale contract
+  snapshots.
+- Raised the documented API version to `1.0.0`.
+
+### Fixed
+
+- Hardened production exception responses so unexpected failures do not expose
+  internal exception details.
+- Corrected OpenAPI test autoloading so clean Composer installations complete
+  without PSR-4 warnings.
+- Normalized enum metadata at resource boundaries when Eloquent attributes are
+  returned as either casts or raw values.
+
+### Security
+
+- Added explicit production origin control through `CORS_ALLOWED_ORIGINS`.
+- Kept destructive and role-management permissions out of the demo `admin`
+  role.
+- Enforced formatting, static analysis, dependency auditing, a 70 percent line
+  coverage threshold, OpenAPI validation, and MySQL integration checks in CI.
+
+### Validation
+
+- Verified a clean backend installation with fresh locked dependencies,
+  example-based configuration, migrations, seed data, the full PHPUnit suite,
+  Pint, PHPStan, Composer validation, and OpenAPI analysis.
+- Verified the release contract against the companion frontend's clean
+  installation, generated-type check, tests, lint, and production build.
+
+---
+
 ## [0.9.0] - 2026-09-07
 
 ### Added
@@ -81,7 +137,24 @@
 
 ---
 
-## v0.8.0 - Audit Logs & Dashboard APIs
+## [0.8.2] - 2026-09-03
+
+### Added
+
+- Added configurable password-policy responses for frontend validation.
+
+### Changed
+
+- Tightened authentication and audit-log flows and aligned dashboard audit-log
+  limits with the documented contract.
+
+## [0.8.1] - 2026-08-29
+
+### Fixed
+
+- Returned absolute avatar URLs in dashboard user summaries.
+
+## [0.8.0] - 2026-08-24
 
 ### Added
 
@@ -333,13 +406,18 @@
 | v0.5.0  | ✅ Complete    | Query Infrastructure & API Improvements       |
 | v0.6.0  | ✅ Released    | Backend Cleanup & Foundation Stabilization    |
 | v0.7.0  | ✅ Released    | API Documentation & Developer Experience      |
-| v0.8.0  | ✅ Complete    | Audit Logs & Dashboard APIs                   |
-| v0.9.0  | ✅ Released | Security, Performance & Infrastructure        |
-| v1.0.0  | 🎯 Target      | Production Ready API Template                 |
+| v0.8.0  | ✅ Released    | Audit Logs & Dashboard APIs                   |
+| v0.8.1  | ✅ Released    | Dashboard Avatar URL Fix                      |
+| v0.8.2  | ✅ Released    | Authentication, Audit & Password Policy       |
+| v0.9.0  | ✅ Released    | Security, Performance & Infrastructure        |
+| v1.0.0  | 🧪 RC          | Production Ready API Template                 |
 
 ---
 
 [0.9.0]: https://github.com/peeyush-budhia/laravel-api-base/releases/tag/v0.9.0
+[0.8.2]: https://github.com/peeyush-budhia/laravel-api-base/releases/tag/v0.8.2
+[0.8.1]: https://github.com/peeyush-budhia/laravel-api-base/releases/tag/v0.8.1
+[0.8.0]: https://github.com/peeyush-budhia/laravel-api-base/releases/tag/v0.8.0
 [0.7.0]: https://github.com/peeyush-budhia/laravel-api-base/releases/tag/v0.7.0
 [0.6.0]: https://github.com/peeyush-budhia/laravel-api-base/releases/tag/v0.6.0
 [0.5.0]: https://github.com/peeyush-budhia/laravel-api-base/releases/tag/v0.5.0

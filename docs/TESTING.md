@@ -18,17 +18,18 @@ php artisan test
 
 # Test Structure
 
-Tests are organized according to their purpose.
-Typical structure:
+Tests are organized according to their purpose. Typical structure:
+
+```text
 tests/
 ├── Feature/
-│ └── Api/
-│ ├── Documentation
-| | └── ApiDocumentationTest.php
-│ ├── Auth/
-│ ├── Role/
-│ └── User/
+│   ├── Api/V1/
+│   ├── Documentation/
+│   ├── Integration/
+│   └── Seeder/
 └── Unit/
+```
+
 Feature tests are preferred for API behavior because they verify the application through the HTTP layer.
 
 # Running the Test Suite
@@ -42,13 +43,13 @@ php artisan test
 Run a specific directory:
 
 ```bash
-php artisan test tests/Feature/Api
+php artisan test tests/Feature/Api/V1
 ```
 
 Run a specific test:
 
 ```bash
-php artisan test tests/Feature/Api/ApiDocumentationTest.php
+php artisan test tests/Feature/Documentation/ApiDocumentationTest.php
 ```
 
 Run a specific test method:
@@ -110,13 +111,15 @@ Expected result:
 Everything is fine! Documentation is generated without any errors
 ```
 
-Export the document when manually reviewing it:
+Export and normalize the committed contract snapshot:
 
 ```bash
-php artisan scramble:export
+composer contract:export
 ```
 
-The generated api.json file is a local artifact and should remain ignored by Git unless explicitly required by the project.
+The resulting `docs/openapi.json` file is versioned. CI regenerates it and
+fails when the committed contract is stale. The frontend copies this snapshot
+and generates backend-owned enum types from it.
 
 # Code Style Testing
 
@@ -134,7 +137,7 @@ vendor/bin/pint
 
 Code should be formatted before submitting a Pull Request.
 
-#Regression Testing
+# Regression Testing
 Whenever an existing feature is changed:
 
 1. Add or update the relevant test.
@@ -187,6 +190,7 @@ Run:
 vendor/bin/pint --test
 vendor/bin/phpstan analyse
 php artisan scramble:analyze
+composer contract:export
 php artisan test
 git diff --check
 ```
@@ -205,14 +209,19 @@ Code Style Check
 ↓
 Static Analysis
 ↓
-Run Tests
+PHPUnit and Coverage Gate
 ↓
 OpenAPI Validation
+↓
+Contract Freshness
+↓
+MySQL Integration Tests
 ```
 
-The GitHub Actions test workflow runs `composer lint` and `composer analyse`
-after installing dependencies. Both checks are required alongside the test and
-OpenAPI validation steps.
+The GitHub Actions workflows validate locked dependencies, run `composer lint`
+and `composer analyse`, enforce at least 70 percent application line coverage,
+validate OpenAPI generation and the committed contract, and run the tagged
+MySQL integration suite against a real MySQL service.
 
 A Pull Request should not be merged when required CI checks are failing.
 
@@ -220,6 +229,11 @@ Regression tests should cover concurrent protection for singleton roles,
 permission-scoped dashboard cache behavior, and array/object listing inputs so
 malformed query parameters return validation errors instead of reaching query
 builders or scalar casts.
+
+Seeder tests must also preserve the installation baseline: the core seeder
+creates every permission and the single `super-admin` role, while
+`DemoRolesSeeder` adds the local/testing `admin` role with its documented demo
+permission subset. Demo users must not receive an implicit role.
 
 Testing Goals
 Maintain:

@@ -4,13 +4,14 @@ This guide defines the release process for Laravel API Base.
 
 The project follows a controlled branch and release workflow so that `main` always represents a stable version of the API Base template.
 
-The current release is **v0.9.0**, released on 2026-09-07. Its release notes
-are recorded in [CHANGELOG.md](CHANGELOG.md); the v0.8.0 history covers the
-Audit Logs and Dashboard APIs milestone.
+The latest published release is **v0.9.0**, released on 2026-09-07. The
+`release/v1.0.0` branch is the validated v1.0.0 release candidate. Its pending
+release notes are recorded in [CHANGELOG.md](CHANGELOG.md).
 
 Every release branch and pull request must pass the CI release gates:
 dependency audit, formatting, static analysis, the PHPUnit suite with at least
-70 percent application line coverage, and OpenAPI validation.
+70 percent application line coverage, real MySQL integration tests, OpenAPI
+validation, and committed-contract freshness verification.
 
 ---
 
@@ -123,7 +124,9 @@ v0.8.0
 v0.9.0
 ```
 
-For the current 0.x development phase, minor versions represent significant feature milestones..
+Before v1.0.0, minor versions represented significant feature milestones.
+After v1.0.0, backward-compatible features increment the minor version and
+breaking contracts increment the major version.
 
 ## PATCH
 
@@ -280,6 +283,7 @@ Run the final checks on main:
 vendor/bin/pint --test
 vendor/bin/phpstan analyse
 php artisan scramble:analyze
+composer contract:export
 php artisan test
 git diff --check
 ```
@@ -292,7 +296,7 @@ Create an annotated tag.
 Example:
 
 ```bash
-git tag -a v0.7.0 -m "Release v0.7.0"
+git tag -a v1.0.0 -m "Release v1.0.0"
 ```
 
 Verify:
@@ -304,7 +308,7 @@ git tag --list --sort=-version:refname | head
 Inspect the tag:
 
 ```bash
-git show v0.7.0
+git show v1.0.0
 ```
 
 # Push the Tag
@@ -312,7 +316,7 @@ git show v0.7.0
 Push the tag:
 
 ```bash
-git push origin v0.7.0
+git push origin v1.0.0
 ```
 
 Verify the remote tag:
@@ -326,7 +330,7 @@ git ls-remote --tags origin
 After pushing the tag, create a GitHub Release for:
 
 ```text
-v0.7.0
+v1.0.0
 ```
 
 The release should include a concise summary of the important changes.
@@ -350,36 +354,23 @@ ROADMAP.md reflects release
 CI is passing
 ```
 
-# Example v0.7.0 Release
+# v1.0.0 Release Candidate
 
-The planned focus for:
+The implementation and clean-install validation for v1.0.0 are complete. The
+release candidate includes the frozen API contract, generated frontend enum
+types, production CORS and deployment guidance, hardened production error
+responses, MySQL concurrency coverage, semantic enum metadata, the revised
+role-seeding baseline, and CI release gates.
 
-```text
-v0.7.0
-```
+The remaining release operations are:
 
-is:
+- Merge the coordinated backend and frontend release branches.
+- Run the final release gates on `main` in both repositories.
+- Create and push `v1.0.0` tags in both repositories.
+- Publish matching GitHub releases from the v1.0.0 changelogs.
 
-```text
-Postman
-API Documentation
-Developer Experience
-```
-
-Potential release contents include:
-
-- OpenAPI documentation
-- Scramble integration
-- API documentation tests
-- Postman collection
-- Postman environment
-- Development guide
-- Testing guide
-- Release guide
-- Updated README
-- Updated CHANGELOG
-
-Only include functionality that has actually been implemented and tested.
+Do not mark the changelog entry as released or replace `Unreleased` with a date
+until the corresponding tag is created.
 
 # Hotfix Releases
 
