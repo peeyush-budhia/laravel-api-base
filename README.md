@@ -31,7 +31,9 @@ Create the first production administrator with:
 php artisan app:provision-super-admin
 ```
 
-Local and testing environments may use seeded demo accounts. Production seeding does not create demo users.
+Production seeding creates all permissions and only the protected `super-admin`
+role. Local and testing environments also receive a limited `admin` demo role
+and demo accounts; production receives no demo roles or users.
 
 ## Background processes
 

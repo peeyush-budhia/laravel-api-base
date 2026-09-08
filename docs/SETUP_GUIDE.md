@@ -27,10 +27,17 @@ For MySQL, set `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAM
 
 ```bash
 php artisan migrate
+php artisan db:seed
 php artisan serve --host=localhost --port=8000
 ```
 
 The backend API is now at `http://localhost:8000/api/v1`.
+
+The baseline seed creates all permissions and the protected `super-admin`
+role. In local and testing environments it also creates the optional `admin`
+demo role with limited dashboard, audit-log, user-management, and role-view
+permissions, plus demo accounts. Production never receives demo roles or
+accounts.
 
 ## 3. Configure mail and queues
 

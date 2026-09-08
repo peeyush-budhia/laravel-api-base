@@ -17,6 +17,10 @@ final class UserUpdateTest extends ApiTestCase
 {
     use InteractsWithPermissions;
 
+    private const string ADMIN_ROLE = 'admin';
+
+    private const string MEMBER_ROLE = 'member';
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -27,12 +31,12 @@ final class UserUpdateTest extends ApiTestCase
         ]);
 
         Role::create([
-            'name' => EnumsRole::ADMIN->value,
+            'name' => self::ADMIN_ROLE,
             'guard_name' => 'sanctum',
         ]);
 
         Role::create([
-            'name' => EnumsRole::USER->value,
+            'name' => self::MEMBER_ROLE,
             'guard_name' => 'sanctum',
         ]);
 
@@ -50,7 +54,7 @@ final class UserUpdateTest extends ApiTestCase
             'status' => UserStatus::ACTIVE,
         ]);
 
-        $user->assignRole(EnumsRole::USER->value);
+        $user->assignRole(self::MEMBER_ROLE);
 
         $newEmail = fake()->unique()->safeEmail();
 
@@ -59,7 +63,7 @@ final class UserUpdateTest extends ApiTestCase
             'last_name' => 'Smith',
             'email' => $newEmail,
             'status' => UserStatus::INACTIVE->value,
-            'role' => EnumsRole::ADMIN->value,
+            'role' => self::ADMIN_ROLE,
         ];
 
         $response = $this->apiPut(
@@ -84,7 +88,7 @@ final class UserUpdateTest extends ApiTestCase
             )
             ->assertJsonPath(
                 'data.role',
-                EnumsRole::ADMIN->value,
+                self::ADMIN_ROLE,
             );
 
         $this->assertDatabaseHas('users', [
@@ -99,13 +103,13 @@ final class UserUpdateTest extends ApiTestCase
 
         $this->assertTrue(
             $updatedUser->hasRole(
-                EnumsRole::ADMIN->value,
+                self::ADMIN_ROLE,
             ),
         );
 
         $this->assertFalse(
             $updatedUser->hasRole(
-                EnumsRole::USER->value,
+                self::MEMBER_ROLE,
             ),
         );
     }
@@ -113,7 +117,7 @@ final class UserUpdateTest extends ApiTestCase
     public function test_role_only_change_is_audited(): void
     {
         $user = User::factory()->create();
-        $user->assignRole(EnumsRole::USER->value);
+        $user->assignRole(self::MEMBER_ROLE);
 
         $response = $this->apiPut(
             "/users/{$user->id}",
@@ -122,7 +126,7 @@ final class UserUpdateTest extends ApiTestCase
                 'last_name' => $user->last_name,
                 'email' => $user->email,
                 'status' => $user->status->value,
-                'role' => EnumsRole::ADMIN->value,
+                'role' => self::ADMIN_ROLE,
             ],
         );
 
@@ -135,11 +139,11 @@ final class UserUpdateTest extends ApiTestCase
             ->sole();
 
         $this->assertSame(
-            ['roles' => [EnumsRole::USER->value]],
+            ['roles' => [self::MEMBER_ROLE]],
             $auditLog->old_values,
         );
         $this->assertSame(
-            ['roles' => [EnumsRole::ADMIN->value]],
+            ['roles' => [self::ADMIN_ROLE]],
             $auditLog->new_values,
         );
         $this->assertSame($this->user->id, $auditLog->user_id);
@@ -157,7 +161,7 @@ final class UserUpdateTest extends ApiTestCase
                 'first_name' => $user->first_name,
                 'last_name' => $user->last_name,
                 'email' => $user->email,
-                'role' => EnumsRole::USER->value,
+                'role' => self::MEMBER_ROLE,
             ],
         );
 
@@ -174,7 +178,7 @@ final class UserUpdateTest extends ApiTestCase
         $user = User::factory()->create([
             'email_verified_at' => now(),
         ]);
-        $user->assignRole(EnumsRole::USER->value);
+        $user->assignRole(self::MEMBER_ROLE);
 
         $response = $this->apiPut(
             "/users/{$user->id}",
@@ -182,7 +186,7 @@ final class UserUpdateTest extends ApiTestCase
                 'first_name' => $user->first_name,
                 'last_name' => $user->last_name,
                 'email' => fake()->unique()->safeEmail(),
-                'role' => EnumsRole::USER->value,
+                'role' => self::MEMBER_ROLE,
             ],
         );
 
@@ -221,7 +225,7 @@ final class UserUpdateTest extends ApiTestCase
         $response = $this->apiPut(
             "/users/{$user->id}",
             [
-                'role' => EnumsRole::USER->value,
+                'role' => self::MEMBER_ROLE,
                 'avatar' => 'avatars/another-user/private.jpg',
             ],
         );
@@ -234,7 +238,7 @@ final class UserUpdateTest extends ApiTestCase
     public function test_user_cannot_modify_their_own_account_through_user_management(): void
     {
         $this->user->assignRole(
-            EnumsRole::USER->value,
+            self::MEMBER_ROLE,
         );
 
         $response = $this->apiPut(
@@ -243,7 +247,7 @@ final class UserUpdateTest extends ApiTestCase
                 'first_name' => 'Changed',
                 'last_name' => $this->user->last_name,
                 'email' => $this->user->email,
-                'role' => EnumsRole::ADMIN->value,
+                'role' => self::ADMIN_ROLE,
             ],
         );
 
@@ -265,7 +269,7 @@ final class UserUpdateTest extends ApiTestCase
 
         $this->assertTrue(
             $updatedUser->hasRole(
-                EnumsRole::USER->value,
+                self::MEMBER_ROLE,
             ),
         );
     }
@@ -284,7 +288,7 @@ final class UserUpdateTest extends ApiTestCase
                 'first_name' => $superAdmin->first_name,
                 'last_name' => $superAdmin->last_name,
                 'email' => $superAdmin->email,
-                'role' => EnumsRole::ADMIN->value,
+                'role' => self::ADMIN_ROLE,
             ],
         );
 
@@ -305,7 +309,7 @@ final class UserUpdateTest extends ApiTestCase
 
         $this->assertFalse(
             $superAdmin->fresh()->hasRole(
-                EnumsRole::ADMIN->value,
+                self::ADMIN_ROLE,
             ),
         );
     }
@@ -328,7 +332,7 @@ final class UserUpdateTest extends ApiTestCase
                 'first_name' => 'Changed',
                 'last_name' => $target->last_name,
                 'email' => $target->email,
-                'role' => EnumsRole::ADMIN->value,
+                'role' => self::ADMIN_ROLE,
             ],
         );
 
@@ -356,7 +360,7 @@ final class UserUpdateTest extends ApiTestCase
 
         $this->assertFalse(
             $updatedTarget->hasRole(
-                EnumsRole::ADMIN->value,
+                self::ADMIN_ROLE,
             ),
         );
     }
@@ -370,7 +374,7 @@ final class UserUpdateTest extends ApiTestCase
         $target = User::factory()->create();
 
         $target->assignRole(
-            EnumsRole::USER->value,
+            self::MEMBER_ROLE,
         );
 
         $response = $this->apiPut(
@@ -379,7 +383,7 @@ final class UserUpdateTest extends ApiTestCase
                 'first_name' => $target->first_name,
                 'last_name' => $target->last_name,
                 'email' => $target->email,
-                'role' => EnumsRole::ADMIN->value,
+                'role' => self::ADMIN_ROLE,
             ],
         );
 
@@ -393,20 +397,20 @@ final class UserUpdateTest extends ApiTestCase
             )
             ->assertJsonPath(
                 'data.role',
-                EnumsRole::ADMIN->value,
+                self::ADMIN_ROLE,
             );
 
         $updatedTarget = $target->fresh();
 
         $this->assertTrue(
             $updatedTarget->hasRole(
-                EnumsRole::ADMIN->value,
+                self::ADMIN_ROLE,
             ),
         );
 
         $this->assertFalse(
             $updatedTarget->hasRole(
-                EnumsRole::USER->value,
+                self::MEMBER_ROLE,
             ),
         );
     }
@@ -439,7 +443,7 @@ final class UserUpdateTest extends ApiTestCase
             'last_name' => 'Doe',
         ]);
 
-        $user->assignRole(EnumsRole::USER->value);
+        $user->assignRole(self::MEMBER_ROLE);
 
         $response = $this->apiPut("/users/{$user->id}", [
             'first_name' => $user->first_name,
@@ -473,7 +477,7 @@ final class UserUpdateTest extends ApiTestCase
         $user = User::factory()->create();
 
         $user->assignRole(
-            EnumsRole::USER->value,
+            self::MEMBER_ROLE,
         );
 
         $response = $this->apiPut("/users/{$user->id}", [
@@ -555,7 +559,7 @@ final class UserUpdateTest extends ApiTestCase
             'first_name' => 'Super',
             'last_name' => 'Admin',
             'email' => $user->email,
-            'role' => EnumsRole::ADMIN->value,
+            'role' => self::ADMIN_ROLE,
         ]);
 
         $response
@@ -571,7 +575,7 @@ final class UserUpdateTest extends ApiTestCase
 
         $this->assertFalse(
             $user->fresh()->hasRole(
-                EnumsRole::ADMIN->value,
+                self::ADMIN_ROLE,
             ),
         );
     }
@@ -587,7 +591,7 @@ final class UserUpdateTest extends ApiTestCase
         $secondUser = User::factory()->create();
 
         $secondUser->assignRole(
-            EnumsRole::USER->value,
+            self::MEMBER_ROLE,
         );
 
         $response = $this->apiPut("/users/{$secondUser->id}", [

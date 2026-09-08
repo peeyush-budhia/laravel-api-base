@@ -2,9 +2,18 @@
 
 ## Overview
 
+Resources return backend-owned display metadata: status_label and status_tone
+for users, event_label and event_tone for audit records, and description for
+permissions. Tone values are semantic and independent of frontend CSS.
+
 Laravel API Base provides a versioned REST API for authentication, user management, profile management, roles, permissions, audit logging, dashboard statistics, and system health.
 
 The v1.0.0 compatibility boundary is recorded in [API_CONTRACT_FREEZE.md](API_CONTRACT_FREEZE.md).
+
+Resources expose machine values together with backend-owned display labels:
+users include status and status_label, audit records include event and
+event_label, and permissions include description. Clients should render the
+label fields instead of maintaining enum label tables.
 
 Browser clients must use an origin listed in `CORS_ALLOWED_ORIGINS`; see
 [PRODUCTION.md](PRODUCTION.md) for production CORS and deployment settings.

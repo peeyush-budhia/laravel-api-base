@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Api;
+namespace Tests\Feature\Documentation;
 
 use Tests\TestCase;
 
@@ -24,7 +24,7 @@ class ApiDocumentationTest extends TestCase
 
         $response->assertJsonPath(
             'info.version',
-            '0.7.0'
+            '1.0.0'
         );
     }
 
@@ -92,6 +92,31 @@ class ApiDocumentationTest extends TestCase
         $response->assertJsonPath(
             'components.securitySchemes.http.scheme',
             'bearer'
+        );
+    }
+
+    public function test_openapi_documentation_contains_shared_enum_schemas(): void
+    {
+        $schemas = $this->getJson('/docs/api.json')
+            ->assertOk()
+            ->json('components.schemas');
+
+        $this->assertSame(
+            ['active', 'inactive', 'suspended'],
+            $schemas['UserStatus']['enum'] ?? null,
+        );
+
+        $this->assertSame(
+            [
+                'created',
+                'updated',
+                'deleted',
+                'restored',
+                'force_deleted',
+                'permissions_synced',
+                'roles_synced',
+            ],
+            $schemas['AuditEvent']['enum'] ?? null,
         );
     }
 }

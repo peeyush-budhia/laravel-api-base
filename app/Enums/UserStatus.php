@@ -17,4 +17,22 @@ enum UserStatus: string
     {
         return $this === self::ACTIVE;
     }
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::ACTIVE => 'Active',
+            self::INACTIVE => 'Inactive',
+            self::SUSPENDED => 'Suspended',
+        };
+    }
+
+    public function tone(): string
+    {
+        return match ($this) {
+            self::ACTIVE => 'success',
+            self::INACTIVE => 'warning',
+            self::SUSPENDED => 'danger',
+        };
+    }
 }

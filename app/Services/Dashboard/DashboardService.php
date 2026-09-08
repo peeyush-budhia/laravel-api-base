@@ -110,6 +110,8 @@ final class DashboardService
         if (! $includeDetails) {
             return [
                 'by_status' => $usersByStatus,
+                'status_labels' => $this->statusLabels(),
+                'status_tones' => $this->statusTones(),
                 'recent' => [],
                 'recently_active' => [],
             ];
@@ -154,6 +156,8 @@ final class DashboardService
 
         return [
             'by_status' => $usersByStatus,
+            'status_labels' => $this->statusLabels(),
+            'status_tones' => $this->statusTones(),
             'recent' => UserSummaryResource::collection($recentUsers)->resolve(),
             'recently_active' => UserSummaryResource::collection($recentlyActiveUsers)->resolve(),
         ];
@@ -169,6 +173,8 @@ final class DashboardService
         if (! $includeDetails) {
             return [
                 'by_event' => $events,
+                'event_labels' => $this->eventLabels(),
+                'event_tones' => $this->eventTones(),
                 'recent' => [],
             ];
         }
@@ -197,7 +203,45 @@ final class DashboardService
 
         return [
             'by_event' => $events,
+            'event_labels' => $this->eventLabels(),
+            'event_tones' => $this->eventTones(),
             'recent' => AuditLogResource::collection($recent)->resolve(),
         ];
+    }
+
+    /** @return array<string, string> */
+    private function statusLabels(): array
+    {
+        return collect(UserStatus::cases())
+            ->mapWithKeys(fn (UserStatus $status): array => [
+                $status->value => $status->label(),
+            ])
+            ->all();
+    }
+
+    /** @return array<string, string> */
+    private function eventLabels(): array
+    {
+        return collect(AuditEvent::cases())
+            ->mapWithKeys(fn (AuditEvent $event): array => [
+                $event->value => $event->label(),
+            ])
+            ->all();
+    }
+
+    /** @return array<string, string> */
+    private function statusTones(): array
+    {
+        return collect(UserStatus::cases())
+            ->mapWithKeys(fn (UserStatus $status): array => [$status->value => $status->tone()])
+            ->all();
+    }
+
+    /** @return array<string, string> */
+    private function eventTones(): array
+    {
+        return collect(AuditEvent::cases())
+            ->mapWithKeys(fn (AuditEvent $event): array => [$event->value => $event->tone()])
+            ->all();
     }
 }

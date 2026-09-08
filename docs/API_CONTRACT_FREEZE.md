@@ -26,6 +26,14 @@ Every response uses the standard envelope:
 }
 ```
 
+Enum-backed display metadata is returned by the backend. User records include
+status_label, audit records include event_label, and permission records include
+description. Clients render these labels while retaining status, event, and
+permission names as machine values for filtering and authorization.
+
+Users and audit records also include semantic status_tone and event_tone
+values. Frontends map success, warning, danger, and info to their own styles.
+
 Errors preserve the same keys, with `success: false`, `data: null`, and field
 messages in `errors` when applicable. Clients must branch on the HTTP status
 and envelope fields rather than parse message text.
@@ -68,7 +76,9 @@ update both repositories' API documentation and integration types.
 
 ## Release checks
 
-Before merging a contract change, run the backend tests, formatting, static
-analysis, and OpenAPI check, then run the frontend lint, tests, and production
-build. Update `docs/API.md` in the backend and `docs/API.md` in the frontend in
+Before merging a contract change, run `composer contract:export`, copy
+`docs/openapi.json` to the frontend `openapi/openapi.json`, and run
+`npm run api:generate` in the frontend. Then run the backend tests, formatting,
+static analysis, and OpenAPI check plus the frontend contract check, lint,
+tests, and production build. Update `docs/API.md` in the backend and frontend in
 the same change.

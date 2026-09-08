@@ -86,6 +86,9 @@
         ],
         "docs:export": [
             "@php artisan scramble:export"
+        ],
+        "contract:export": [
+            "@php artisan scramble:export --env=testing --path=docs/openapi.json"
         ]
     },
     "extra": {

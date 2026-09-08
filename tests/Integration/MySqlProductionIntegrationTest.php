@@ -8,6 +8,7 @@ use App\Enums\Role as RoleEnum;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\User\UserService;
+use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
@@ -29,10 +30,15 @@ final class MySqlProductionIntegrationTest extends TestCase
         }
 
         Notification::fake();
+        $this->seed(RolePermissionSeeder::class);
     }
 
     public function test_onboarding_flow_works_end_to_end_on_mysql(): void
     {
+        $targetRole = Role::create([
+            'name' => 'manager',
+            'guard_name' => 'sanctum',
+        ]);
         $admin = User::factory()->create([
             'email' => 'mysql-admin@example.com',
             'password' => Hash::make('AdminPassword123!'),
@@ -46,7 +52,7 @@ final class MySqlProductionIntegrationTest extends TestCase
 
         $this->withToken($token)->postJson('/api/v1/users', [
             'first_name' => 'MySQL', 'last_name' => 'Integration',
-            'email' => 'mysql-user@example.com', 'role' => RoleEnum::ADMIN->value,
+            'email' => 'mysql-user@example.com', 'role' => $targetRole->name,
         ])->assertCreated();
 
         $this->assertDatabaseHas('users', ['email' => 'mysql-user@example.com']);

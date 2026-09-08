@@ -146,3 +146,8 @@ jobs:
 
       - name: OpenAPI Validation
         run: php artisan scramble:analyze
+
+      - name: Verify OpenAPI Contract Snapshot
+        run: |
+          composer contract:export
+          git diff --exit-code -- docs/openapi.json

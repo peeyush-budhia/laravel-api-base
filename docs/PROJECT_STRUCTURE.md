@@ -401,9 +401,11 @@ Example
 ```
 DatabaseSeeder
 
-RoleSeeder
+RolePermissionSeeder
 
-PermissionSeeder
+DemoRolesSeeder
+
+DemoUserSeeder
 ```
 
 ---

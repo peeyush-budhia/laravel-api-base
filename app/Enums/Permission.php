@@ -21,4 +21,9 @@ enum Permission: string
     case ROLES_UPDATE = 'roles.update';
     case ROLES_DELETE = 'roles.delete';
     case ROLES_MANAGE_PERMISSIONS = 'roles.manage-permissions';
+
+    public function description(): string
+    {
+        return __("permissions.{$this->value}");
+    }
 }
