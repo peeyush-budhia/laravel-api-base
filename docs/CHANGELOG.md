@@ -39,6 +39,9 @@
 
 ### Fixed
 
+- Prevented the MySQL concurrency integration test from hanging on cached
+  filesystem metadata or parent-held transaction locks, and added bounded
+  child-process deadlines.
 - Made Scramble configuration safe to load when Composer development
   dependencies are omitted from production installations.
 - Hardened production exception responses so unexpected failures do not expose

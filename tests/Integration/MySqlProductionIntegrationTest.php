@@ -9,14 +9,18 @@ use App\Models\Role;
 use App\Models\User;
 use App\Services\User\UserService;
 use Database\Seeders\RolePermissionSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 final class MySqlProductionIntegrationTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseMigrations;
+
+    private const int BARRIER_TIMEOUT_SECONDS = 10;
+
+    private const int CHILDREN_TIMEOUT_SECONDS = 30;
 
     protected function setUp(): void
     {
@@ -61,13 +65,16 @@ final class MySqlProductionIntegrationTest extends TestCase
 
     public function test_concurrent_super_admin_creation_leaves_one_super_admin(): void
     {
-        if (! function_exists('pcntl_fork')) {
-            $this->markTestSkipped('The pcntl extension is required for the concurrency test.');
+        if (! function_exists('pcntl_fork') || ! function_exists('posix_kill')) {
+            $this->markTestSkipped('The pcntl and POSIX extensions are required for the concurrency test.');
         }
 
         Role::query()->where('name', RoleEnum::SUPER_ADMIN->value)->delete();
         Role::create(['name' => RoleEnum::SUPER_ADMIN->value, 'guard_name' => 'sanctum']);
         $barrier = tempnam(sys_get_temp_dir(), 'laravel-mysql-race-');
+        if ($barrier === false) {
+            $this->fail('Unable to create the concurrency test barrier.');
+        }
         $children = [];
 
         for ($index = 0; $index < 2; $index++) {
@@ -77,7 +84,12 @@ final class MySqlProductionIntegrationTest extends TestCase
             }
             if ($pid === 0) {
                 file_put_contents($barrier, '1', FILE_APPEND | LOCK_EX);
-                while (filesize($barrier) < 2) {
+                $barrierDeadline = microtime(true) + self::BARRIER_TIMEOUT_SECONDS;
+                while (strlen((string) file_get_contents($barrier)) < 2) {
+                    if (microtime(true) >= $barrierDeadline) {
+                        exit(2);
+                    }
+
                     usleep(10_000);
                 }
                 try {
@@ -95,10 +107,37 @@ final class MySqlProductionIntegrationTest extends TestCase
             $children[] = $pid;
         }
 
-        foreach ($children as $child) {
-            pcntl_waitpid($child, $status);
+        $remainingChildren = $children;
+        $deadline = microtime(true) + self::CHILDREN_TIMEOUT_SECONDS;
+        $timedOut = false;
+
+        while ($remainingChildren !== []) {
+            foreach ($remainingChildren as $index => $child) {
+                $result = pcntl_waitpid($child, $status, WNOHANG);
+                if ($result === $child || $result === -1) {
+                    unset($remainingChildren[$index]);
+                }
+            }
+
+            if ($remainingChildren === []) {
+                break;
+            }
+
+            if (microtime(true) >= $deadline) {
+                $timedOut = true;
+                foreach ($remainingChildren as $child) {
+                    posix_kill($child, SIGKILL);
+                    pcntl_waitpid($child, $status);
+                }
+                break;
+            }
+
+            usleep(10_000);
         }
+
         @unlink($barrier);
+
+        $this->assertFalse($timedOut, 'Concurrent super-admin creation exceeded the 30-second deadline.');
         $this->assertSame(1, User::role(RoleEnum::SUPER_ADMIN->value, 'sanctum')->count());
     }
 }
