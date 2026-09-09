@@ -23,15 +23,14 @@ This roadmap outlines the planned evolution of the project.
 # Current Version
 
 ```text
-v0.9.0 (latest published release, 2026-09-07)
-v1.0.0 (validated release candidate)
+v1.0.0 (latest published release, 2026-09-09)
 ```
 
 ---
 
 # v1.0.0 — Production Baseline
 
-**Status:** 🧪 Release candidate validated
+**Status:** ✅ Released 2026-09-09
 
 ## Completed
 
@@ -49,12 +48,6 @@ v1.0.0 (validated release candidate)
 - Production PHP-FPM and Nginx images with dedicated queue, scheduler, MySQL,
   Redis, persistent storage, and readiness configuration
 - Synchronized changelog, roadmap, release, setup, testing, and API documents
-
-## Remaining release operations
-
-- Merge the coordinated backend and frontend release branches
-- Tag both repositories as `v1.0.0`
-- Publish coordinated GitHub releases
 
 ---
 
@@ -458,7 +451,7 @@ These can be implemented in projects that use Laravel API Base as their foundati
 | v0.8.1  | ✅ Released | Dashboard Avatar URL Fix                          |
 | v0.8.2  | ✅ Released | Authentication, Audit & Password Policy           |
 | v0.9.0  | ✅ Released | Security, Performance & Infrastructure            |
-| v1.0.0  | 🧪 RC       | Production Ready API Template                     |
+| v1.0.0  | ✅ Released | Production Ready API Template                     |
 
 ---
 

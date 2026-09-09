@@ -4,9 +4,8 @@ This guide defines the release process for Laravel API Base.
 
 The project follows a controlled branch and release workflow so that `main` always represents a stable version of the API Base template.
 
-The latest published release is **v0.9.0**, released on 2026-09-07. The
-`release/v1.0.0` branch is the validated v1.0.0 release candidate. Its pending
-release notes are recorded in [CHANGELOG.md](CHANGELOG.md).
+The latest published release is **v1.0.0**, released on 2026-09-09. Its release
+notes are recorded in [CHANGELOG.md](CHANGELOG.md).
 
 Every release branch and pull request must pass the CI release gates:
 dependency audit, formatting, static analysis, the PHPUnit suite with at least
@@ -357,10 +356,10 @@ ROADMAP.md reflects release
 CI is passing
 ```
 
-# v1.0.0 Release Candidate
+# v1.0.0 Release
 
 The implementation and clean-install validation for v1.0.0 are complete. The
-release candidate includes the frozen API contract, generated frontend enum
+release includes the frozen API contract, generated frontend enum
 types, production CORS and deployment guidance, hardened production error
 responses, MySQL concurrency coverage, semantic enum metadata, the revised
 role-seeding baseline, production PHP-FPM and Nginx images, managed queue and
@@ -372,15 +371,8 @@ and Nginx configuration. The coordinated validation passed 299 backend tests
 The final dependency audit also updated `league/commonmark` to 2.10.1 and
 reported no remaining security advisories.
 
-The remaining release operations are:
-
-- Merge the coordinated backend and frontend release branches.
-- Run the final release gates on `main` in both repositories.
-- Create and push `v1.0.0` tags in both repositories.
-- Publish matching GitHub releases from the v1.0.0 changelogs.
-
-Do not mark the changelog entry as released or replace `Unreleased` with a date
-until the corresponding tag is created.
+The coordinated backend and frontend gates passed before promotion to `main`.
+Both repositories are tagged `v1.0.0` and publish matching GitHub releases.
 
 # Hotfix Releases
 
