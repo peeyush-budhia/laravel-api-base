@@ -2,8 +2,7 @@
 
 Laravel API Base is the backend for the Laravel API Base UI. It provides a versioned Laravel 13 REST API for authentication, onboarding, users, roles, permissions, profiles, avatars, audit logs, and dashboard statistics.
 
-Latest published release: **v0.9.0**. The `release/v1.0.0` branch contains the
-validated **v1.0.0 release candidate**.
+Latest published release: **v1.0.0** (2026-09-09).
 
 ## Requirements
 

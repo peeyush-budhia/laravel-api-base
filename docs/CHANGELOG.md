@@ -1,4 +1,4 @@
-## [1.0.0] - Unreleased
+## [1.0.0] - 2026-09-09
 
 ### Added
 
@@ -433,10 +433,11 @@
 | v0.8.1  | ✅ Released    | Dashboard Avatar URL Fix                      |
 | v0.8.2  | ✅ Released    | Authentication, Audit & Password Policy       |
 | v0.9.0  | ✅ Released    | Security, Performance & Infrastructure        |
-| v1.0.0  | 🧪 RC          | Production Ready API Template                 |
+| v1.0.0  | ✅ Released    | Production Ready API Template                 |
 
 ---
 
+[1.0.0]: https://github.com/peeyush-budhia/laravel-api-base/releases/tag/v1.0.0
 [0.9.0]: https://github.com/peeyush-budhia/laravel-api-base/releases/tag/v0.9.0
 [0.8.2]: https://github.com/peeyush-budhia/laravel-api-base/releases/tag/v0.8.2
 [0.8.1]: https://github.com/peeyush-budhia/laravel-api-base/releases/tag/v0.8.1
