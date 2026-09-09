@@ -7,6 +7,7 @@ namespace Tests\Integration;
 use App\Enums\Role as RoleEnum;
 use App\Models\Role;
 use App\Models\User;
+use App\Notifications\User\UserCreatedNotification;
 use App\Services\User\UserService;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
@@ -60,7 +61,10 @@ final class MySqlProductionIntegrationTest extends TestCase
         ])->assertCreated();
 
         $this->assertDatabaseHas('users', ['email' => 'mysql-user@example.com']);
-        Notification::assertSentTo(User::query()->where('email', 'mysql-user@example.com')->firstOrFail());
+        Notification::assertSentTo(
+            User::query()->where('email', 'mysql-user@example.com')->firstOrFail(),
+            UserCreatedNotification::class,
+        );
     }
 
     public function test_concurrent_super_admin_creation_leaves_one_super_admin(): void
