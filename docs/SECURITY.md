@@ -104,3 +104,8 @@ Thank you for helping improve the security of Laravel API Base.
   exception details.
 - Set `SCRAMBLE_DOCS_ENABLED=false` and `SCRAMBLE_DEV_TOOLS=false` so production
   does not register the interactive OpenAPI or JSON specification routes.
+- The production PHP-FPM image runs as the non-root `laravel` user and excludes
+  Composer, development dependencies, compilers, and build headers. Keep MySQL
+  and Redis on the private Compose network and publish only the Nginx port.
+- Supply `.env.production` at runtime. Never copy it into an image, commit it,
+  or expose the named application-storage volume through another service.

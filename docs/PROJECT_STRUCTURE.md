@@ -13,10 +13,12 @@ The goal is to make the project easy to understand, maintain, and extend.
 ```
 laravel-api-base/
 
+├── .github/
 ├── app/
 ├── bootstrap/
 ├── config/
 ├── database/
+├── docker/
 ├── docs/
 ├── public/
 ├── resources/
@@ -28,10 +30,14 @@ laravel-api-base/
 ├── .editorconfig
 ├── .env
 ├── .env.example
+├── .env.docker.example
+├── .env.docker.production.example
 ├── .gitattributes
 ├── .gitignore
 ├── composer.json
 ├── composer.lock
+├── docker-compose.yml
+├── docker-compose.production.yml
 ├── phpunit.xml
 ├── README.md
 └── LICENSE
@@ -47,12 +53,16 @@ Contains all application source code.
 app/
 
 ├── Console/
+├── Constants/
+├── Contracts/
 ├── Enums/
 ├── Exceptions/
-├── Helpers/
 ├── Http/
 ├── Models/
+├── Notifications/
+├── Policies/
 ├── Providers/
+├── Query/
 ├── Services/
 ├── Support/
 └── Traits/
@@ -85,9 +95,11 @@ Example
 ```
 UserStatus
 
-OrderStatus
+AuditEvent
 
-PaymentStatus
+Permission
+
+Role
 ```
 
 Always prefer Enums over magic strings.
@@ -107,20 +119,6 @@ BusinessException.php
 ```
 
 Never duplicate exception handling in Controllers.
-
----
-
-# app/Helpers
-
-Global helper functions.
-
-Example
-
-```
-helpers.php
-```
-
-Only place generic reusable functions here.
 
 ---
 
@@ -410,20 +408,57 @@ DemoUserSeeder
 
 ---
 
+# docker/
+
+Container build and web-server configuration.
+
+```text
+docker/
+├── Dockerfile
+├── nginx/
+│   ├── default.conf
+│   └── production.conf
+└── php/conf.d/
+    ├── laravel.ini
+    └── production.ini
+```
+
+`docker-compose.yml` runs the bind-mounted local development stack.
+`docker-compose.production.yml` runs immutable web, application, queue,
+scheduler, MySQL, and Redis services with named volumes.
+
+---
+
 # docs/
 
 Project documentation.
 
 ```
+API.md
+
+API_CONTRACT_FREEZE.md
+
 API_STANDARDS.md
 
 ARCHITECTURE.md
+
+CHANGELOG.md
+
+DEVELOPMENT.md
+
+PRODUCTION.md
 
 PROJECT_STRUCTURE.md
 
 BRANCHING_STRATEGY.md
 
 ROADMAP.md
+
+SECURITY.md
+
+SETUP_GUIDE.md
+
+TESTING.md
 ```
 
 This folder contains project standards.
@@ -562,18 +597,28 @@ Never commit changes inside vendor.
 .env
 
 .env.example
+
+.env.docker.example
+
+.env.docker.production.example
 ```
 
 Only commit
 
 ```
 .env.example
+
+.env.docker.example
+
+.env.docker.production.example
 ```
 
 Never commit
 
 ```
 .env
+
+.env.production
 ```
 
 ---
@@ -600,13 +645,13 @@ Main project documentation.
 
 ---
 
-# CHANGELOG.md
+# docs/CHANGELOG.md
 
 Version history.
 
 ---
 
-# CONTRIBUTING.md
+# docs/CONTRIBUTING.md
 
 Contribution guidelines.
 
@@ -665,19 +710,21 @@ The same pattern applies to
 
 # Folder Responsibilities Summary
 
-| Folder     | Responsibility              |
-| ---------- | --------------------------- |
-| app/       | Application source code     |
-| bootstrap/ | Application bootstrap       |
-| config/    | Configuration               |
-| database/  | Database schema and seeders |
-| docs/      | Project documentation       |
-| public/    | Public entry point          |
-| resources/ | Frontend resources          |
-| routes/    | Route definitions           |
-| storage/   | Logs and runtime files      |
-| tests/     | Automated tests             |
-| vendor/    | Composer packages           |
+| Folder     | Responsibility                         |
+| ---------- | -------------------------------------- |
+| .github/   | CI quality and production-image gates  |
+| app/       | Application source code                |
+| bootstrap/ | Application bootstrap                  |
+| config/    | Configuration                          |
+| database/  | Database schema and seeders            |
+| docker/    | Container and Nginx configuration      |
+| docs/      | Project documentation                  |
+| public/    | Public entry point                     |
+| resources/ | Framework resources                    |
+| routes/    | Route definitions                      |
+| storage/   | Logs and runtime files                 |
+| tests/     | Automated tests                        |
+| vendor/    | Generated Composer packages            |
 
 ---
 

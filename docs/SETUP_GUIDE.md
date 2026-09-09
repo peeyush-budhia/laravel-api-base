@@ -172,3 +172,17 @@ npm run build
 For production environment values, CORS allowlists, web-server requirements,
 queue workers, scheduler management, health checks, and the release checklist,
 see [PRODUCTION.md](PRODUCTION.md).
+
+The backend production Docker stack can be prepared with:
+
+```bash
+cp .env.docker.production.example .env.production
+docker compose --env-file .env.production -f docker-compose.production.yml build
+docker compose --env-file .env.production -f docker-compose.production.yml run --rm app php artisan migrate --force
+docker compose --env-file .env.production -f docker-compose.production.yml up -d
+```
+
+It starts separate Nginx, PHP-FPM, queue-worker, scheduler, MySQL, and Redis
+containers. For the companion frontend image, use the frontend repository's
+`docs/PRODUCTION.md`; its `VITE_API_BASE_URL` build value must point to the
+public backend `/api/v1` URL.

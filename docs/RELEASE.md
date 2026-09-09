@@ -11,7 +11,8 @@ release notes are recorded in [CHANGELOG.md](CHANGELOG.md).
 Every release branch and pull request must pass the CI release gates:
 dependency audit, formatting, static analysis, the PHPUnit suite with at least
 70 percent application line coverage, real MySQL integration tests, OpenAPI
-validation, and committed-contract freshness verification.
+validation, committed-contract freshness verification, and production
+PHP-FPM/Nginx image builds.
 
 ---
 
@@ -286,6 +287,8 @@ php artisan scramble:analyze
 composer contract:export
 php artisan test
 git diff --check
+docker build --file docker/Dockerfile --target production --tag laravel-api-base-app:release .
+docker build --file docker/Dockerfile --target web --tag laravel-api-base-web:release .
 ```
 
 The release should only be tagged after these checks pass.
@@ -360,7 +363,14 @@ The implementation and clean-install validation for v1.0.0 are complete. The
 release candidate includes the frozen API contract, generated frontend enum
 types, production CORS and deployment guidance, hardened production error
 responses, MySQL concurrency coverage, semantic enum metadata, the revised
-role-seeding baseline, and CI release gates.
+role-seeding baseline, production PHP-FPM and Nginx images, managed queue and
+scheduler containers, persistent MySQL/Redis/storage services, and CI release
+gates. The production images were inspected for required PHP extensions,
+non-root execution, excluded development tooling, OPcache, FastCGI readiness,
+and Nginx configuration. The coordinated validation passed 299 backend tests
+(296 passed and 3 skipped, with 1,602 assertions) and 123 frontend tests.
+The final dependency audit also updated `league/commonmark` to 2.10.1 and
+reported no remaining security advisories.
 
 The remaining release operations are:
 

@@ -189,11 +189,13 @@ return [
      * ],
      */
     // 'security_strategy' => \Dedoc\Scramble\SecurityDocumentation\MiddlewareAuthSecurityStrategy::class,
-    'security_strategy' => [
-        MiddlewareAuthSecurityStrategy::class,
-        [
-            'middleware' => ['auth', 'auth:*'],
-            'scheme' => SecurityScheme::http('bearer'),
-        ],
-    ],
+    'security_strategy' => class_exists(SecurityScheme::class)
+        ? [
+            MiddlewareAuthSecurityStrategy::class,
+            [
+                'middleware' => ['auth', 'auth:*'],
+                'scheme' => SecurityScheme::http('bearer'),
+            ],
+        ]
+        : null,
 ];

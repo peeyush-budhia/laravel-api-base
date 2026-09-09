@@ -188,7 +188,10 @@ expiry text, and absence of temporary credentials from the serialized payload.
 
 ## Docker Setup
 
-The repository includes a Docker stack for local backend development.
+The default Docker Compose stack is for local backend development. Its
+`development` image target includes Composer and development dependencies and
+bind-mounts the repository for live editing. Production uses the separate
+immutable stack documented in `docs/PRODUCTION.md`.
 
 1. Copy the Docker environment example.
 

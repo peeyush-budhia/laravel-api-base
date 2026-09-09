@@ -70,6 +70,8 @@ contracts and authorization rules are in [docs/API.md](docs/API.md),
 [v1.0.0 contract freeze](docs/API_CONTRACT_FREEZE.md).
 
 Production environment, CORS, worker, scheduler, and deployment instructions are in [docs/PRODUCTION.md](docs/PRODUCTION.md).
+That guide also includes the immutable production Docker stack with dedicated
+web, PHP-FPM, queue, scheduler, MySQL, and Redis services.
 
 Security controls and API failure behavior are documented in [docs/SECURITY.md](docs/SECURITY.md) and [docs/ERROR_HANDLING.md](docs/ERROR_HANDLING.md).
 
@@ -100,7 +102,9 @@ composer contract:export
 
 GitHub Actions runs dependency validation, formatting, PHPStan, the test suite
 with its coverage threshold, MySQL integration tests, OpenAPI analysis, and a
-generated-contract freshness check before changes can be merged.
+generated-contract freshness check before changes can be merged. A separate
+Docker workflow builds the production PHP-FPM and Nginx targets on feature and
+release branches and on pull requests.
 
 ## Related frontend
 

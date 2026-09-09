@@ -34,7 +34,7 @@ MAIL_HOST=smtp.example.com
 MAIL_PORT=587
 MAIL_USERNAME=<secret>
 MAIL_PASSWORD=<secret>
-MAIL_ENCRYPTION=tls
+MAIL_SCHEME=tls
 MAIL_FROM_ADDRESS=no-reply@example.com
 MAIL_FROM_NAME="Laravel API Base"
 ```
@@ -63,6 +63,63 @@ php artisan optimize
 The web server document root must be the `public/` directory. PHP must be
 8.3 or newer. Grant the web and queue users write access to `storage/` and
 `bootstrap/cache/`, but keep `.env` outside the public document root.
+
+## Production Docker stack
+
+The production Compose file builds immutable PHP-FPM and Nginx images. The
+application image installs authoritative Composer dependencies with
+`--no-dev`; source code and `vendor/` are copied into the image instead of
+being bind-mounted. Its runtime excludes compilers and development headers and
+uses production OPcache settings. Separate containers run the queue worker and
+scheduler. MySQL, Redis, and application storage use named volumes and are not
+published to the host.
+
+Create the production environment file and replace every placeholder:
+
+```bash
+cp .env.docker.production.example .env.production
+php artisan key:generate --show
+```
+
+Paste the generated key into `APP_KEY`. Set the public HTTPS URLs, exact CORS
+origin, database, Redis, and mail credentials. Then build and migrate:
+
+```bash
+docker compose --env-file .env.production -f docker-compose.production.yml build
+docker compose --env-file .env.production -f docker-compose.production.yml run --rm app php artisan migrate --force
+docker compose --env-file .env.production -f docker-compose.production.yml up -d
+```
+
+The stack publishes Nginx on `APP_PORT` (8080 by default). TLS should terminate
+at a reverse proxy or load balancer in front of that port. Probe the web
+container through `/up`; the PHP-FPM container also has an internal FastCGI
+health check. The queue worker exits cleanly after one hour and Docker restarts
+it, which regularly reloads application code and limits long-lived process
+growth.
+
+The Docker image build is also a release gate in `.github/workflows/docker.yml`.
+It builds both production targets on release branches and pull requests, so a
+release cannot silently depend on Composer development packages or an invalid
+Nginx configuration.
+
+After deploying a new image, run migrations before switching traffic and
+recreate all application processes:
+
+Set `APP_IMAGE` and `WEB_IMAGE` in `.env.production` to immutable image tags in
+your registry before using `pull`. If the deployment host builds images from
+source, run `build` in place of `pull`.
+
+```bash
+docker compose --env-file .env.production -f docker-compose.production.yml pull
+docker compose --env-file .env.production -f docker-compose.production.yml run --rm app php artisan migrate --force
+docker compose --env-file .env.production -f docker-compose.production.yml up -d --remove-orphans
+```
+
+Use externally managed MySQL or Redis by removing their Compose services and
+the corresponding `depends_on` entries, then set `DB_HOST`, `REDIS_HOST`, and
+credentials in `.env.production`. Back up the `mysql-data`, `redis-data`, and
+`app-storage` volumes when using the bundled services. Do not bake
+`.env.production` into an image or commit it.
 
 ## Managed processes
 

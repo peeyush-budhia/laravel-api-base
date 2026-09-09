@@ -2,6 +2,11 @@
 
 ### Added
 
+- Added immutable production Docker targets without Composer development
+  dependencies, plus dedicated Nginx, queue-worker, scheduler, MySQL, Redis,
+  persistent-storage, and readiness configuration.
+- Added checksum-verified phpredis compilation, a slim non-root PHP runtime,
+  production OPcache settings, and release-branch Docker image gates.
 - Added a frozen v1 API contract and a committed OpenAPI snapshot for
   deterministic frontend type generation.
 - Added production CORS configuration and deployment guidance for application,
@@ -25,6 +30,8 @@
   documented the exact backend/frontend setup sequence. CI configuration now
   declares application-specific auth, CORS, mail, retention, and test settings
   explicitly.
+- Aligned mail deployment examples with Laravel 13's configured `MAIL_SCHEME`
+  variable and removed the obsolete `MAIL_ENCRYPTION` example.
 - Added deterministic OpenAPI export and CI checks that reject stale contract
   snapshots. Contract export rebuilds an isolated, portable SQLite testing
   schema so output does not depend on a developer's database.
@@ -32,6 +39,8 @@
 
 ### Fixed
 
+- Made Scramble configuration safe to load when Composer development
+  dependencies are omitted from production installations.
 - Hardened production exception responses so unexpected failures do not expose
   internal exception details.
 - Corrected OpenAPI test autoloading so clean Composer installations complete
@@ -41,6 +50,8 @@
 
 ### Security
 
+- Updated `league/commonmark` to 2.10.1 to resolve the high-severity denial of
+  service and attribute-filter advisories reported against 2.9.0.
 - Added explicit production origin control through `CORS_ALLOWED_ORIGINS`.
 - Added `SCRAMBLE_DOCS_ENABLED` so production deployments can avoid registering
   the interactive OpenAPI and JSON specification routes entirely.
@@ -52,10 +63,14 @@
 ### Validation
 
 - Verified a clean backend installation with fresh locked dependencies,
-  example-based configuration, migrations, seed data, the full PHPUnit suite,
-  Pint, PHPStan, Composer validation, and OpenAPI analysis.
+  example-based configuration, migrations, seed data, 299 PHPUnit tests (296
+  passed and 3 skipped) with 1,602 assertions, Pint, PHPStan, Composer
+  validation, and OpenAPI analysis.
 - Verified the release contract against the companion frontend's clean
   installation, generated-type check, tests, lint, and production build.
+- Built and inspected the production PHP-FPM and Nginx images, including the
+  no-dev dependency set, required extensions, non-root runtime, OPcache,
+  FastCGI readiness probe, and Nginx configuration.
 
 ---
 

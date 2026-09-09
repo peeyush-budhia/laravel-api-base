@@ -287,3 +287,24 @@ php artisan test tests/Integration/MySqlProductionIntegrationTest.php
 The suite includes an end-to-end login and onboarding flow and a two-process
 concurrency race. Never point these tests at a shared or production database;
 the database reset trait resets the configured test database.
+
+## Production container checks
+
+The Docker workflow builds both release artifacts:
+
+~~~bash
+docker build --file docker/Dockerfile --target production --tag laravel-api-base-app:ci .
+docker build --file docker/Dockerfile --target web --tag laravel-api-base-web:ci .
+~~~
+
+The PHP-FPM image must boot Laravel without Composer development dependencies,
+contain the required PHP and Redis extensions, run as the non-root `laravel`
+user, and answer its FastCGI ping. The Nginx image must pass `nginx -t` and
+serve only the application `public/` tree. Compose syntax can be checked with
+the non-secret example values before a release:
+
+~~~bash
+APP_ENV_FILE=.env.docker.production.example \
+docker compose --env-file .env.docker.production.example \
+  -f docker-compose.production.yml config --quiet
+~~~

@@ -46,6 +46,8 @@ v1.0.0 (validated release candidate)
 - Deterministic OpenAPI snapshot and generated frontend enum contract
 - Environment-safe baseline and demo role seeding
 - Clean backend and frontend release-candidate installations
+- Production PHP-FPM and Nginx images with dedicated queue, scheduler, MySQL,
+  Redis, persistent storage, and readiness configuration
 - Synchronized changelog, roadmap, release, setup, testing, and API documents
 
 ## Remaining release operations
@@ -285,21 +287,32 @@ audit
 
 ## Features
 
-- PHP
-- Nginx
-- MySQL / MariaDB
-- Mailpit
-- Development Environment
-- Production Environment
-- Environment Configuration
-- Persistent Storage
+- PHP 8.4 development and production targets
+- Separate Nginx development and production configurations
+- Local MySQL and Mailpit services
+- Production MySQL and Redis services
+- Dedicated production queue-worker and scheduler containers
+- Non-root PHP-FPM runtime without Composer development dependencies or build
+  tools
+- Production OPcache, persistent application storage, and readiness checks
+- Docker image builds in CI for feature, release, develop, and main branches
 
 ### Deliverables
 
 ```text
 docker-compose.yml
 
-Dockerfile
+docker-compose.production.yml
+
+docker/Dockerfile
+
+docker/nginx/default.conf
+
+docker/nginx/production.conf
+
+docker/php/conf.d/production.ini
+
+.env.docker.production.example
 ```
 
 ---
@@ -313,28 +326,22 @@ Dockerfile
 ### Pipeline
 
 ```text
-Install Dependencies
-
-↓
-
-Static Analysis
-
-↓
-
-Code Style Check
-
-↓
-
-Run Tests
-
-↓
-
-Build
-
-↓
-
-Deploy
+Composer validation and dependency audit
+                 ↓
+Pint and PHPStan
+                 ↓
+PHPUnit with 70% coverage threshold
+                 ↓
+Real MySQL integration tests
+                 ↓
+OpenAPI analysis and contract freshness
+                 ↓
+Production PHP-FPM and Nginx image builds
 ```
+
+Deployment remains an explicit release operation after reviewed changes reach
+`main`; CI builds and validates the artifacts without publishing or deploying
+them automatically.
 
 ---
 
