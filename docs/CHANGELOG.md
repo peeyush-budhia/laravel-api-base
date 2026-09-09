@@ -22,9 +22,12 @@
   `super-admin`; application-specific roles are created through the API or
   project seeders.
 - Reorganized `.env.example` around production configuration areas and
-  documented the exact backend/frontend setup sequence.
+  documented the exact backend/frontend setup sequence. CI configuration now
+  declares application-specific auth, CORS, mail, retention, and test settings
+  explicitly.
 - Added deterministic OpenAPI export and CI checks that reject stale contract
-  snapshots.
+  snapshots. Contract export rebuilds an isolated, portable SQLite testing
+  schema so output does not depend on a developer's database.
 - Raised the documented API version to `1.0.0`.
 
 ### Fixed
@@ -39,6 +42,8 @@
 ### Security
 
 - Added explicit production origin control through `CORS_ALLOWED_ORIGINS`.
+- Added `SCRAMBLE_DOCS_ENABLED` so production deployments can avoid registering
+  the interactive OpenAPI and JSON specification routes entirely.
 - Kept destructive and role-management permissions out of the demo `admin`
   role.
 - Enforced formatting, static analysis, dependency auditing, a 70 percent line

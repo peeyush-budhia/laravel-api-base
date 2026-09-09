@@ -6,6 +6,12 @@ use Dedoc\Scramble\Support\Generator\SecurityScheme;
 
 return [
     /*
+     * Register the interactive documentation and JSON specification routes.
+     * Keep this disabled in production and generate contracts through the CLI.
+     */
+    'expose' => env('SCRAMBLE_DOCS_ENABLED', false),
+
+    /*
      * Which routes to document. String or array form; use Scramble::routes() for custom selection.
      *
      * 'api_path' => [

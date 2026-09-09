@@ -2114,10 +2114,13 @@
                         "type": "string"
                     },
                     "user_id": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "event": {
-                        "type": "string"
+                        "$ref": "#/components/schemas/AuditEvent"
                     },
                     "event_label": {
                         "type": [
@@ -2159,13 +2162,22 @@
                         "additionalProperties": {}
                     },
                     "url": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "ip_address": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "user_agent": {
-                        "type": "string"
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     },
                     "created_at": {
                         "type": [
@@ -2261,7 +2273,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "integer"
+                        "type": "string"
                     },
                     "name": {
                         "type": "string"
@@ -2324,7 +2336,7 @@
                 "type": "object",
                 "properties": {
                     "id": {
-                        "type": "integer"
+                        "type": "string"
                     },
                     "name": {
                         "type": "string"

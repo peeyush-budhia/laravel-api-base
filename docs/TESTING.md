@@ -70,6 +70,11 @@ The repository contains:
 Test configuration should not depend on the developer's local .env.
 The test database should be isolated from the development database.
 
+PHPUnit uses in-memory SQLite for the default suite. GitHub Actions copies
+`.env.ci` to `.env` for its MySQL service and overrides the connection for the
+tagged MySQL integration tests. Contract export uses the dedicated SQLite file
+from `.env.testing`, rebuilds its schema, and never reads development data.
+
 # API Documentation Test Expectations
 
 The OpenAPI document should contain:

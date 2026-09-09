@@ -62,7 +62,12 @@ All application routes are versioned under `/api/v1`.
 - `GET /api/v1/audit-logs` — permission-protected audit listing
 - `GET /api/v1/dashboard` — permission-protected dashboard statistics
 
-Interactive OpenAPI documentation is available at `/docs/api` while the application is running. Detailed contracts and authorization rules are in [docs/API.md](docs/API.md), [docs/API_STANDARDS.md](docs/API_STANDARDS.md), and the [v1.0.0 contract freeze](docs/API_CONTRACT_FREEZE.md).
+When `SCRAMBLE_DOCS_ENABLED=true`, interactive OpenAPI documentation is
+available at `/docs/api` while the application is running. Production should
+leave this setting disabled and use the committed contract snapshot. Detailed
+contracts and authorization rules are in [docs/API.md](docs/API.md),
+[docs/API_STANDARDS.md](docs/API_STANDARDS.md), and the
+[v1.0.0 contract freeze](docs/API_CONTRACT_FREEZE.md).
 
 Production environment, CORS, worker, scheduler, and deployment instructions are in [docs/PRODUCTION.md](docs/PRODUCTION.md).
 

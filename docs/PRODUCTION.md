@@ -15,6 +15,8 @@ APP_URL=https://api.example.com
 FRONTEND_URL=https://app.example.com
 CORS_ALLOWED_ORIGINS=https://app.example.com
 APP_KEY=base64:<generated-secret>
+SCRAMBLE_DOCS_ENABLED=false
+SCRAMBLE_DEV_TOOLS=false
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -41,6 +43,10 @@ MAIL_FROM_NAME="Laravel API Base"
 as `https://app.example.com,https://admin.example.com`. Do not use `*` in
 production. The API uses bearer tokens, so `supports_credentials` remains
 disabled.
+
+Keep `SCRAMBLE_DOCS_ENABLED=false` in production. Scramble then does not
+register `/docs/api` or `/docs/api.json`, so both paths return `404`. Contract
+analysis and export remain available through Artisan and Composer commands.
 
 ## Build and deploy
 
@@ -96,4 +102,5 @@ configured frontend origin and confirm that an unlisted origin is rejected.
 6. Probe `/up` and `/api/v1/health`.
 7. Verify login, account activation email delivery, avatar upload, and a
    permission-protected endpoint from the production frontend.
-8. Record the deployed commit and retain a rollback artifact.
+8. Confirm `/docs/api` and `/docs/api.json` return `404`.
+9. Record the deployed commit and retain a rollback artifact.

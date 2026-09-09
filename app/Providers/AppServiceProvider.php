@@ -43,6 +43,10 @@ class AppServiceProvider extends ServiceProvider
             return;
         }
 
+        if (! config('scramble.expose', false)) {
+            Scramble::configure()->expose(false);
+        }
+
         Scramble::afterOpenApiGenerated(function (OpenApi $openApi): void {
             foreach ([UserStatus::class, AuditEvent::class] as $enum) {
                 $schemaName = class_basename($enum);

@@ -262,6 +262,10 @@ curl http://example.test/api/v1/health
 ## API Documentation
 
 Laravel API Base uses Scramble to generate OpenAPI documentation.
+Set `SCRAMBLE_DOCS_ENABLED=true` in the local environment to register the HTTP
+documentation routes. Production keeps the setting disabled and generates
+contracts through CLI commands instead.
+
 The interactive API documentation is available at:
 
 ```text
@@ -305,10 +309,11 @@ database configuration:
 composer contract:export
 ```
 
-The snapshot is written to `docs/openapi.json`. After a public contract change,
-copy that file to the frontend repository's `openapi/openapi.json` and run
-`npm run api:generate` there. Backend CI regenerates the snapshot and rejects
-stale output.
+The command rebuilds the isolated SQLite schema configured by `.env.testing`
+before writing `docs/openapi.json`; it does not use local development data.
+After a public contract change, copy that file to the frontend repository's
+`openapi/openapi.json` and run `npm run api:generate` there. Backend CI
+regenerates the snapshot and rejects stale output.
 
 The root `api.json` export remains an ignored development artifact. The
 versioned `docs/openapi.json` contract snapshot is committed for frontend type

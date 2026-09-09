@@ -102,3 +102,5 @@ Thank you for helping improve the security of Laravel API Base.
   each release.
 - Protect and rotate logs; production API responses intentionally omit
   exception details.
+- Set `SCRAMBLE_DOCS_ENABLED=false` and `SCRAMBLE_DEV_TOOLS=false` so production
+  does not register the interactive OpenAPI or JSON specification routes.
