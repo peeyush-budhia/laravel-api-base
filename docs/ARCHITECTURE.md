@@ -589,6 +589,33 @@ config('app.name')
 
 ---
 
+# Production Runtime
+
+The production deployment uses separate immutable PHP-FPM and Nginx images.
+The PHP image runs application requests, queue work, and scheduled commands as
+the non-root `laravel` user. Nginx serves only `public/` and forwards the front
+controller to PHP-FPM. MySQL, Redis, and application storage remain on private
+Docker networks and named volumes.
+
+The extension-builder stage compiles the required PHP modules and a pinned,
+checksum-verified phpredis release. Compiler tooling and Composer development
+packages are absent from the runtime image. Production OPcache disables source
+timestamp checks because application code is immutable inside the image.
+
+Container responsibilities are intentionally separate:
+
+```text
+Nginx → PHP-FPM → MySQL / Redis
+             ↘ queue worker
+             ↘ scheduler
+```
+
+The web readiness route is `/up`; PHP-FPM also exposes an internal FastCGI
+ping. Deployment procedures and environment ownership are documented in
+`docs/PRODUCTION.md`.
+
+---
+
 # SOLID Principles
 
 The project follows SOLID.

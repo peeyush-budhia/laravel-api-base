@@ -4,9 +4,14 @@ This guide defines the release process for Laravel API Base.
 
 The project follows a controlled branch and release workflow so that `main` always represents a stable version of the API Base template.
 
-The current release is **v0.9.0**, released on 2026-09-07. Its release notes
-are recorded in [CHANGELOG.md](../CHANGELOG.md); the v0.8.0 history covers the
-Audit Logs and Dashboard APIs milestone.
+The latest published release is **v1.0.0**, released on 2026-09-09. Its release
+notes are recorded in [CHANGELOG.md](CHANGELOG.md).
+
+Every release branch and pull request must pass the CI release gates:
+dependency audit, formatting, static analysis, the PHPUnit suite with at least
+70 percent application line coverage, real MySQL integration tests, OpenAPI
+validation, committed-contract freshness verification, and production
+PHP-FPM/Nginx image builds.
 
 ---
 
@@ -119,7 +124,9 @@ v0.8.0
 v0.9.0
 ```
 
-For the current 0.x development phase, minor versions represent significant feature milestones..
+Before v1.0.0, minor versions represented significant feature milestones.
+After v1.0.0, backward-compatible features increment the minor version and
+breaking contracts increment the major version.
 
 ## PATCH
 
@@ -276,8 +283,11 @@ Run the final checks on main:
 vendor/bin/pint --test
 vendor/bin/phpstan analyse
 php artisan scramble:analyze
+composer contract:export
 php artisan test
 git diff --check
+docker build --file docker/Dockerfile --target production --tag laravel-api-base-app:release .
+docker build --file docker/Dockerfile --target web --tag laravel-api-base-web:release .
 ```
 
 The release should only be tagged after these checks pass.
@@ -288,7 +298,7 @@ Create an annotated tag.
 Example:
 
 ```bash
-git tag -a v0.7.0 -m "Release v0.7.0"
+git tag -a v1.0.0 -m "Release v1.0.0"
 ```
 
 Verify:
@@ -300,7 +310,7 @@ git tag --list --sort=-version:refname | head
 Inspect the tag:
 
 ```bash
-git show v0.7.0
+git show v1.0.0
 ```
 
 # Push the Tag
@@ -308,7 +318,7 @@ git show v0.7.0
 Push the tag:
 
 ```bash
-git push origin v0.7.0
+git push origin v1.0.0
 ```
 
 Verify the remote tag:
@@ -322,7 +332,7 @@ git ls-remote --tags origin
 After pushing the tag, create a GitHub Release for:
 
 ```text
-v0.7.0
+v1.0.0
 ```
 
 The release should include a concise summary of the important changes.
@@ -346,36 +356,23 @@ ROADMAP.md reflects release
 CI is passing
 ```
 
-# Example v0.7.0 Release
+# v1.0.0 Release
 
-The planned focus for:
+The implementation and clean-install validation for v1.0.0 are complete. The
+release includes the frozen API contract, generated frontend enum
+types, production CORS and deployment guidance, hardened production error
+responses, MySQL concurrency coverage, semantic enum metadata, the revised
+role-seeding baseline, production PHP-FPM and Nginx images, managed queue and
+scheduler containers, persistent MySQL/Redis/storage services, and CI release
+gates. The production images were inspected for required PHP extensions,
+non-root execution, excluded development tooling, OPcache, FastCGI readiness,
+and Nginx configuration. The coordinated validation passed 299 backend tests
+(296 passed and 3 skipped, with 1,602 assertions) and 123 frontend tests.
+The final dependency audit also updated `league/commonmark` to 2.10.1 and
+reported no remaining security advisories.
 
-```text
-v0.7.0
-```
-
-is:
-
-```text
-Postman
-API Documentation
-Developer Experience
-```
-
-Potential release contents include:
-
-- OpenAPI documentation
-- Scramble integration
-- API documentation tests
-- Postman collection
-- Postman environment
-- Development guide
-- Testing guide
-- Release guide
-- Updated README
-- Updated CHANGELOG
-
-Only include functionality that has actually been implemented and tested.
+The coordinated backend and frontend gates passed before promotion to `main`.
+Both repositories are tagged `v1.0.0` and publish matching GitHub releases.
 
 # Hotfix Releases
 

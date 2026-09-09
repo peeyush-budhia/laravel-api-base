@@ -23,14 +23,24 @@ DB_CONNECTION=sqlite
 DB_DATABASE=/absolute/path/to/laravel-api-base/database/database.sqlite
 ```
 
+Keep `SCRAMBLE_DOCS_ENABLED=true` for the local documentation URLs described
+below. Production must set it to `false`.
+
 For MySQL, set `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` instead. Then run:
 
 ```bash
 php artisan migrate
+php artisan db:seed
 php artisan serve --host=localhost --port=8000
 ```
 
 The backend API is now at `http://localhost:8000/api/v1`.
+
+The baseline seed creates all permissions and the protected `super-admin`
+role. In local and testing environments it also creates the optional `admin`
+demo role with limited dashboard, audit-log, user-management, and role-view
+permissions, plus demo accounts. Production never receives demo roles or
+accounts.
 
 ## 3. Configure mail and queues
 
@@ -87,7 +97,46 @@ npm run dev
 
 Open `http://localhost:5173`.
 
-## 6. Verify the integration
+## 6. OpenAPI documentation and contract synchronization
+
+With `SCRAMBLE_DOCS_ENABLED=true` and the backend running, open the interactive
+API documentation at:
+
+```text
+http://localhost:8000/docs/api
+```
+
+The generated OpenAPI JSON is available at:
+
+```text
+http://localhost:8000/docs/api.json
+```
+
+The backend keeps the versioned contract snapshot in `docs/openapi.json`. A
+normal installation can use the committed backend and frontend snapshots as
+provided. When a backend change modifies the public API contract, regenerate
+the backend snapshot:
+
+```bash
+composer contract:export
+```
+
+This command rebuilds the dedicated SQLite database from `.env.testing`; it
+does not alter the development database configured in `.env`.
+
+Copy `laravel-api-base/docs/openapi.json` to
+`laravel-api-base-ui/openapi/openapi.json`, then regenerate and verify the
+frontend's backend-owned types:
+
+```bash
+npm run api:generate
+npm run api:check
+```
+
+Commit the coordinated snapshot and generated-type changes in their respective
+repositories. Do not edit `src/types/generated/api.ts` manually.
+
+## 7. Verify the integration
 
 Use the UI to log in with the provisioned administrator, then verify the dashboard, profile, user, role, permission, and audit screens. To test onboarding, create a user from the UI and open the activation link written to the backend log or delivered by the configured mail transport.
 
@@ -98,6 +147,7 @@ composer test
 composer lint
 composer analyse
 composer docs:check
+composer contract:export
 ```
 
 Run frontend checks from the frontend directory:
@@ -105,6 +155,7 @@ Run frontend checks from the frontend directory:
 ```bash
 npm run format:check
 npm run lint
+npm run api:check
 npm test
 npm run build
 ```
@@ -115,3 +166,23 @@ npm run build
 - Activation email missing: confirm `php artisan queue:work` is running and inspect the configured mail output.
 - Vite host errors: recreate the ignored config with `cp vite.config.example.ts vite.config.ts`.
 - Database errors: verify `.env`, run `php artisan migrate`, and clear cached configuration with `php artisan optimize:clear`.
+
+## Production deployment
+
+For production environment values, CORS allowlists, web-server requirements,
+queue workers, scheduler management, health checks, and the release checklist,
+see [PRODUCTION.md](PRODUCTION.md).
+
+The backend production Docker stack can be prepared with:
+
+```bash
+cp .env.docker.production.example .env.production
+docker compose --env-file .env.production -f docker-compose.production.yml build
+docker compose --env-file .env.production -f docker-compose.production.yml run --rm app php artisan migrate --force
+docker compose --env-file .env.production -f docker-compose.production.yml up -d
+```
+
+It starts separate Nginx, PHP-FPM, queue-worker, scheduler, MySQL, and Redis
+containers. For the companion frontend image, use the frontend repository's
+`docs/PRODUCTION.md`; its `VITE_API_BASE_URL` build value must point to the
+public backend `/api/v1` URL.

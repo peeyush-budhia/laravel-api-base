@@ -18,17 +18,18 @@ php artisan test
 
 # Test Structure
 
-Tests are organized according to their purpose.
-Typical structure:
+Tests are organized according to their purpose. Typical structure:
+
+```text
 tests/
 ├── Feature/
-│ └── Api/
-│ ├── Documentation
-| | └── ApiDocumentationTest.php
-│ ├── Auth/
-│ ├── Role/
-│ └── User/
+│   ├── Api/V1/
+│   ├── Documentation/
+│   ├── Integration/
+│   └── Seeder/
 └── Unit/
+```
+
 Feature tests are preferred for API behavior because they verify the application through the HTTP layer.
 
 # Running the Test Suite
@@ -42,13 +43,13 @@ php artisan test
 Run a specific directory:
 
 ```bash
-php artisan test tests/Feature/Api
+php artisan test tests/Feature/Api/V1
 ```
 
 Run a specific test:
 
 ```bash
-php artisan test tests/Feature/Api/ApiDocumentationTest.php
+php artisan test tests/Feature/Documentation/ApiDocumentationTest.php
 ```
 
 Run a specific test method:
@@ -68,6 +69,11 @@ The repository contains:
 
 Test configuration should not depend on the developer's local .env.
 The test database should be isolated from the development database.
+
+PHPUnit uses in-memory SQLite for the default suite. GitHub Actions copies
+`.env.ci` to `.env` for its MySQL service and overrides the connection for the
+tagged MySQL integration tests. Contract export uses the dedicated SQLite file
+from `.env.testing`, rebuilds its schema, and never reads development data.
 
 # API Documentation Test Expectations
 
@@ -110,13 +116,15 @@ Expected result:
 Everything is fine! Documentation is generated without any errors
 ```
 
-Export the document when manually reviewing it:
+Export and normalize the committed contract snapshot:
 
 ```bash
-php artisan scramble:export
+composer contract:export
 ```
 
-The generated api.json file is a local artifact and should remain ignored by Git unless explicitly required by the project.
+The resulting `docs/openapi.json` file is versioned. CI regenerates it and
+fails when the committed contract is stale. The frontend copies this snapshot
+and generates backend-owned enum types from it.
 
 # Code Style Testing
 
@@ -134,7 +142,7 @@ vendor/bin/pint
 
 Code should be formatted before submitting a Pull Request.
 
-#Regression Testing
+# Regression Testing
 Whenever an existing feature is changed:
 
 1. Add or update the relevant test.
@@ -187,6 +195,7 @@ Run:
 vendor/bin/pint --test
 vendor/bin/phpstan analyse
 php artisan scramble:analyze
+composer contract:export
 php artisan test
 git diff --check
 ```
@@ -205,14 +214,19 @@ Code Style Check
 ↓
 Static Analysis
 ↓
-Run Tests
+PHPUnit and Coverage Gate
 ↓
 OpenAPI Validation
+↓
+Contract Freshness
+↓
+MySQL Integration Tests
 ```
 
-The GitHub Actions test workflow runs `composer lint` and `composer analyse`
-after installing dependencies. Both checks are required alongside the test and
-OpenAPI validation steps.
+The GitHub Actions workflows validate locked dependencies, run `composer lint`
+and `composer analyse`, enforce at least 70 percent application line coverage,
+validate OpenAPI generation and the committed contract, and run the tagged
+MySQL integration suite against a real MySQL service.
 
 A Pull Request should not be merged when required CI checks are failing.
 
@@ -220,6 +234,11 @@ Regression tests should cover concurrent protection for singleton roles,
 permission-scoped dashboard cache behavior, and array/object listing inputs so
 malformed query parameters return validation errors instead of reaching query
 builders or scalar casts.
+
+Seeder tests must also preserve the installation baseline: the core seeder
+creates every permission and the single `super-admin` role, while
+`DemoRolesSeeder` adds the local/testing `admin` role with its documented demo
+permission subset. Demo users must not receive an implicit role.
 
 Testing Goals
 Maintain:
@@ -234,3 +253,58 @@ Maintain:
 - Automated CI execution
 
 Every new API endpoint should include appropriate feature tests.
+
+## Coverage threshold
+
+CI collects line coverage with PCOV and fails the release gate below 70 percent:
+
+~~~bash
+composer coverage
+~~~
+
+The threshold applies to application code under app/. Coverage is a signal for
+untested behavior, not a replacement for endpoint, authorization, concurrency,
+or integration tests. Raise the threshold when a release has materially
+increased meaningful coverage.
+
+## MySQL integration tests
+
+The default suite uses isolated in-memory SQLite. To validate production-like
+transactions, queue dispatch, and the single-super-admin lock against MySQL,
+create a dedicated empty test database and run:
+
+~~~bash
+RUN_MYSQL_INTEGRATION_TESTS=true \
+DB_CONNECTION=mysql \
+DB_HOST=127.0.0.1 \
+DB_PORT=3306 \
+DB_DATABASE=laravel_api_test \
+DB_USERNAME=laravel_test \
+DB_PASSWORD='secret' \
+php artisan test tests/Integration/MySqlProductionIntegrationTest.php
+~~~
+
+The suite includes an end-to-end login and onboarding flow and a two-process
+concurrency race. Never point these tests at a shared or production database;
+the database reset trait resets the configured test database.
+
+## Production container checks
+
+The Docker workflow builds both release artifacts:
+
+~~~bash
+docker build --file docker/Dockerfile --target production --tag laravel-api-base-app:ci .
+docker build --file docker/Dockerfile --target web --tag laravel-api-base-web:ci .
+~~~
+
+The PHP-FPM image must boot Laravel without Composer development dependencies,
+contain the required PHP and Redis extensions, run as the non-root `laravel`
+user, and answer its FastCGI ping. The Nginx image must pass `nginx -t` and
+serve only the application `public/` tree. Compose syntax can be checked with
+the non-secret example values before a release:
+
+~~~bash
+APP_ENV_FILE=.env.docker.production.example \
+docker compose --env-file .env.docker.production.example \
+  -f docker-compose.production.yml config --quiet
+~~~

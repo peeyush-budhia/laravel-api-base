@@ -6,6 +6,12 @@ use Dedoc\Scramble\Support\Generator\SecurityScheme;
 
 return [
     /*
+     * Register the interactive documentation and JSON specification routes.
+     * Keep this disabled in production and generate contracts through the CLI.
+     */
+    'expose' => env('SCRAMBLE_DOCS_ENABLED', false),
+
+    /*
      * Which routes to document. String or array form; use Scramble::routes() for custom selection.
      *
      * 'api_path' => [
@@ -47,7 +53,7 @@ return [
         /*
          * API version.
          */
-        'version' => env('API_VERSION', '0.7.0'),
+        'version' => env('API_VERSION', '1.0.0'),
 
         /*
          * Description rendered on the home page of the API documentation (`/docs/api`).
@@ -183,11 +189,13 @@ return [
      * ],
      */
     // 'security_strategy' => \Dedoc\Scramble\SecurityDocumentation\MiddlewareAuthSecurityStrategy::class,
-    'security_strategy' => [
-        MiddlewareAuthSecurityStrategy::class,
-        [
-            'middleware' => ['auth', 'auth:*'],
-            'scheme' => SecurityScheme::http('bearer'),
-        ],
-    ],
+    'security_strategy' => class_exists(SecurityScheme::class)
+        ? [
+            MiddlewareAuthSecurityStrategy::class,
+            [
+                'middleware' => ['auth', 'auth:*'],
+                'scheme' => SecurityScheme::http('bearer'),
+            ],
+        ]
+        : null,
 ];

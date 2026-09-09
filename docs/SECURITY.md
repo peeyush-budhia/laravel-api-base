@@ -87,3 +87,25 @@ Please allow reasonable time for a fix before publicly disclosing any vulnerabil
 Responsible disclosure helps protect all users of this project.
 
 Thank you for helping improve the security of Laravel API Base.
+
+## Production security review
+
+- Keep APP_DEBUG=false, use HTTPS, and restrict CORS_ALLOWED_ORIGINS to exact
+  trusted frontend origins.
+- Store secrets only in the deployment environment and rotate database, mail,
+  queue, and application credentials through the hosting platform.
+- Keep the web-server document root at public/; never expose .env, storage, or
+  source files.
+- Run queue workers and the scheduler under a dedicated least-privilege user.
+- Review authentication throttles, Sanctum token expiry, password policy,
+  authorization permissions, upload validation, and audit retention before
+  each release.
+- Protect and rotate logs; production API responses intentionally omit
+  exception details.
+- Set `SCRAMBLE_DOCS_ENABLED=false` and `SCRAMBLE_DEV_TOOLS=false` so production
+  does not register the interactive OpenAPI or JSON specification routes.
+- The production PHP-FPM image runs as the non-root `laravel` user and excludes
+  Composer, development dependencies, compilers, and build headers. Keep MySQL
+  and Redis on the private Compose network and publish only the Nginx port.
+- Supply `.env.production` at runtime. Never copy it into an image, commit it,
+  or expose the named application-storage volume through another service.

@@ -1,7 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Providers;
 
+use App\Enums\AuditEvent;
+use App\Enums\UserStatus;
+use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Support\EnumTransformer;
+use Dedoc\Scramble\Support\Generator\OpenApi;
+use Dedoc\Scramble\Support\Generator\Schema;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -23,6 +31,36 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureRateLimiting();
+        $this->configureOpenApi();
+    }
+
+    /**
+     * Register enum schemas consumed by generated API clients.
+     */
+    private function configureOpenApi(): void
+    {
+        if (! class_exists(Scramble::class)) {
+            return;
+        }
+
+        if (! config('scramble.expose', false)) {
+            Scramble::configure()->expose(false);
+        }
+
+        Scramble::afterOpenApiGenerated(function (OpenApi $openApi): void {
+            foreach ([UserStatus::class, AuditEvent::class] as $enum) {
+                $schemaName = class_basename($enum);
+
+                if ($openApi->components->hasSchema($schemaName)) {
+                    continue;
+                }
+
+                $openApi->components->addSchema(
+                    $schemaName,
+                    Schema::fromType(EnumTransformer::make($enum)->transform()),
+                );
+            }
+        });
     }
 
     /**

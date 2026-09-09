@@ -38,6 +38,8 @@ final class UserSummaryResource extends JsonResource
             'email' => $user->email,
             'avatar' => $user->avatar ? asset('storage/'.ltrim($user->avatar, '/')) : null,
             'status' => $status instanceof UserStatus ? $status->value : null,
+            'status_label' => $status instanceof UserStatus ? $status->label() : null,
+            'status_tone' => $status instanceof UserStatus ? $status->tone() : null,
             'email_verified_at' => $formatDate($user->getAttribute('email_verified_at')),
             'last_login_at' => $formatDate($user->getAttribute('last_login_at')),
             'created_at' => $formatDate($user->getAttribute('created_at')),

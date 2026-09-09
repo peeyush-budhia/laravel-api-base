@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api\V1\User;
 
-use App\Enums\Role as EnumsRole;
 use App\Models\Role;
 use App\Services\User\UserService;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
@@ -15,6 +14,8 @@ final class UserOnboardingTransactionTest extends TestCase
 {
     use DatabaseMigrations;
 
+    private const string MEMBER_ROLE = 'member';
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -22,7 +23,7 @@ final class UserOnboardingTransactionTest extends TestCase
         config(['queue.default' => 'database']);
 
         Role::create([
-            'name' => EnumsRole::USER->value,
+            'name' => self::MEMBER_ROLE,
             'guard_name' => 'sanctum',
         ]);
     }
@@ -81,7 +82,7 @@ final class UserOnboardingTransactionTest extends TestCase
             'first_name' => 'New',
             'last_name' => 'User',
             'email' => fake()->unique()->safeEmail(),
-            'role' => EnumsRole::USER->value,
+            'role' => self::MEMBER_ROLE,
         ];
     }
 }

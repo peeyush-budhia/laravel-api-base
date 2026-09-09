@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Api\V1;
 
+use App\Enums\UserStatus;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -28,6 +29,11 @@ class UserResource extends JsonResource
             'permissions',
         ]);
 
+        $statusValue = $user->getAttribute('status');
+        $status = $statusValue instanceof UserStatus
+            ? $statusValue
+            : (is_string($statusValue) ? UserStatus::tryFrom($statusValue) : null);
+
         return [
             'id' => $user->id,
 
@@ -50,7 +56,11 @@ class UserResource extends JsonResource
                 ->values()
                 ->all(),
 
-            'status' => $user->status?->value,
+            'status' => $status?->value,
+
+            'status_label' => $status?->label(),
+
+            'status_tone' => $status?->tone(),
 
             'email_verified_at' => $user->email_verified_at?->toIso8601String(),
 

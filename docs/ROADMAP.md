@@ -23,8 +23,31 @@ This roadmap outlines the planned evolution of the project.
 # Current Version
 
 ```text
-v0.9.0 (released 2026-09-07)
+v1.0.0 (latest published release, 2026-09-09)
 ```
+
+---
+
+# v1.0.0 — Production Baseline
+
+**Status:** ✅ Released 2026-09-09
+
+## Completed
+
+- Frozen `/api/v1` request, response, error, pagination, and authorization
+  contracts
+- Production CORS, environment, deployment, worker, scheduler, readiness,
+  storage, migration, and rollback documentation
+- Safe production exception responses and security review
+- Real MySQL onboarding and super-admin concurrency integration tests
+- CI dependency audit, formatting, PHPStan, 70 percent coverage, MySQL, and
+  OpenAPI release gates
+- Deterministic OpenAPI snapshot and generated frontend enum contract
+- Environment-safe baseline and demo role seeding
+- Clean backend and frontend release-candidate installations
+- Production PHP-FPM and Nginx images with dedicated queue, scheduler, MySQL,
+  Redis, persistent storage, and readiness configuration
+- Synchronized changelog, roadmap, release, setup, testing, and API documents
 
 ---
 
@@ -257,21 +280,32 @@ audit
 
 ## Features
 
-- PHP
-- Nginx
-- MySQL / MariaDB
-- Mailpit
-- Development Environment
-- Production Environment
-- Environment Configuration
-- Persistent Storage
+- PHP 8.4 development and production targets
+- Separate Nginx development and production configurations
+- Local MySQL and Mailpit services
+- Production MySQL and Redis services
+- Dedicated production queue-worker and scheduler containers
+- Non-root PHP-FPM runtime without Composer development dependencies or build
+  tools
+- Production OPcache, persistent application storage, and readiness checks
+- Docker image builds in CI for feature, release, develop, and main branches
 
 ### Deliverables
 
 ```text
 docker-compose.yml
 
-Dockerfile
+docker-compose.production.yml
+
+docker/Dockerfile
+
+docker/nginx/default.conf
+
+docker/nginx/production.conf
+
+docker/php/conf.d/production.ini
+
+.env.docker.production.example
 ```
 
 ---
@@ -285,28 +319,22 @@ Dockerfile
 ### Pipeline
 
 ```text
-Install Dependencies
-
-↓
-
-Static Analysis
-
-↓
-
-Code Style Check
-
-↓
-
-Run Tests
-
-↓
-
-Build
-
-↓
-
-Deploy
+Composer validation and dependency audit
+                 ↓
+Pint and PHPStan
+                 ↓
+PHPUnit with 70% coverage threshold
+                 ↓
+Real MySQL integration tests
+                 ↓
+OpenAPI analysis and contract freshness
+                 ↓
+Production PHP-FPM and Nginx image builds
 ```
+
+Deployment remains an explicit release operation after reviewed changes reach
+`main`; CI builds and validates the artifacts without publishing or deploying
+them automatically.
 
 ---
 
@@ -419,9 +447,11 @@ These can be implemented in projects that use Laravel API Base as their foundati
 | v0.5.0  | ✅ Complete | Query Infrastructure & API Improvements           |
 | v0.6.0  | ✅ Released | Backend Cleanup & Foundation Stabilization        |
 | v0.7.0  | ✅ Released | Postman, API Documentation & Developer Experience |
-| v0.8.0  | ✅ Complete | Audit Logs & Dashboard APIs                       |
+| v0.8.0  | ✅ Released | Audit Logs & Dashboard APIs                       |
+| v0.8.1  | ✅ Released | Dashboard Avatar URL Fix                          |
+| v0.8.2  | ✅ Released | Authentication, Audit & Password Policy           |
 | v0.9.0  | ✅ Released | Security, Performance & Infrastructure            |
-| v1.0.0  | 🎯 Target   | Production Ready API Template                     |
+| v1.0.0  | ✅ Released | Production Ready API Template                     |
 
 ---
 

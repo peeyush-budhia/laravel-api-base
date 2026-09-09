@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
 
         if ($this->container->environment('local', 'testing')) {
             $this->call([
+                DemoRolesSeeder::class,
                 DemoUserSeeder::class,
             ]);
         }

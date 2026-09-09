@@ -87,15 +87,19 @@ Run migrations:
 php artisan migrate
 ```
 
-Seed the baseline roles and permissions together with local demonstration data:
+Seed the baseline permissions and protected `super-admin` role together with
+local demonstration data:
 
 ```bash
 php artisan db:seed
 ```
 
-The demonstration accounts are created only when `APP_ENV` is `local` or
-`testing`. Rerunning the seeder does not reset their passwords or add another
-batch of generated users.
+The baseline seeder creates only `super-admin` in production. The `admin` role
+is added by `DemoRolesSeeder` only when `APP_ENV` is `local` or `testing`, with
+`dashboard.view`, `audit-logs.view`, `users.view`, `users.create`,
+`users.update`, and `roles.view`. It intentionally excludes destructive and
+role-management permissions. Rerunning the seeders does not reset demo account
+passwords or add another batch of generated users.
 
 The local accounts are:
 
@@ -103,7 +107,7 @@ The local accounts are:
 | ------------------------- | ------------- | ---------------- |
 | `super-admin@example.com` | `super-admin` | `password`       |
 | `admin@example.com`       | `admin`       | `password`       |
-| `user@example.com`        | `user`        | `password`       |
+| `user@example.com`        | None          | `password`       |
 
 These credentials are development fixtures and are never created by the
 default seeder in production.
@@ -184,7 +188,10 @@ expiry text, and absence of temporary credentials from the serialized payload.
 
 ## Docker Setup
 
-The repository includes a Docker stack for local backend development.
+The default Docker Compose stack is for local backend development. Its
+`development` image target includes Composer and development dependencies and
+bind-mounts the repository for live editing. Production uses the separate
+immutable stack documented in `docs/PRODUCTION.md`.
 
 1. Copy the Docker environment example.
 
@@ -258,6 +265,10 @@ curl http://example.test/api/v1/health
 ## API Documentation
 
 Laravel API Base uses Scramble to generate OpenAPI documentation.
+Set `SCRAMBLE_DOCS_ENABLED=true` in the local environment to register the HTTP
+documentation routes. Production keeps the setting disabled and generates
+contracts through CLI commands instead.
+
 The interactive API documentation is available at:
 
 ```text
@@ -294,7 +305,22 @@ Generate/export the OpenAPI document:
 php artisan scramble:export
 ```
 
-The generated api.json file is a development artifact and should not be committed to the repository unless the project explicitly decides otherwise.
+Export the committed frontend contract snapshot without depending on the local
+database configuration:
+
+```bash
+composer contract:export
+```
+
+The command rebuilds the isolated SQLite schema configured by `.env.testing`
+before writing `docs/openapi.json`; it does not use local development data.
+After a public contract change, copy that file to the frontend repository's
+`openapi/openapi.json` and run `npm run api:generate` there. Backend CI
+regenerates the snapshot and rejects stale output.
+
+The root `api.json` export remains an ignored development artifact. The
+versioned `docs/openapi.json` contract snapshot is committed for frontend type
+generation and checked for freshness in CI.
 
 Clear the generated OpenAPI cache:
 

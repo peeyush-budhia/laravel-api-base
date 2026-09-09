@@ -2,7 +2,7 @@
 
 Laravel API Base is the backend for the Laravel API Base UI. It provides a versioned Laravel 13 REST API for authentication, onboarding, users, roles, permissions, profiles, avatars, audit logs, and dashboard statistics.
 
-Current release: **v0.9.0**.
+Latest published release: **v1.0.0** (2026-09-09).
 
 ## Requirements
 
@@ -23,7 +23,7 @@ php artisan migrate
 php artisan serve --host=localhost --port=8000
 ```
 
-The API is available at `http://localhost:8000/api/v1`. For a complete backend-and-frontend setup, see [SETUP_GUIDE.md](SETUP_GUIDE.md).
+The API is available at `http://localhost:8000/api/v1`. For a complete backend-and-frontend setup, see [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md).
 
 Create the first production administrator with:
 
@@ -31,7 +31,9 @@ Create the first production administrator with:
 php artisan app:provision-super-admin
 ```
 
-Local and testing environments may use seeded demo accounts. Production seeding does not create demo users.
+Production seeding creates all permissions and only the protected `super-admin`
+role. Local and testing environments also receive a limited `admin` demo role
+and demo accounts; production receives no demo roles or users.
 
 ## Background processes
 
@@ -59,7 +61,18 @@ All application routes are versioned under `/api/v1`.
 - `GET /api/v1/audit-logs` — permission-protected audit listing
 - `GET /api/v1/dashboard` — permission-protected dashboard statistics
 
-Interactive OpenAPI documentation is available at `/docs/api` while the application is running. Detailed contracts and authorization rules are in [docs/API.md](docs/API.md) and [docs/API_STANDARDS.md](docs/API_STANDARDS.md).
+When `SCRAMBLE_DOCS_ENABLED=true`, interactive OpenAPI documentation is
+available at `/docs/api` while the application is running. Production should
+leave this setting disabled and use the committed contract snapshot. Detailed
+contracts and authorization rules are in [docs/API.md](docs/API.md),
+[docs/API_STANDARDS.md](docs/API_STANDARDS.md), and the
+[v1.0.0 contract freeze](docs/API_CONTRACT_FREEZE.md).
+
+Production environment, CORS, worker, scheduler, and deployment instructions are in [docs/PRODUCTION.md](docs/PRODUCTION.md).
+That guide also includes the immutable production Docker stack with dedicated
+web, PHP-FPM, queue, scheduler, MySQL, and Redis services.
+
+Security controls and API failure behavior are documented in [docs/SECURITY.md](docs/SECURITY.md) and [docs/ERROR_HANDLING.md](docs/ERROR_HANDLING.md).
 
 ## Architecture
 
@@ -83,9 +96,14 @@ composer test
 composer lint
 composer analyse
 composer docs:check
+composer contract:export
 ```
 
-GitHub Actions runs formatting, PHPStan, the test suite, and OpenAPI validation before changes can be merged.
+GitHub Actions runs dependency validation, formatting, PHPStan, the test suite
+with its coverage threshold, MySQL integration tests, OpenAPI analysis, and a
+generated-contract freshness check before changes can be merged. A separate
+Docker workflow builds the production PHP-FPM and Nginx targets on feature and
+release branches and on pull requests.
 
 ## Related frontend
 
@@ -93,4 +111,4 @@ The companion React application is maintained at [laravel-api-base-ui](https://g
 
 ## Contributing and license
 
-Use feature branches and read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. This project is released under the MIT License.
+Use feature branches and read [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) before opening a pull request. This project is released under the MIT License.
