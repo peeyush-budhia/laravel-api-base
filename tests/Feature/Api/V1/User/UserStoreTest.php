@@ -19,12 +19,14 @@ final class UserStoreTest extends ApiTestCase
 {
     use InteractsWithPermissions;
 
+    private const string ADMIN_ROLE = 'admin';
+
     protected function setUp(): void
     {
         parent::setUp();
 
         Role::create([
-            'name' => EnumsRole::ADMIN,
+            'name' => self::ADMIN_ROLE,
             'guard_name' => 'sanctum',
         ]);
 
@@ -40,7 +42,7 @@ final class UserStoreTest extends ApiTestCase
 
         $payload = $this->validUserData([
             'email' => $newEmail,
-            'role' => EnumsRole::ADMIN,
+            'role' => self::ADMIN_ROLE,
         ]);
 
         $response = $this->apiPost('/users', $payload);
@@ -53,7 +55,7 @@ final class UserStoreTest extends ApiTestCase
             ->assertJsonPath('data.last_name', 'Doe')
             ->assertJsonPath('data.email', $newEmail)
             ->assertJsonPath('data.status', EnumsUserStatus::ACTIVE)
-            ->assertJsonPath('data.role', EnumsRole::ADMIN);
+            ->assertJsonPath('data.role', self::ADMIN_ROLE);
 
         $this->assertDatabaseHas('users', [
             'email' => $newEmail,
@@ -62,7 +64,7 @@ final class UserStoreTest extends ApiTestCase
         $user = User::where('email', $newEmail)->firstOrFail();
 
         $this->assertTrue(
-            $user->hasRole(EnumsRole::ADMIN),
+            $user->hasRole(self::ADMIN_ROLE),
         );
 
         $this->assertNull(
@@ -76,7 +78,7 @@ final class UserStoreTest extends ApiTestCase
 
         $payload = $this->validUserData([
             'email' => $newEmail,
-            'role' => EnumsRole::ADMIN,
+            'role' => self::ADMIN_ROLE,
         ]);
 
         $response = $this->apiPost('/users', $payload);
@@ -139,7 +141,7 @@ final class UserStoreTest extends ApiTestCase
     public function test_avatar_path_cannot_be_set_when_creating_a_user(): void
     {
         $response = $this->apiPost('/users', $this->validUserData([
-            'role' => EnumsRole::ADMIN,
+            'role' => self::ADMIN_ROLE,
             'avatar' => 'avatars/another-user/private.jpg',
         ]));
 
@@ -156,7 +158,7 @@ final class UserStoreTest extends ApiTestCase
 
         $response = $this->apiPost('/users', $this->validUserData([
             'email' => $newEmail,
-            'role' => EnumsRole::ADMIN,
+            'role' => self::ADMIN_ROLE,
         ]));
 
         $response->assertCreated();
@@ -181,7 +183,7 @@ final class UserStoreTest extends ApiTestCase
 
         $response = $this->apiPost('/users', $this->validUserData([
             'email' => $newEmail,
-            'role' => EnumsRole::ADMIN,
+            'role' => self::ADMIN_ROLE,
         ]));
 
         $response->assertCreated();
@@ -200,7 +202,7 @@ final class UserStoreTest extends ApiTestCase
         Notification::fake();
 
         $response = $this->apiPost('/users', $this->validUserData([
-            'role' => EnumsRole::ADMIN,
+            'role' => self::ADMIN_ROLE,
         ]));
 
         $response

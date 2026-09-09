@@ -6,6 +6,7 @@ on:
       - main
       - develop
       - "feature/**"
+      - "release/**"
 
   pull_request:
     branches:
@@ -31,5 +32,8 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker Image
-        run: docker build --file docker/Dockerfile --tag laravel-api-base-app:ci .
+      - name: Build Production Application Image
+        run: docker build --file docker/Dockerfile --target production --tag laravel-api-base-app:ci .
+
+      - name: Build Production Web Image
+        run: docker build --file docker/Dockerfile --target web --tag laravel-api-base-web:ci .

@@ -45,16 +45,6 @@ final class RolePermissionSeeder extends Seeder
             'sanctum',
         );
 
-        $admin = Role::findOrCreate(
-            RoleEnum::ADMIN->value,
-            'sanctum',
-        );
-
-        $user = Role::findOrCreate(
-            RoleEnum::USER->value,
-            'sanctum',
-        );
-
         /*
          * --------------------------------------------------------------------------
          * Super Admin
@@ -64,26 +54,6 @@ final class RolePermissionSeeder extends Seeder
         $superAdmin->syncPermissions(
             $permissions->values(),
         );
-
-        /*
-         * --------------------------------------------------------------------------
-         * Admin
-         * --------------------------------------------------------------------------
-         */
-
-        $admin->syncPermissions(
-            $permissions->values(),
-        );
-
-        /*
-         * --------------------------------------------------------------------------
-         * User
-         * --------------------------------------------------------------------------
-         */
-
-        $user->syncPermissions([
-            $permissions[PermissionEnum::USERS_VIEW->value],
-        ]);
 
         app(PermissionRegistrar::class)
             ->forgetCachedPermissions();

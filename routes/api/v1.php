@@ -16,11 +16,3 @@ require __DIR__.'/v1/dashboard.php';
 require __DIR__.'/v1/users.php';
 require __DIR__.'/v1/roles.php';
 require __DIR__.'/v1/audit-logs.php';
-
-// Future modules
-// require __DIR__ . '/v1/companies.php';
-// require __DIR__ . '/v1/suppliers.php';
-// require __DIR__ . '/v1/purchasers.php';
-// require __DIR__ . '/v1/bills.php';
-// require __DIR__ . '/v1/payments.php';
-// require __DIR__ . '/v1/reports.php';

@@ -6,11 +6,14 @@ on:
       - main
       - develop
       - "feature/**"
+      - "release/**"
 
   pull_request:
     branches:
       - main
       - develop
+
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -51,7 +54,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.4"
-          coverage: none
+          coverage: pcov
           extensions: >
             mbstring,
             pdo_mysql,
@@ -79,6 +82,9 @@ jobs:
 
       - name: Install Composer Dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Audit Composer Dependencies
+        run: composer audit --locked --no-interaction
 
       - name: Check Formatting
         run: composer lint
@@ -124,8 +130,24 @@ jobs:
       - name: Run Database Migrations
         run: php artisan migrate --force
 
-      - name: Run Tests
-        run: php artisan test
+      - name: Run Tests with Coverage Gate
+        run: composer coverage
+
+      - name: Run MySQL Integration Tests
+        env:
+          RUN_MYSQL_INTEGRATION_TESTS: "true"
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: laravel_api_base_test
+          DB_USERNAME: laravel
+          DB_PASSWORD: secret
+        run: php artisan test tests/Integration/MySqlProductionIntegrationTest.php
 
       - name: OpenAPI Validation
         run: php artisan scramble:analyze
+
+      - name: Verify OpenAPI Contract Snapshot
+        run: |
+          composer contract:export
+          git diff --exit-code -- docs/openapi.json

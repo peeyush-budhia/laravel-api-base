@@ -32,15 +32,14 @@ final class DemoUserSeeder extends Seeder
             lastName: 'User',
         );
 
-        $user = $this->createDemoUser(
+        $this->createDemoUser(
             email: 'user@example.com',
             firstName: 'Normal',
             lastName: 'User',
         );
 
         $superAdmin->assignRole(Role::SUPER_ADMIN->value);
-        $admin->assignRole(Role::ADMIN->value);
-        $user->assignRole(Role::USER->value);
+        $admin->assignRole(DemoRolesSeeder::ADMIN_ROLE);
 
         if (User::query()->count() === 3) {
             User::factory()->count(7)->create();

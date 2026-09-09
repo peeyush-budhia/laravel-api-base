@@ -34,13 +34,19 @@ Never commit directly to `main`.
 
 ## Before Every Commit
 
-Run
+Run the release checks relevant to the change:
 
 ```bash
-vendor/bin/pint
-
-php artisan test
+composer test
+composer lint
+composer analyse
+composer docs:check
+git diff --check
 ```
+
+When changing Docker or production configuration, also validate the Compose
+files and build the affected production image target as documented in
+`docs/TESTING.md`.
 
 ---
 
